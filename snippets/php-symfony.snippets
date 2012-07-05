@@ -1,0 +1,100 @@
+snippet act "act"
+public function ${1:name}Action(${2})
+{
+    return $this->render('${3:Bundle}:${4:Route}:${5:template}.${6:html.twig}')${7:;}
+}
+endsnippet
+
+snippet render "render"
+$this->render('${1:Bundle}:${2:Route}:${3:template}.${4:html.twig}')${5:;}
+endsnippet
+
+snippet em "em"
+$em = $this->get('doctrine.orm.entity_manager');
+endsnippet
+
+snippet @a "@a"
+@Assert\${1}
+endsnippet
+
+snippet @c "@c"
+@Cache(${1})
+endsnippet
+
+snippet @s "@s"
+@Secure(roles='${1}')
+endsnippet
+
+snippet @t "@t"
+@Template()${1}
+endsnippet
+
+snippet @r "@r"
+@Route('${1}')${2}
+endsnippet
+
+snippet @rn "@rn"
+@Route('${1}', name='${2}')${3}
+endsnippet
+
+snippet cl "cl"
+<?php
+namespace ${1:`!v substitute(substitute(substitute(expand('%:p'), '\v(.*\/\l+)((\/\u\w+)+)\/\u\w+.php$', '\2', ''), '\/', '\\\', 'g'), '^\\\', '', '')`};
+class ${2:`!v Filename('', 'myClass')`}
+{
+    ${3}
+}
+endsnippet
+
+snippet cont "cont"
+<?php
+namespace ${1:Acme}\${2:Demo}Bundle\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+class ${3:$1$2}Controller extends Controller
+{
+    ${4:act}${5:}
+}
+endsnippet
+
+snippet confs "confs"
+<?php
+namespace ${1:Acme}\${2:Demo}Bundle\DependencyInjection;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension,
+    Symfony\Component\DependencyInjection\Loader\${3:Xml}FileLoader,
+    Symfony\Component\DependencyInjection\ContainerBuilder,
+    Symfony\Component\Config\FileLocator;
+    class ${4:$1$2}Extension extends Extension
+    {
+        public function load(array $configs, ContainerBuilder $container)
+        {
+            $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+            $loader->load('${5:services}.${6:xml}');
+            ${7}
+        }
+    }
+endsnippet
+
+snippet confb "confb"
+<?php
+namespace ${1:Acme}\${2:Demo}Bundle\DependencyInjection;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder,
+    Symfony\Component\Config\Definition\ConfigurationInterface;
+class Configuration implements ConfigurationInterface
+{
+    public function getConfigTreeBuilder()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('${3}');
+        $rootNode->${4:children()}
+        return $treeBuilder;
+    }
+}
+endsnippet
+
+snippet conff "conff"
+$${1:config} = array();
+foreach ($configs as $subConfig) {
+    $$1 = array_merge($$1, $subConfig);
+    ${2}
+}
+endsnippet
