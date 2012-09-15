@@ -37,6 +37,12 @@ snippet @rn "@rn"
 @Route('${1}', name='${2}')${3}
 endsnippet
 
+snippet @doc "@doc"
+/**
+ * {@inheritDoc}
+ */
+endsnippet
+
 snippet cl "cl"
 <?php
 namespace ${1:`!v substitute(substitute(substitute(expand('%:p'), '\v(.*\/\l+)((\/\u\w+)+)\/\u\w+.php$', '\2', ''), '\/', '\\\', 'g'), '^\\\', '', '')`};

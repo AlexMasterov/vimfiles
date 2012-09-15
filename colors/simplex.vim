@@ -23,7 +23,7 @@ hi StatusLineNC         guifg=#888888   guibg=#EEEEEE   gui=none
 hi VertSplit            guifg=#EEEEEE   guibg=#EEEEEE   gui=none
 hi TabLine                              guibg=#FFFFFF   gui=none
 hi TabLineSel                           guibg=#BBDDFF   gui=none
-hi TabLineFill          guifg=#FFFFFF                   gui=none
+hi TabLineFill          guifg=#FFFFFF   guibg=#FFFFFF   gui=none
 
 hi SignColumn           guifg=#EEEEEE   guibg=#FFFFFF   gui=none
 hi Folded               guifg=#60656F   guibg=#EEEEEE   gui=none
@@ -90,13 +90,14 @@ hi link Debug           Special
 
 " PHP
 hi phpEcho              guifg=#333333   gui=bold
+hi phpType              guifg=#0050B1   gui=none
+hi phpParent            guifg=#93A1A1   gui=none
 hi phpNumber            guifg=#1299DA   gui=none
 hi phpBoolean           guifg=#CD7F32   gui=bold
+hi phpStatement         guifg=#0050B1   gui=none
+hi phpException         guifg=#0050B1   gui=bold
 hi phpClasses           guifg=#B729D9   gui=none
-hi phpStatement         guifg=#CD7F32   gui=none
-hi phpException         guifg=#CD7F32   gui=bold
 hi phpFunctions         guifg=#333333   gui=bold
-hi phpParent            guifg=#93A1A1   gui=none
 hi phpBraceError        guifg=#FF0000   gui=bold
 hi phpParentError       guifg=#FF0000   gui=bold
 hi phpSemicolon         guifg=#FF0000   gui=bold
@@ -105,14 +106,14 @@ hi phpDefineClassName   guifg=#3A75C4   gui=bold
 hi phpInclude           guifg=#333333   gui=bold
 hi phpMethodsVar        guifg=#008080   gui=none
 hi phpMemberSelector    guifg=#333333   gui=none
-hi phpVarSelector       guifg=#777777   gui=none
+hi phpVarSelector       guifg=#60656F   gui=none
 
 " HTML
 hi htmlTag              guifg=#1E347B   gui=none
 hi htmlTagN             guifg=#1E347B   gui=none
 hi htmlTagName          guifg=#1E347B   gui=none
 hi htmlEndTag           guifg=#1E347B   gui=none
-hi htmlLink             guifg=#0088CC   gui=underline
+hi htmlLink             guifg=#0050B1   gui=none
 
 " CSS
 hi cssBraces            guifg=#93A1A1   gui=none

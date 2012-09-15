@@ -2,9 +2,6 @@
 
 " Environment
     set nocompatible
-
-    set autoread
-    set autochdir
     set noswapfile
     set viminfo+=n$VIM/_viminfo
 
@@ -46,14 +43,14 @@
         " Only show the cursorline in the current window
         au WinEnter * set cursorline
         au WinLeave * set nocursorline
-        " Toggle type of line numbers and invisible symbols
+        " Toggle type of line numbers and display invisible symbols
         au InsertEnter * set number nolist
         au InsertLeave * set relativenumber list
         " Dont continue comments when pushing
         au FileType * setlocal formatoptions-=ro
         " Auto strip ^M characters
         au BufWritePre * silent! :%s/\r\+$//
-        " Auto strip trailing spaces
+        " Auto strip trailing whitespace at the end of non-blank lines
         au BufWritePre *.{php,js,css,html,html.twig,yml,vim} :%s/\s\+$//e
         au BufWritePre *.{php,css} :retab
         au BufRead *.{css,html,html.twig} setlocal tabstop=2 softtabstop=2 shiftwidth=2
@@ -69,7 +66,7 @@
         au!
         " Nginx syntax
         au BufNewFile,BufRead *.conf setlocal filetype=nginx
-        " Json
+        " Json syntax
         au BufNewFile,BufRead *.json setlocal filetype=javascript
         " Twig syntax
         au BufNewFile,BufRead *.twig setlocal filetype=twig
@@ -98,6 +95,7 @@
     " Gundo
     if has('python') && has('persistent_undo')
         Bundle 'sjl/gundo.vim'
+        let g:gundo_help = 0
         let g:gundo_right = 1
         let g:gundo_width = 32
         let g:gundo_preview_bottom = 1
@@ -112,7 +110,7 @@
     nmap <silent> <leader>ss :SessionSave<cr>
     set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
 
-    " NerdTree
+    " NERDTree
     Bundle 'scrooloose/nerdtree'
     let NERDTreeWinPos = 'right'
     let NERDTreeWinSize = 34
@@ -123,11 +121,15 @@
     let NERDTreeIgnore = [
         \ '\.swo$', '\.swp$', '\.hg', '\.bzr',
         \ '\.git', '\.svn', '\.pyc', '\~$']
-    " NerdTreeTabs
+    " NERDTreeTabs
     Bundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
     let nerdtree_tabs_open_on_gui_startup = 0
     nmap <silent> <F4> :NERDTreeTabsToggle<cr>
+
+    " NERDCommenter
+    Bundle 'scrooloose/nerdcommenter'
+    let NERDSpaceDelims = 1
 
     " Syntastic
     Bundle 'scrooloose/syntastic'
@@ -147,6 +149,7 @@
     map <leader>t:  :Tabularize /:<cr>
     map <leader>t:: :Tabularize /:\zs<cr>
     map <leader>t,  :Tabularize /,<cr>
+    map <leader>t<space>  :Tabularize / <cr>
 
     " EasyMotion
     Bundle 'Lokaltog/vim-easymotion'
@@ -179,22 +182,24 @@
     Bundle 'miripiruni/CSScomb-for-Vim'
     nmap <silent> <F9> :CSSComb<cr>
 
+    " CloseTag
+    Bundle 'docunext/closetag.vim'
     " Highlights the matching HTML tag
     Bundle 'gregsexton/MatchTag'
-    Bundle 'AutoClose'
+    " delimitMate
+    Bundle 'Raimondi/delimitMate'
     " Fullscreen
     Bundle 'shell.vim--Odding'
     " Surrounding
     Bundle 'tpope/vim-surround'
     " Repeating
     Bundle 'tpope/vim-repeat'
-    " NerdCommenter
-    Bundle 'scrooloose/nerdcommenter'
 
     " Syntax files
     Bundle 'nginx.vim'
     Bundle 'nono/jquery.vim'
     Bundle 'jelera/vim-javascript-syntax'
+    Bundle 'ChrisYip/Better-CSS-Syntax-for-Vim'
 
     " PHP
     Bundle 'paulyg/Vim-PHP-Stuff'
@@ -216,6 +221,8 @@
         set pumheight=10
         set complete=.,w,b,u,U
         set completeopt=menuone,longest,preview
+        " Try to adjust insert completions for case
+        set infercase
         " Show full tags when doing search completion
         set showfulltag
 
@@ -249,16 +256,19 @@
     set guifont=DejaVu_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
     winsize 120 100 | winpos 0 0
 
+    set shortmess=fmxsIaoO      " disable intro message
     set lazyredraw              " don't redraw while executing macros
     set linespace=2             " extra spaces between rows
-    set scrolloff=3             " minimum lines to keep above and below cursor
-    set showtabline=2           " always show the tab pages
-    set relativenumber          " show the line number
     set virtualedit=all         " allow virtual editing in all modes
-    set shortmess=fmxsIa        " no intro screen and abbrev. of message
+    set relativenumber          " show the line number
 
-" Buffers & Window
+" Buffers & Windows
     set hidden                  " allow buffer switching without saving
+    set autoread                " auto reload changed files
+    set autochdir               " auto switch to the current file directory
+    set showtabline=2           " always show the tab pages
+    set scrolloff=3             " lines visible above/below cursor when scrolling
+    set sidescrolloff=3         " lines visible left/right of cursor when scrolling
     set splitbelow splitright   " splitting a window below/right the current one
 
 " Formatting
@@ -284,7 +294,7 @@
     set nofoldenable
 
 " Mouse
-    set mousehide               " hide the mouse when typing text
+    set mousehide               " hide the mouse while typing
     set cursorline              " highlight the current line
     set guicursor=n-v:blinkon0  " turn off blinking the cursor
 
@@ -304,12 +314,13 @@
     " Always show the statusline
     set laststatus=2
     " Format the statusline
-    set statusline=%1*\ %l%*.%L\ %*             " line & total line
-    set statusline+=%<%f\ %2*%-4M%*             " filename
-    set statusline+=%=%2*%{&paste?'paste':''}%* " pastemode
-    set statusline+=\ %{FileSize()}             " filesize
-    set statusline+=\ %{&fileencoding}          " encoding
-    set statusline+=%2*\ %Y\ %*                 " filetype
+    set statusline=%1*\ %l%*.%L\ %*                  " line & total line
+    set statusline+=%<%f\ %2*%-4M%*                  " filename
+    set statusline+=%=                               " left/right separator
+    set statusline+=%2*%(%{&paste?'paste':''}\ %)%*  " pastemode
+    set statusline+=%(%{FileSize()}\ %)              " filesize
+    set statusline+=%(%{&fileencoding}\ %)           " encoding
+    set statusline+=%2*%(%Y\ %)%*                    " filetype
     " Statusline function
     function! FileSize()
         let bytes = getfsize(expand('%:p'))
@@ -325,7 +336,6 @@
 
 " Keybindings
     " Fast Esc
-    imap jj <Esc>
     imap <A-s> <Esc>
     " Fast save
     map <A-w> :w!<cr>
@@ -397,3 +407,9 @@
     nmap <C-h> 10zh
     nmap <S-F1> <C-f>
     nmap <S-F2> <C-b>
+    " Auto complete {} indent and position the cursor in the middle line
+    imap {<cr> {<cr>}<Esc>O
+    imap (<cr> (<cr>)<Esc>O
+    imap [<cr> [<cr>]<Esc>O
+    " gw Swap two words
+    nmap <silent> gw :s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<cr>`'
