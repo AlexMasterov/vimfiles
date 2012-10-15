@@ -5,6 +5,13 @@
     set noswapfile
     set viminfo+=n$VIM/_viminfo
 
+    " Ignore binary files
+    set suffixes=.db,.obj,.exe,.dll,.o,.a,.la,.mo,.so
+    " Ignore bytecode files
+    set suffixes+=.pyc,.zwc,.class
+    " Ignore backup files
+    set suffixes+=.swp,~,.bak,.old
+
     " Remember changes
     if has('persistent_undo')
         set undofile       undodir=$VIM/undo
@@ -25,10 +32,10 @@
     " Filetypes detection       Syntax highlighting
     filetype plugin indent on | syntax on
 
-    " Syntax coloring lines that are too long just slows down the world
+    " Syntax coloring lines
     set synmaxcol=512
 
-    " +100 speed. Avoid loading Matchparen plugin
+    " Avoid loading Matchparen plugin. +100 speed
     let g:loaded_matchparen = 1
 
     " Basic remapping
@@ -40,16 +47,16 @@
         au BufWritePost $MYVIMRC source $MYVIMRC
         " Save when losing focus
         au FocusLost silent! :wa
-        " Only show the cursorline in the current window
-        au WinEnter * set cursorline
-        au WinLeave * set nocursorline
         " Toggle type of line numbers and display invisible symbols
         au InsertEnter * set number nolist
         au InsertLeave * set relativenumber list
+        " Only show the cursorline in the current window
+        au WinEnter * setlocal cursorline
+        au WinLeave * setlocal nocursorline
         " Dont continue comments when pushing
         au FileType * setlocal formatoptions-=ro
         " Auto strip ^M characters
-        au BufWritePre * silent! :%s/\r\+$//
+        au BufWritePre * silent! :%s/\r\+$//e
         " Auto strip trailing whitespace at the end of non-blank lines
         au BufWritePre *.{php,js,css,html,html.twig,yml,vim} :%s/\s\+$//e
         au BufWritePre *.{php,css} :retab
@@ -65,12 +72,13 @@
     augroup filetypes
         au!
         " Nginx syntax
-        au BufNewFile,BufRead *.conf setlocal filetype=nginx
+        au BufNewFile,BufRead */conf/*.conf setlocal filetype=nginx
         " Json syntax
         au BufNewFile,BufRead *.json setlocal filetype=javascript
         " Twig syntax
         au BufNewFile,BufRead *.twig setlocal filetype=twig
         au BufNewFile,BufRead *.html.twig setlocal filetype=html.twig
+        au Filetype twig,html.twig setlocal commentstring={#%s#}
         " jQuery syntax
         au BufNewFile,BufRead jquery.*.js setlocal filetype=jquery syntax=jquery
     augroup END
@@ -118,9 +126,7 @@
     let NERDTreeDirArrows = 1
     let NERDTreeShowBookmarks = 1
     let NERDTreeBookmarksFile = $VIM.'/NERDTreeBookmarks'
-    let NERDTreeIgnore = [
-        \ '\.swo$', '\.swp$', '\.hg', '\.bzr',
-        \ '\.git', '\.svn', '\.pyc', '\~$']
+    let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
     " NERDTreeTabs
     Bundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
@@ -163,9 +169,8 @@
     " UltiSnips
     if has('python')
         Bundle 'UltiSnips'
-        let g:UltiSnipsJumpForwardTrigger = '<tab>'
-        let g:UltiSnipsJumpBackwardTrigger = '<S-tab>'
         let g:UltiSnipsSnippetDirectories = ['snippets']
+        au! FileType * call UltiSnips_FileTypeChanged()
     endif
 
     " Colorv
@@ -174,35 +179,25 @@
         let g:colorv_preview_ftype = 'css,html,javascript,vim'
     endif
 
-    " ZoomWin
-    Bundle 'ZoomWin'
-    nmap <silent> <A-0> :ZoomWin<cr>
-
     " CSSComb
     Bundle 'miripiruni/CSScomb-for-Vim'
     nmap <silent> <F9> :CSSComb<cr>
 
-    " CloseTag
-    Bundle 'docunext/closetag.vim'
-    " Highlights the matching HTML tag
-    Bundle 'gregsexton/MatchTag'
-    " delimitMate
-    Bundle 'Raimondi/delimitMate'
-    " Fullscreen
-    Bundle 'shell.vim--Odding'
-    " Surrounding
-    Bundle 'tpope/vim-surround'
-    " Repeating
+    " Utility
     Bundle 'tpope/vim-repeat'
+    Bundle 'tpope/vim-surround'
+    Bundle 'shell.vim--Odding'
+    Bundle 'gregsexton/MatchTag'
+    Bundle 'Raimondi/delimitMate'
+    Bundle 'docunext/closetag.vim'
 
     " Syntax files
     Bundle 'nginx.vim'
     Bundle 'nono/jquery.vim'
     Bundle 'jelera/vim-javascript-syntax'
-    Bundle 'ChrisYip/Better-CSS-Syntax-for-Vim'
 
     " PHP
-    Bundle 'paulyg/Vim-PHP-Stuff'
+    Bundle 'phpvim'
     " Syntax settings
     let php_folding = 0
     let php_sql_query = 1
@@ -251,10 +246,12 @@
 
 " Vim UI
     colorscheme simplex
+    " Reload the colorscheme whenever we write the file
+    au! BufWritePost simplex.vim colorscheme simplex | ColorVPreview
 
     set guioptions=a
     set guifont=DejaVu_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
-    winsize 120 100 | winpos 0 0
+    " winsize 120 100 | winpos 0 0
 
     set shortmess=fmxsIaoO      " disable intro message
     set lazyredraw              " don't redraw while executing macros
@@ -321,6 +318,7 @@
     set statusline+=%(%{FileSize()}\ %)              " filesize
     set statusline+=%(%{&fileencoding}\ %)           " encoding
     set statusline+=%2*%(%Y\ %)%*                    " filetype
+    " set statusline+=%(%{synIDattr(synID(line('.'),col('.'),1),'name')}\ %)
     " Statusline function
     function! FileSize()
         let bytes = getfsize(expand('%:p'))
@@ -334,28 +332,14 @@
         endif
     endfunction
 
-" Keybindings
-    " Fast Esc
-    imap <A-s> <Esc>
+" Normal mode
     " Fast save
-    map <A-w> :w!<cr>
-    imap <A-w> <Esc>:w!<cr>
-    imap <C-s> <Esc>:w!<cr>
+    nmap <A-w> :w!<cr>
     " Move one line
     nmap <A-h> <<
     nmap <A-l> >>
     nmap <A-j> ddp
     nmap <A-k> ddkP
-    " Move multiple selected lines
-    vmap <A-h> <'[V']
-    vmap <A-l> >'[V']
-    vmap <A-j> xp'[V']
-    vmap <A-k> xkP'[V']
-    " Ctrl + hjkl in Insert mode
-    imap <C-h> <C-o>h
-    imap <C-j> <C-o>j
-    imap <C-k> <C-o>k
-    imap <C-l> <C-o>l
     " Tabs control
     nmap <A-2> :tabnew<cr>
     nmap <A-q> gT
@@ -376,22 +360,17 @@
     nmap <silent> <A-f> :wincmd x<cr>
     " Bracket match
     nmap <tab> %
-    vmap <tab> %
-    " Change language
-    imap <A-r> <C-^>
     " Q to qq
     nmap Q qq
-    " Ctrl+c
-    imap <C-c> <Esc>
     " Don't skip wrap lines
     nmap j gj
     nmap k gk
     " ,ev opens .vimrc in a new tab
     nmap <leader>ev :tabedit $MYVIMRC<cr>
     " Toggle modes
-    nmap <silent> <leader>p :set paste!<cr>
-    nmap <silent> <leader>lw :set wrap!<cr>
-    nmap <silent> <leader>tt :set shellslash!<cr>
+    nmap <silent> <leader>p :setlocal paste!<cr>
+    nmap <silent> <leader>lw :setlocal wrap!<cr>
+    nmap <silent> <leader>tt :setlocal shellslash!<cr>
     " Clear highlight after search
     nmap <silent> <leader>/ :nohlsearch<cr>
     " Search results in the center
@@ -401,15 +380,44 @@
     nmap # #zz
     nmap g* g*zz
     nmap g# g#zz
-
+    " Select all
+    nmap vA ggVG
     " Try this
     nmap <C-l> 10zl
     nmap <C-h> 10zh
     nmap <S-F1> <C-f>
     nmap <S-F2> <C-b>
-    " Auto complete {} indent and position the cursor in the middle line
-    imap {<cr> {<cr>}<Esc>O
-    imap (<cr> (<cr>)<Esc>O
-    imap [<cr> [<cr>]<Esc>O
     " gw Swap two words
     nmap <silent> gw :s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<cr>`'
+
+" Insert mode
+    " Fast Esc
+    imap <A-s> <Esc>
+    " Fast save
+    imap <A-w> <Esc>:w!<cr>
+    imap <C-s> <Esc>:w!<cr>
+    " Change language
+    imap <A-r> <C-^>
+    " Ctrl+c
+    imap <C-c> <Esc>
+    " Ctrl + hjkl in Insert mode
+    imap <C-h> <C-o>h
+    imap <C-j> <C-o>j
+    imap <C-k> <C-o>k
+    imap <C-l> <C-o>l
+    " Auto complete {} indent and position the cursor in the middle line
+    imap (<cr> (<cr>)<Esc>O
+    imap [<cr> [<cr>]<Esc>O
+    imap {<cr> {<cr>}<Esc>O
+    imap {{ {
+    imap {} {}
+
+" Visual mode
+    " Fast save
+    vmap <A-w> <Esc>:w!<cr>
+    vmap <C-s> <Esc>:w!<cr>
+    " Move multiple selected lines
+    vmap <A-h> <'[V']
+    vmap <A-l> >'[V']
+    vmap <A-j> xp'[V']
+    vmap <A-k> xkP'[V']

@@ -1,10 +1,10 @@
 " Vim syntax file
-" Language:	    Twig template
+" Language:     Twig template
 " Maintainer:   Gabriel Gosselin <gabrielNOSPAM@evidens.ca>
-" Last Change:	2011 July 27
+" Last Change:  2011 July 27
 " Version:      1.0
 "
-" Based Jinja syntax by:	Armin Ronacher <armin.ronacher@active-4.com>
+" Based Jinja syntax by:    Armin Ronacher <armin.ronacher@active-4.com>
 "
 " Known Bugs:
 "   because of odd limitations dicts and the modulo operator
