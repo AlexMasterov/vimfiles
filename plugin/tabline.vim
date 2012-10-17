@@ -1,6 +1,12 @@
 " file: tabline.vim
 " fork: http://konishchevdmitry.blogspot.com/2008/07/vim.html
 
+" Exit quickly when this plugin was already loaded
+if exists('g:my_tabline')
+    finish
+endif
+let g:my_tabline = 1
+
 function! MyTabLine()
     let line = ''
     for i in range(tabpagenr('$'))
@@ -17,7 +23,6 @@ function! MyTabLine()
     endfor
     " after the last tab fill with TabLineFill and reset tab page nr
     let line .= '%#TabLineFill#%T'
-
     return line
 endfunction
 
@@ -25,7 +30,6 @@ function! MyTabLabel(n)
     let buflist = tabpagebuflist(a:n)
     let winnr = tabpagewinnr(a:n)
     let label = fnamemodify(bufname(buflist[winnr-1]), ':t')
-
     if label == ''
         let label = 'NoName'
     endif
@@ -33,7 +37,6 @@ function! MyTabLabel(n)
         let label = '+'.label
     endif
     let label = a:n.':'.label
-
     return label
 endfunction
 

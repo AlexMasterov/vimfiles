@@ -68,7 +68,7 @@ hi Define               guifg=#0050B0                   gui=bold
 hi PreProc              guifg=#446644                   gui=none
 hi Special              guifg=#006633                   gui=none
 hi Keyword              guifg=#007050                   gui=none
-hi Number               guifg=#1299DA                   gui=none
+hi Number               guifg=#4183C4                   gui=none
 
 hi link Character       Constant
 hi link String          Constant
@@ -92,13 +92,15 @@ hi link Debug           Special
 
 " PHP
 hi phpEcho                    guifg=#333333                   gui=bold
-hi phpType                    guifg=#0050B1                   gui=none
+hi phpType                    guifg=#0050B0                   gui=none
 hi phpParent                  guifg=#999999                   gui=none
 hi phpNumber                  guifg=#1299DA                   gui=none
-hi phpBoolean                 guifg=#CD7F32                   gui=none
+hi phpBoolean                 guifg=#CD7F32                   gui=bold
 hi phpClasses                 guifg=#B729D9                   gui=none
 hi phpStatement               guifg=#0050B1                   gui=none
 hi phpException               guifg=#0050B1                   gui=bold
+hi phpOperator                guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi phpStrEsc                  guifg=#A67F59   guibg=#FFF9F9   gui=none
 hi phpInclude                 guifg=#333333                   gui=bold
 hi phpFunctions               guifg=#333333                   gui=bold
 hi phpBraceError              guifg=#FF0000                   gui=bold
@@ -107,8 +109,9 @@ hi phpSemicolon               guifg=#FF0000                   gui=bold
 hi phpDefineFuncName          guifg=#3A75C4                   gui=bold
 hi phpDefineClassName         guifg=#3A75C4                   gui=bold
 hi phpMethodsVar              guifg=#008080                   gui=none
-hi phpVarSelector             guifg=#60656F                   gui=none
+hi phpVarSelector             guifg=#708090                   gui=none
 hi phpMemberSelector          guifg=#333333                   gui=none
+hi phpMagicConstants          guifg=#009926                   gui=none
 
 " JS
 hi javaScriptParens           guifg=#999999                   gui=none
@@ -118,6 +121,7 @@ hi javaScriptOpSymbols        guifg=#A67F59   guibg=#FFF9F9   gui=none
 hi javaScriptDOMObjects       guifg=#708090                   gui=none
 hi javaScriptGlobalObjects    guifg=#708090                   gui=none
 hi javaScriptBrowserObjects   guifg=#708090                   gui=none
+hi javaScriptRegexpString     guifg=#009926                   gui=none
 
 " HTML
 hi htmlArg                    guifg=#0077AA                   gui=none

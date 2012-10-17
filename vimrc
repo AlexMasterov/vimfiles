@@ -109,7 +109,7 @@
         let g:gundo_preview_bottom = 1
         let g:gundo_tree_statusline = ' '
         let g:gundo_preview_statusline = ' '
-        nmap <silent> <F8> :GundoToggle<cr><cr>
+        nmap <silent> <C-u> :GundoToggle<cr><cr>
     endif
 
     " Session manager
@@ -131,7 +131,7 @@
     Bundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
     let nerdtree_tabs_open_on_gui_startup = 0
-    nmap <silent> <F4> :NERDTreeTabsToggle<cr>
+    nmap <silent> <C-o> :NERDTreeTabsToggle<cr>
 
     " NERDCommenter
     Bundle 'scrooloose/nerdcommenter'
@@ -146,6 +146,8 @@
         \ 'mode': 'active',
         \ 'active_filetypes': ['php', 'html', 'javascript'],
         \ 'passive_filetypes': ['css'] }
+    " Ignore line-too-long errors with flake8
+    let g:syntastic_python_checker_args = '--ignore=E501'
     nmap <silent> <leader>E :Errors<cr>
 
     " Tabularize
@@ -159,8 +161,8 @@
 
     " EasyMotion
     Bundle 'Lokaltog/vim-easymotion'
-    let g:EasyMotion_mapping_w = '<F1>'
-    let g:EasyMotion_mapping_b = '<F2>'
+    let g:EasyMotion_mapping_w = '<C-q>'
+    let g:EasyMotion_mapping_b = '<C-w>'
 
     " Zen Coding
     Bundle 'mattn/zencoding-vim'
@@ -170,6 +172,8 @@
     if has('python')
         Bundle 'UltiSnips'
         let g:UltiSnipsSnippetDirectories = ['snippets']
+        " Use hardtabs in snippets
+        au! FileType snippets setlocal noexpandtab
         au! FileType * call UltiSnips_FileTypeChanged()
     endif
 
@@ -179,11 +183,20 @@
         let g:colorv_preview_ftype = 'css,html,javascript,vim'
     endif
 
+    " Supertab
+    if exists('+omnifunc')
+        Bundle 'ervandew/supertab'
+        let g:SuperTabDefaultCompletionType = 'context'
+        " Disable cr to fix conflict with delimitMate
+        let g:SuperTabCrMapping = '<C-cr>'
+    endif
+
     " CSSComb
     Bundle 'miripiruni/CSScomb-for-Vim'
     nmap <silent> <F9> :CSSComb<cr>
 
     " Utility
+    Bundle 'AutoComplPop'
     Bundle 'tpope/vim-repeat'
     Bundle 'tpope/vim-surround'
     Bundle 'shell.vim--Odding'
@@ -210,8 +223,6 @@
 
     " OmniComplete
     if exists('+omnifunc')
-        Bundle 'AutoComplPop'
-        Bundle 'ervandew/supertab'
         " Limit the popup menu height
         set pumheight=10
         set complete=.,w,b,u,U
@@ -232,13 +243,8 @@
             au FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
             au FileType html setlocal omnifunc=htmlcomplete#CompleteTags
             au FileType javascript setlocal omnifunc=jscomplete#CompleteJS
-
             " Syntax complete if nothing else available
-            au Filetype *
-                \ if &omnifunc == '' |
-                \ setlocal omnifunc=syntaxcomplete#Complete |
-                \ endif
-
+            au Filetype * if &omnifunc == ''|setlocal omnifunc=syntaxcomplete#Complete|endif
             " Automatically open and close the popup menu / preview window
             au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
         augroup END
@@ -315,6 +321,7 @@
     set statusline+=%<%f\ %2*%-4M%*                  " filename
     set statusline+=%=                               " left/right separator
     set statusline+=%2*%(%{&paste?'paste':''}\ %)%*  " pastemode
+    set statusline+=%2*%(%{&wrap?'':'nowrap'}\ %)%*  " wrapmode
     set statusline+=%(%{FileSize()}\ %)              " filesize
     set statusline+=%(%{&fileencoding}\ %)           " encoding
     set statusline+=%2*%(%Y\ %)%*                    " filetype
@@ -372,7 +379,7 @@
     nmap <silent> <leader>lw :setlocal wrap!<cr>
     nmap <silent> <leader>tt :setlocal shellslash!<cr>
     " Clear highlight after search
-    nmap <silent> <leader>/ :nohlsearch<cr>
+    nmap <silent> <leader><space> :nohlsearch<cr>
     " Search results in the center
     nmap n nzz
     nmap N Nzz
@@ -385,8 +392,8 @@
     " Try this
     nmap <C-l> 10zl
     nmap <C-h> 10zh
-    nmap <S-F1> <C-f>
-    nmap <S-F2> <C-b>
+    nmap <C-j> <C-f>
+    nmap <C-k> <C-b>
     " gw Swap two words
     nmap <silent> gw :s/\(\%#\w\+\)\(\_W\+\)\(\w\+\)/\3\2\1/<cr>`'
 
