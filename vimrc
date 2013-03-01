@@ -5,13 +5,6 @@
     set noswapfile
     set viminfo+=n$VIM/_viminfo
 
-    " Ignore binary files
-    set suffixes=.db,.obj,.exe,.dll,.o,.a,.la,.mo,.so
-    " Ignore bytecode files
-    set suffixes+=.pyc,.zwc,.class
-    " Ignore backup files
-    set suffixes+=.swp,~,.bak,.old
-
     " Remember changes
     if has('persistent_undo')
         set undofile       undodir=$VIM/undo
@@ -29,14 +22,15 @@
     set keymap=russian-jcukenwin
     set iminsert=0 imsearch=0
 
-    " Filetypes detection       Syntax highlighting
-    filetype plugin indent on | syntax on
+    " Filetypes detection
+    filetype plugin indent on
 
     " Syntax coloring lines
     set synmaxcol=512
 
-    " Avoid loading Matchparen plugin. +100 speed
-    let g:loaded_matchparen = 1
+    " Avoid loading same plugins
+    let g:loaded_matchparen = 1   " +100 speed
+    let g:loaded_netrwPlugin = 1
 
     " Basic remapping
     let mapleader = ',' | nmap ; :
@@ -72,37 +66,43 @@
     augroup filetypes
         au!
         " Nginx syntax
-        au BufNewFile,BufRead */conf/*.conf setlocal filetype=nginx
+        au BufNewFile,BufRead */conf/* setlocal filetype=nginx
         " Json syntax
         au BufNewFile,BufRead *.json setlocal filetype=javascript
+        " jQuery syntax
+        au BufNewFile,BufRead jquery.*.js setlocal filetype=jquery syntax=jquery
         " Twig syntax
         au BufNewFile,BufRead *.twig setlocal filetype=twig
         au BufNewFile,BufRead *.html.twig setlocal filetype=html.twig
         au Filetype twig,html.twig setlocal commentstring={#%s#}
-        " jQuery syntax
-        au BufNewFile,BufRead jquery.*.js setlocal filetype=jquery syntax=jquery
     augroup END
 
-" Setup Bundle Support
-    set rtp+=$VIMRUNTIME/bundle/vundle
-    call vundle#rc('$VIMRUNTIME/bundle')
-    " Let Vundle manage Vundle
-    Bundle 'gmarik/vundle'
-    " BundleInstall can not work with 'shellslash' on Windows
-    au! FileType vundle setlocal noshellslash shellxquote=
+" Setup NeoBundle Support
+    if has('vim_starting')
+        set rtp+=$VIMRUNTIME/bundle/neobundle.vim
+        call neobundle#rc('$VIMRUNTIME/bundle/')
+    endif
+    " Let NeoBundle manage NeoBundle
+    NeoBundleFetch 'Shougo/neobundle.vim'
 
 " Bundles
-    " Ack
+   " Ack
     if executable('ack')
-        Bundle 'mileszs/ack.vim'
+        NeoBundle 'mileszs/ack.vim'
         nmap <leader>as :Ack!<space>
         nmap <leader>ar :AckFromSearch<cr>
         nmap <leader>aw :exe 'Ack ' . expand('<cword>') <Bar> cw<cr>
     endif
 
-    " Gundo
+   " Session manager
+    NeoBundle 'sessionman.vim'
+    nmap <silent> <leader>sl :SessionList<cr>
+    nmap <silent> <leader>ss :SessionSave<cr>
+    set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
+
+     " Gundo
     if has('python') && has('persistent_undo')
-        Bundle 'sjl/gundo.vim'
+        NeoBundle 'sjl/gundo.vim'
         let g:gundo_help = 0
         let g:gundo_right = 1
         let g:gundo_width = 32
@@ -112,33 +112,23 @@
         nmap <silent> <C-u> :GundoToggle<cr><cr>
     endif
 
-    " Session manager
-    Bundle 'sessionman.vim'
-    nmap <silent> <leader>sl :SessionList<cr>
-    nmap <silent> <leader>ss :SessionSave<cr>
-    set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
-
     " NERDTree
-    Bundle 'scrooloose/nerdtree'
+    NeoBundle 'scrooloose/nerdtree'
     let NERDTreeWinPos = 'right'
     let NERDTreeWinSize = 34
     let NERDTreeMinimalUI = 1
     let NERDTreeDirArrows = 1
     let NERDTreeShowBookmarks = 1
-    let NERDTreeBookmarksFile = $VIM.'/NERDTreeBookmarks'
-    let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
+    let NERDTreeBookmarksFile = $VIMRUNTIME.'/NERDTreeBookmarks'
+    " let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
     " NERDTreeTabs
-    Bundle 'jistr/vim-nerdtree-tabs'
+    NeoBundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
     let nerdtree_tabs_open_on_gui_startup = 0
     nmap <silent> <C-o> :NERDTreeTabsToggle<cr>
 
-    " NERDCommenter
-    Bundle 'scrooloose/nerdcommenter'
-    let NERDSpaceDelims = 1
-
-    " Syntastic
-    Bundle 'scrooloose/syntastic'
+   " Syntastic
+    NeoBundle 'scrooloose/syntastic'
     let g:syntastic_auto_jump = 1
     let g:syntastic_auto_loc_list = 1
     let g:syntastic_check_on_open = 0
@@ -146,12 +136,10 @@
         \ 'mode': 'active',
         \ 'active_filetypes': ['php', 'html', 'javascript'],
         \ 'passive_filetypes': ['css'] }
-    " Ignore line-too-long errors with flake8
-    let g:syntastic_python_checker_args = '--ignore=E501'
     nmap <silent> <leader>E :Errors<cr>
 
-    " Tabularize
-    Bundle 'godlygeek/tabular'
+  " Tabularize
+    NeoBundle 'godlygeek/tabular'
     map <leader>t== :Tabularize /=<cr>
     map <leader>t=> :Tabularize /=><cr>
     map <leader>t:  :Tabularize /:<cr>
@@ -159,67 +147,79 @@
     map <leader>t,  :Tabularize /,<cr>
     map <leader>t<space>  :Tabularize / <cr>
 
+     " NERDCommenter
+    NeoBundle 'scrooloose/nerdcommenter'
+    let NERDSpaceDelims = 1
+
     " EasyMotion
-    Bundle 'Lokaltog/vim-easymotion'
+    NeoBundle 'Lokaltog/vim-easymotion'
     let g:EasyMotion_mapping_w = '<C-q>'
     let g:EasyMotion_mapping_b = '<C-w>'
 
-    " Zen Coding
-    Bundle 'mattn/zencoding-vim'
-    let g:user_zen_expandabbr_key = '<c-e>'
-
-    " UltiSnips
+    " Colorv
     if has('python')
-        Bundle 'UltiSnips'
+        NeoBundleLazy 'Rykka/colorv.vim'
+        au! Filetype css,html,javascript,vim NeoBundleSource colorv.vim
+    endif
+
+      " UltiSnips
+    if has('python')
+        NeoBundle 'UltiSnips'
         let g:UltiSnipsSnippetDirectories = ['snippets']
         " Use hardtabs in snippets
         au! FileType snippets setlocal noexpandtab
         au! FileType * call UltiSnips_FileTypeChanged()
     endif
 
-    " Colorv
-    if has('python')
-        Bundle 'Rykka/colorv.vim'
-        let g:colorv_preview_ftype = 'css,html,javascript,vim'
-    endif
-
     " Supertab
     if exists('+omnifunc')
-        Bundle 'ervandew/supertab'
+        NeoBundle 'ervandew/supertab'
         let g:SuperTabDefaultCompletionType = 'context'
         " Disable cr to fix conflict with delimitMate
         let g:SuperTabCrMapping = '<C-cr>'
     endif
 
-    " CSSComb
-    Bundle 'miripiruni/CSScomb-for-Vim'
+    " Zen Coding
+    NeoBundleLazy 'mattn/zencoding-vim'
+    let g:user_zen_expandabbr_key = '<c-e>'
+    au! Filetype html,html.twig,twig NeoBundleSource zencoding-vim
+
+     " JavaScript
+    NeoBundle 'nono/jquery.vim'
+    NeoBundle 'jelera/vim-javascript-syntax'
+    NeoBundleLazy 'teramako/jscomplete-vim'
+    let g:jscomplete_use = ['dom', 'moz']
+    au! Filetype javascript,jquery NeoBundleSource jscomplete-vim
+
+    " CSS
+    NeoBundleLazy 'miripiruni/CSScomb-for-Vim'
     nmap <silent> <F9> :CSSComb<cr>
-
-    " Utility
-    Bundle 'AutoComplPop'
-    Bundle 'tpope/vim-repeat'
-    Bundle 'tpope/vim-surround'
-    Bundle 'shell.vim--Odding'
-    Bundle 'gregsexton/MatchTag'
-    Bundle 'Raimondi/delimitMate'
-    Bundle 'docunext/closetag.vim'
-
-    " Syntax files
-    Bundle 'nginx.vim'
-    Bundle 'nono/jquery.vim'
-    Bundle 'jelera/vim-javascript-syntax'
+    au! Filetype css NeoBundleSource CSScomb-for-Vim
 
     " PHP
-    Bundle 'phpvim'
+    NeoBundleLazy 'phpvim'
     " Syntax settings
     let php_folding = 0
     let php_sql_query = 1
     let php_html_in_strings = 1
-    au! Filetype php set nowrap
+    au! Filetype php NeoBundleSource phpvim | set nowrap
 
-    " JS Complete
-    Bundle 'teramako/jscomplete-vim'
-    let g:jscomplete_use = ['dom', 'moz']
+    " Haskell
+    NeoBundle 'ujihisa/neco-ghc'
+    " NeoBundle 'Twinside/vim-haskellConceal'
+    " NeoBundle 'pbrisbin/html-template-syntax'
+    NeoBundle 'Shougo/vimproc', {'build' : {'windows' : 'make -f make_mingw32.mak'}}
+    NeoBundle 'eagletmt/ghcmod-vim'
+    au! Filetype haskell :GhcModCheckAndLintAsync
+
+    " Utility
+    NeoBundle 'AutoComplPop'
+    NeoBundle 'tpope/vim-repeat'
+    NeoBundle 'tpope/vim-surround'
+    NeoBundle 'shell.vim--Odding'
+    NeoBundle 'gregsexton/MatchTag'
+    NeoBundle 'Raimondi/delimitMate'
+    NeoBundle 'docunext/closetag.vim'
 
     " OmniComplete
     if exists('+omnifunc')
@@ -238,6 +238,7 @@
 
         augroup omnicomplete
             au!
+            au Filetype haskell setlocal omnifunc=necoghc#omnifunc
             au FileType php setlocal omnifunc=phpcomplete#CompletePHP
             au FileType css setlocal omnifunc=csscomplete#CompleteCSS
             au FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
@@ -251,7 +252,7 @@
     endif
 
 " Vim UI
-    colorscheme simplex
+    colorscheme simplex  | syntax on
     " Reload the colorscheme whenever we write the file
     au! BufWritePost simplex.vim colorscheme simplex | ColorVPreview
 
@@ -320,6 +321,7 @@
     set statusline=%1*\ %l%*.%L\ %*                  " line & total line
     set statusline+=%<%f\ %2*%-4M%*                  " filename
     set statusline+=%=                               " left/right separator
+    " set statusline+=%{SyntasticStatuslineFlag()}\ %*
     set statusline+=%2*%(%{&paste?'paste':''}\ %)%*  " pastemode
     set statusline+=%2*%(%{&wrap?'':'nowrap'}\ %)%*  " wrapmode
     set statusline+=%(%{FileSize()}\ %)              " filesize
@@ -412,6 +414,9 @@
     imap <C-j> <C-o>j
     imap <C-k> <C-o>k
     imap <C-l> <C-o>l
+    " Jump to end of line
+    imap <C-e> <C-o>A
+    imap <C-a> <C-o>I
     " Auto complete {} indent and position the cursor in the middle line
     imap (<cr> (<cr>)<Esc>O
     imap [<cr> [<cr>]<Esc>O

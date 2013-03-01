@@ -50,6 +50,7 @@ if version >= 700
     hi MatchParen                       guibg=#CCFFDD   gui=none
     hi CursorLine                       guibg=#F1FAFF   gui=none
     hi CursorLineNr                     guibg=#F1FAFF   gui=none
+    hi CursorColumn                     guibg=#F1FAFF   gui=none
     hi ColorColumn                      guibg=#FAFAFA   gui=none
 endif
 
@@ -113,6 +114,11 @@ hi phpVarSelector             guifg=#708090                   gui=none
 hi phpMemberSelector          guifg=#333333                   gui=none
 hi phpMagicConstants          guifg=#009926                   gui=none
 
+" Haskell
+hi hsVarSym                   guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi hsNiceOperator             guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi hs_DeclareFunction         guifg=#A67F59   guibg=#FFF9F9   gui=none
+
 " JS
 hi javaScriptParens           guifg=#999999                   gui=none
 hi javaScriptBraces           guifg=#999999                   gui=none
@@ -135,10 +141,13 @@ hi htmlLink                   guifg=#0050B1                   gui=none
 hi cssBraces                  guifg=#999999                   gui=none
 hi cssVendor                  guifg=#D14000                   gui=none
 hi cssUIAttr                  guifg=#333333                   gui=none
+hi cssBoxAttr                 guifg=#333333                   gui=none
 hi cssTextAttr                guifg=#333333                   gui=none
 hi cssFontAttr                guifg=#333333                   gui=none
 hi cssRenderAttr              guifg=#333333                   gui=none
 hi cssCommonAttr              guifg=#333333                   gui=none
+hi cssPositioningAttr         guifg=#446644   guibg=#DDEECC   gui=none
+hi cssBorderOutLineAttr       guifg=#A67F59   guibg=#FFF9F9   gui=none
 
 " Twig
 hi twigVariable               guifg=#333333                   gui=bold
