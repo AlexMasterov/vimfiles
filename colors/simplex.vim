@@ -1,6 +1,6 @@
 " Vim colour file
 " Maintainer:   Alex Masterov <alex.masterow@gmail.com>
-" Last Change:  2012 Oct 12
+" Last Change:  2013 Apr 15
 " Description:  GUI only
 
 set background=light

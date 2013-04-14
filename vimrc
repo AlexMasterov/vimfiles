@@ -28,9 +28,10 @@
     " Syntax coloring lines
     set synmaxcol=512
 
-    " Avoid loading same plugins
-    let g:loaded_matchparen = 1   " +100 speed
-    let g:loaded_netrwPlugin = 1
+    " Avoid loading same plugins. +100 speed
+    let g:loaded_matchparen = 1       " disable matchparen.vim
+    let g:loaded_netrwPlugin = 1      " disable netrw.vim
+    let g:loaded_getscriptPlugin = 1  " disable GetLatestVimPlugin.vim
 
     " Basic remapping
     let mapleader = ',' | nmap ; :
@@ -41,20 +42,21 @@
         au BufWritePost $MYVIMRC source $MYVIMRC
         " Save when losing focus
         au FocusLost silent! :wa
-        " Toggle type of line numbers and display invisible symbols
-        au InsertEnter * set number nolist
-        au InsertLeave * set relativenumber list
         " Only show the cursorline in the current window
         au WinEnter * setlocal cursorline
         au WinLeave * setlocal nocursorline
+        " Color column (only on insert)
+        au InsertEnter * setlocal colorcolumn=80
+        au InsertLeave * setlocal colorcolumn=""
+        " Toggle type of line numbers and display invisible symbols
+        au InsertEnter * set number nolist
+        au InsertLeave * set relativenumber list
         " Dont continue comments when pushing
         au FileType * setlocal formatoptions-=ro
         " Auto strip ^M characters
         au BufWritePre * silent! :%s/\r\+$//e
         " Auto strip trailing whitespace at the end of non-blank lines
-        au BufWritePre *.{php,js,css,html,html.twig,yml,vim} :%s/\s\+$//e
-        au BufWritePre *.{php,css} :retab
-        au BufRead *.{css,html,html.twig} setlocal tabstop=2 softtabstop=2 shiftwidth=2
+        au BufWritePre *.{php,js,css,html,html.twig,yml,vim} :%s/\s\+$//e | retab
         " Restore cursor to file position in previous editing session (from viminfo)
         au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")|exe 'normal! g`"zvzz'|endif
         " Large files are > 5M
@@ -67,14 +69,31 @@
         au!
         " Nginx syntax
         au BufNewFile,BufRead */conf/* setlocal filetype=nginx
+        " Twig syntax
+        au BufNewFile,BufRead *.twig setlocal filetype=twig
+        au BufNewFile,BufRead *.html.twig setlocal filetype=html.twig
         " Json syntax
         au BufNewFile,BufRead *.json setlocal filetype=javascript
         " jQuery syntax
         au BufNewFile,BufRead jquery.*.js setlocal filetype=jquery syntax=jquery
-        " Twig syntax
-        au BufNewFile,BufRead *.twig setlocal filetype=twig
-        au BufNewFile,BufRead *.html.twig setlocal filetype=html.twig
-        au Filetype twig,html.twig setlocal commentstring={#%s#}
+    augroup END
+
+    " Basic indentation
+    augroup indentation
+        au!
+        " HTML
+        au Filetype html setlocal ts=2 sts=2 sw=2 isk+=~
+        " CSS
+        au Filetype css setlocal ts=2 sts=2 sw=2 isk+=-
+        au Syntax   css syntax sync minlines=50
+        " JavaScript
+        au Filetype javascript setlocal ts=4 sts=4 sw=4 isk+=$ noexpandtab
+        " PHP
+        au Filetype php setlocal ts=4 sts=4 sw=4 nowrap
+        " Haskell
+        au Filetype haskell setlocal ts=8 sts=4 sw=4 smarttab shiftround nojoinspaces
+        " Twig
+        au Filetype twig,html.twig setlocal ts=2 sts=2 sw=2 commentstring={#%s#}
     augroup END
 
 " Setup NeoBundle Support
@@ -89,9 +108,10 @@
    " Ack
     if executable('ack')
         NeoBundle 'mileszs/ack.vim'
-        nmap <leader>as :Ack!<space>
-        nmap <leader>ar :AckFromSearch<cr>
-        nmap <leader>aw :exe 'Ack ' . expand('<cword>') <Bar> cw<cr>
+        nmap <silent> <leader>ac :Ack!<space>
+        nmap <silent> <leader>af :AckFile<cr>
+        nmap <silent> <leader>as :AckFromSearch<cr>
+        nmap <silent> <leader>aw :exe 'Ack ' . expand('<cword>') <Bar> cw<cr>
     endif
 
    " Session manager
@@ -109,7 +129,7 @@
         let g:gundo_preview_bottom = 1
         let g:gundo_tree_statusline = ' '
         let g:gundo_preview_statusline = ' '
-        nmap <silent> <C-u> :GundoToggle<cr><cr>
+        nmap <silent> <leader>o :GundoToggle<cr><cr>
     endif
 
     " NERDTree
@@ -125,27 +145,38 @@
     NeoBundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
     let nerdtree_tabs_open_on_gui_startup = 0
-    nmap <silent> <C-o> :NERDTreeTabsToggle<cr>
+    nmap <silent> <leader>i :NERDTreeTabsToggle<cr>
 
    " Syntastic
     NeoBundle 'scrooloose/syntastic'
     let g:syntastic_auto_jump = 1
-    let g:syntastic_auto_loc_list = 1
+    let g:syntastic_auto_loc_list = 2
     let g:syntastic_check_on_open = 0
     let g:syntastic_mode_map = {
-        \ 'mode': 'active',
+        \ 'mode': 'passive',
         \ 'active_filetypes': ['php', 'html', 'javascript'],
         \ 'passive_filetypes': ['css'] }
+    let g:syntastic_stl_format = '%E{err: %e line: %fe}%B{, }%W{warn: %w line: %fw}'
     nmap <silent> <leader>E :Errors<cr>
 
-  " Tabularize
+    " Fugitive
+    NeoBundle 'tpope/vim-fugitive'
+    nmap <silent> <leader>gs :Gstatus<cr>
+    nmap <silent> <leader>gd :Gdiff<cr>
+    nmap <silent> <leader>gc :Gcommit<cr>
+    nmap <silent> <leader>gb :Gblame<cr>
+    nmap <silent> <leader>gl :Glog<cr>
+    nmap <silent> <leader>gp :Git push<cr>
+    nmap <silent> <leader>gw :Gwrite<cr>
+
+    " Tabularize
     NeoBundle 'godlygeek/tabular'
     map <leader>t== :Tabularize /=<cr>
     map <leader>t=> :Tabularize /=><cr>
-    map <leader>t:  :Tabularize /:<cr>
+    map <leader>t:  :Tabularize /:\zs<cr>
     map <leader>t:: :Tabularize /:\zs<cr>
     map <leader>t,  :Tabularize /,<cr>
-    map <leader>t<space>  :Tabularize / <cr>
+    map <leader>t<space> :Tabularize / <cr>
 
      " NERDCommenter
     NeoBundle 'scrooloose/nerdcommenter'
@@ -159,6 +190,7 @@
     " Colorv
     if has('python')
         NeoBundleLazy 'Rykka/colorv.vim'
+        let g:colorv_preview_ftype = 'css,html,javascript,vim'
         au! Filetype css,html,javascript,vim NeoBundleSource colorv.vim
     endif
 
@@ -166,9 +198,6 @@
     if has('python')
         NeoBundle 'UltiSnips'
         let g:UltiSnipsSnippetDirectories = ['snippets']
-        " Use hardtabs in snippets
-        au! FileType snippets setlocal noexpandtab
-        au! FileType * call UltiSnips_FileTypeChanged()
     endif
 
     " Supertab
@@ -202,15 +231,18 @@
     let php_folding = 0
     let php_sql_query = 1
     let php_html_in_strings = 1
-    au! Filetype php NeoBundleSource phpvim | set nowrap
+    au! Filetype php NeoBundleSource phpvim
 
     " Haskell
-    NeoBundle 'ujihisa/neco-ghc'
-    " NeoBundle 'Twinside/vim-haskellConceal'
+    if has('conceal')
+        NeoBundle 'Twinside/vim-haskellConceal'
+    endif
     " NeoBundle 'pbrisbin/html-template-syntax'
+    " NeoBundle 'Twinside/vim-syntax-haskell-cabal'
+    NeoBundle 'ujihisa/neco-ghc', {'external_commands' : 'ghc-mod'}
     NeoBundle 'Shougo/vimproc', {'build' : {'windows' : 'make -f make_mingw32.mak'}}
     NeoBundle 'eagletmt/ghcmod-vim'
-    au! Filetype haskell :GhcModCheckAndLintAsync
+    au! FileType haskell GhcModCheckAsync
 
     " Utility
     NeoBundle 'AutoComplPop'
@@ -220,8 +252,10 @@
     NeoBundle 'gregsexton/MatchTag'
     NeoBundle 'Raimondi/delimitMate'
     NeoBundle 'docunext/closetag.vim'
+    " CTRL-A/CTRL-X to increment dates
+    NeoBundle 'tpope/vim-speeddating'
 
-    " OmniComplete
+    " Omni complete
     if exists('+omnifunc')
         " Limit the popup menu height
         set pumheight=10
@@ -236,9 +270,10 @@
         imap <leader>; <C-x><C-f>
         imap <leader>= <C-x><C-l>
 
+        " Enable omni completion
         augroup omnicomplete
             au!
-            au Filetype haskell setlocal omnifunc=necoghc#omnifunc
+            au FileType haskell setlocal omnifunc=necoghc#omnifunc
             au FileType php setlocal omnifunc=phpcomplete#CompletePHP
             au FileType css setlocal omnifunc=csscomplete#CompleteCSS
             au FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
@@ -252,7 +287,7 @@
     endif
 
 " Vim UI
-    colorscheme simplex  | syntax on
+    colorscheme simplex | syntax on
     " Reload the colorscheme whenever we write the file
     au! BufWritePost simplex.vim colorscheme simplex | ColorVPreview
 
@@ -261,19 +296,22 @@
     " winsize 120 100 | winpos 0 0
 
     set shortmess=fmxsIaoO      " disable intro message
-    set lazyredraw              " don't redraw while executing macros
     set linespace=2             " extra spaces between rows
-    set virtualedit=all         " allow virtual editing in all modes
     set relativenumber          " show the line number
+    set virtualedit=all         " allow virtual editing in all modes
+    set nostartofline           " avoid moving cursor to BOL when jumping around
+    set lazyredraw              " don't redraw while executing macros
 
 " Buffers & Windows
     set hidden                  " allow buffer switching without saving
     set autoread                " auto reload changed files
     set autochdir               " auto switch to the current file directory
+    set switchbuf=useopen       " orders to open the buffer
     set showtabline=2           " always show the tab pages
     set scrolloff=3             " lines visible above/below cursor when scrolling
     set sidescrolloff=3         " lines visible left/right of cursor when scrolling
     set splitbelow splitright   " splitting a window below/right the current one
+    set noequalalways           " resize windows as little as possible
 
 " Formatting
     set wrap                    " wrap long lines
@@ -298,7 +336,7 @@
     set nofoldenable
 
 " Mouse
-    set mousehide               " hide the mouse while typing
+    set mousehide               " hide the mouse pointer while typing
     set cursorline              " highlight the current line
     set guicursor=n-v:blinkon0  " turn off blinking the cursor
 
@@ -318,15 +356,16 @@
     " Always show the statusline
     set laststatus=2
     " Format the statusline
-    set statusline=%1*\ %l%*.%L\ %*                  " line & total line
-    set statusline+=%<%f\ %2*%-4M%*                  " filename
-    set statusline+=%=                               " left/right separator
-    " set statusline+=%{SyntasticStatuslineFlag()}\ %*
-    set statusline+=%2*%(%{&paste?'paste':''}\ %)%*  " pastemode
-    set statusline+=%2*%(%{&wrap?'':'nowrap'}\ %)%*  " wrapmode
-    set statusline+=%(%{FileSize()}\ %)              " filesize
-    set statusline+=%(%{&fileencoding}\ %)           " encoding
-    set statusline+=%2*%(%Y\ %)%*                    " filetype
+    set statusline=%1*\ %l%*.%L\ %*                    " line & total line
+    set statusline+=%<%f\ %2*%-2M%*                    " filename
+    set statusline+=%2*%{SyntasticStatuslineFlag()}%*  " syntastic
+    set statusline+=%=                                 " left/right separator
+    set statusline+=%2*%(%{&paste?'paste':''}\ %)%*    " pastemode
+    set statusline+=%2*%(%{&wrap?'':'nowrap'}\ %)%*    " wrapmode
+    set statusline+=%(%{FileSize()}\ %)                " filesize
+    set statusline+=%(%{&fileencoding}\ %)             " encoding
+    set statusline+=%2*%(%Y\ %)%*                      " filetype
+
     " set statusline+=%(%{synIDattr(synID(line('.'),col('.'),1),'name')}\ %)
     " Statusline function
     function! FileSize()
@@ -380,15 +419,21 @@
     nmap <silent> <leader>p :setlocal paste!<cr>
     nmap <silent> <leader>lw :setlocal wrap!<cr>
     nmap <silent> <leader>tt :setlocal shellslash!<cr>
+    " Quickfix shortcuts
+    nmap <silent> <C-n> :cn<cr>
+    nmap <silent> <C-m> :cp<cr>
     " Clear highlight after search
     nmap <silent> <leader><space> :nohlsearch<cr>
-    " Search results in the center
+    " Don't jump when using * for search
+    nmap * *<C-o>
+    " Keep search matches in the middle of the window
     nmap n nzz
     nmap N Nzz
-    nmap * *zz
     nmap # #zz
     nmap g* g*zz
     nmap g# g#zz
+    nmap g; g;zz
+    nmap g, g,zz
     " Select all
     nmap vA ggVG
     " Try this
@@ -433,3 +478,11 @@
     vmap <A-l> >'[V']
     vmap <A-j> xp'[V']
     vmap <A-k> xkP'[V']
+
+" Command mode
+    cmap <C-k> <Up>
+    cmap <C-j> <Down>
+    " Shortcuts
+    cmap %% <C-R>=expand('%:p:h').'/'<cr>
+    cmap %r <C-R>=expand('%')<cr>
+    cmap %. <C-R>=expand('%:t')<cr>
