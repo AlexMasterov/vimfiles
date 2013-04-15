@@ -31,7 +31,7 @@
     " Avoid loading same plugins. +100 speed
     let g:loaded_matchparen = 1       " disable matchparen.vim
     let g:loaded_netrwPlugin = 1      " disable netrw.vim
-    let g:loaded_getscriptPlugin = 1  " disable GetLatestVimPlugin.vim
+    let g:loaded_getscriptPlugin = 1  " disable getscriptPlugin.vim
 
     " Basic remapping
     let mapleader = ',' | nmap ; :
@@ -82,12 +82,12 @@
     augroup indentation
         au!
         " HTML
-        au Filetype html setlocal ts=2 sts=2 sw=2 isk+=~
+        au Filetype html setlocal ts=2 sts=2 sw=2
         " CSS
-        au Filetype css setlocal ts=2 sts=2 sw=2 isk+=-
+        au Filetype css setlocal ts=2 sts=2 sw=2
         au Syntax   css syntax sync minlines=50
         " JavaScript
-        au Filetype javascript setlocal ts=4 sts=4 sw=4 isk+=$ noexpandtab
+        au Filetype javascript setlocal ts=4 sts=4 sw=4 noexpandtab
         " PHP
         au Filetype php setlocal ts=4 sts=4 sw=4 nowrap
         " Haskell
@@ -105,7 +105,7 @@
     NeoBundleFetch 'Shougo/neobundle.vim'
 
 " Bundles
-   " Ack
+    " Ack
     if executable('ack')
         NeoBundle 'mileszs/ack.vim'
         nmap <silent> <leader>ac :Ack!<space>
@@ -114,13 +114,13 @@
         nmap <silent> <leader>aw :exe 'Ack ' . expand('<cword>') <Bar> cw<cr>
     endif
 
-   " Session manager
+    " Session manager
     NeoBundle 'sessionman.vim'
     nmap <silent> <leader>sl :SessionList<cr>
     nmap <silent> <leader>ss :SessionSave<cr>
     set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
 
-     " Gundo
+    " Gundo
     if has('python') && has('persistent_undo')
         NeoBundle 'sjl/gundo.vim'
         let g:gundo_help = 0
@@ -147,7 +147,7 @@
     let nerdtree_tabs_open_on_gui_startup = 0
     nmap <silent> <leader>i :NERDTreeTabsToggle<cr>
 
-   " Syntastic
+    " Syntastic
     NeoBundle 'scrooloose/syntastic'
     let g:syntastic_auto_jump = 1
     let g:syntastic_auto_loc_list = 2
@@ -178,7 +178,7 @@
     map <leader>t,  :Tabularize /,<cr>
     map <leader>t<space> :Tabularize / <cr>
 
-     " NERDCommenter
+    " NERDCommenter
     NeoBundle 'scrooloose/nerdcommenter'
     let NERDSpaceDelims = 1
 
@@ -194,7 +194,7 @@
         au! Filetype css,html,javascript,vim NeoBundleSource colorv.vim
     endif
 
-      " UltiSnips
+    " UltiSnips
     if has('python')
         NeoBundle 'UltiSnips'
         let g:UltiSnipsSnippetDirectories = ['snippets']
@@ -213,7 +213,7 @@
     let g:user_zen_expandabbr_key = '<c-e>'
     au! Filetype html,html.twig,twig NeoBundleSource zencoding-vim
 
-     " JavaScript
+    " JavaScript
     NeoBundle 'nono/jquery.vim'
     NeoBundle 'jelera/vim-javascript-syntax'
     NeoBundleLazy 'teramako/jscomplete-vim'
@@ -234,9 +234,7 @@
     au! Filetype php NeoBundleSource phpvim
 
     " Haskell
-    if has('conceal')
-        NeoBundle 'Twinside/vim-haskellConceal'
-    endif
+    NeoBundle 'Twinside/vim-haskellConceal'
     " NeoBundle 'pbrisbin/html-template-syntax'
     " NeoBundle 'Twinside/vim-syntax-haskell-cabal'
     NeoBundle 'ujihisa/neco-ghc', {'external_commands' : 'ghc-mod'}
