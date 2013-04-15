@@ -87,13 +87,13 @@
         au Filetype css setlocal ts=2 sts=2 sw=2
         au Syntax   css syntax sync minlines=50
         " JavaScript
-        au Filetype javascript setlocal ts=4 sts=4 sw=4 noexpandtab
+        au Filetype javascript setlocal ts=4 sts=4 sw=4 noet
         " PHP
         au Filetype php setlocal ts=4 sts=4 sw=4 nowrap
         " Haskell
-        au Filetype haskell setlocal ts=8 sts=4 sw=4 smarttab shiftround nojoinspaces
+        au Filetype haskell setlocal ts=8 sts=4 sw=4 ai sta sr nojs
         " Twig
-        au Filetype twig,html.twig setlocal ts=2 sts=2 sw=2 commentstring={#%s#}
+        au Filetype twig,html.twig setlocal ts=2 sts=2 sw=2 cms={#%s#}
     augroup END
 
 " Setup NeoBundle Support
@@ -189,9 +189,9 @@
 
     " Colorv
     if has('python')
-        NeoBundleLazy 'Rykka/colorv.vim'
+        NeoBundleLazy 'Rykka/colorv.vim',
+        \ {'autoload' : {'filetypes' : ['css', 'html', 'vim']}}
         let g:colorv_preview_ftype = 'css,html,javascript,vim'
-        au! Filetype css,html,javascript,vim NeoBundleSource colorv.vim
     endif
 
     " UltiSnips
@@ -209,47 +209,59 @@
     endif
 
     " Zen Coding
-    NeoBundleLazy 'mattn/zencoding-vim'
+    NeoBundleLazy 'mattn/zencoding-vim',
+        \ {'autoload' : {'filetypes' : ['html', 'html.twig', 'twig']}}
     let g:user_zen_expandabbr_key = '<c-e>'
-    au! Filetype html,html.twig,twig NeoBundleSource zencoding-vim
 
-    " JavaScript
-    NeoBundle 'nono/jquery.vim'
-    NeoBundle 'jelera/vim-javascript-syntax'
-    NeoBundleLazy 'teramako/jscomplete-vim'
-    let g:jscomplete_use = ['dom', 'moz']
-    au! Filetype javascript,jquery NeoBundleSource jscomplete-vim
+    " HTML
+    NeoBundleLazy 'gregsexton/MatchTag',
+        \ {'autoload' : {'filetypes' : ['html', 'html.twig', 'twig']}}
+    NeoBundleLazy 'docunext/closetag.vim',
+        \ {'autoload' : {'filetypes' : ['html', 'html.twig', 'twig']}}
 
     " CSS
-    NeoBundleLazy 'miripiruni/CSScomb-for-Vim'
+    NeoBundleLazy 'miripiruni/CSScomb-for-Vim',
+        \ {'autoload' : {'filetypes' : 'css'}}
     nmap <silent> <F9> :CSSComb<cr>
-    au! Filetype css NeoBundleSource CSScomb-for-Vim
+
+    " JavaScript
+    NeoBundle 'jelera/vim-javascript-syntax',
+        \ {'autoload' : {'filetypes' : 'javascript'}}
+    NeoBundleLazy 'nono/jquery.vim',
+        \ {'autoload' : {'filetypes' : 'jquery'}}
+    NeoBundleLazy 'teramako/jscomplete-vim',
+        \ {'autoload' : {'filetypes' : ['javascript', 'jquery']}}
+    let g:jscomplete_use = ['dom', 'moz']
 
     " PHP
-    NeoBundleLazy 'phpvim'
+    NeoBundleLazy 'phpvim',
+        \ {'autoload' : {'filetypes' : 'php'}}
     " Syntax settings
     let php_folding = 0
     let php_sql_query = 1
     let php_html_in_strings = 1
-    au! Filetype php NeoBundleSource phpvim
 
     " Haskell
-    NeoBundle 'Twinside/vim-haskellConceal'
-    " NeoBundle 'pbrisbin/html-template-syntax'
-    " NeoBundle 'Twinside/vim-syntax-haskell-cabal'
-    NeoBundle 'ujihisa/neco-ghc', {'external_commands' : 'ghc-mod'}
-    NeoBundle 'Shougo/vimproc', {'build' : {'windows' : 'make -f make_mingw32.mak'}}
+    NeoBundle 'ujihisa/neco-ghc',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
+    NeoBundle 'Shougo/vimproc',
+        \ {'build' : {'windows' : 'make -f make_mingw32.mak'}}
+    NeoBundleLazy 'Twinside/vim-haskellConceal',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
+    NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
+    NeoBundleLazy 'lukerandall/haskellmode-vim',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
     NeoBundle 'eagletmt/ghcmod-vim'
     au! FileType haskell GhcModCheckAsync
 
-    " Utility
+    " Basic utility
     NeoBundle 'AutoComplPop'
     NeoBundle 'tpope/vim-repeat'
     NeoBundle 'tpope/vim-surround'
-    NeoBundle 'shell.vim--Odding'
-    NeoBundle 'gregsexton/MatchTag'
     NeoBundle 'Raimondi/delimitMate'
-    NeoBundle 'docunext/closetag.vim'
+    " Fullscreen mode
+    NeoBundle 'shell.vim--Odding'
     " CTRL-A/CTRL-X to increment dates
     NeoBundle 'tpope/vim-speeddating'
 
@@ -363,7 +375,6 @@
     set statusline+=%(%{FileSize()}\ %)                " filesize
     set statusline+=%(%{&fileencoding}\ %)             " encoding
     set statusline+=%2*%(%Y\ %)%*                      " filetype
-
     " set statusline+=%(%{synIDattr(synID(line('.'),col('.'),1),'name')}\ %)
     " Statusline function
     function! FileSize()
