@@ -29,9 +29,16 @@
     set synmaxcol=512
 
     " Avoid loading same plugins. +100 speed
-    let g:loaded_matchparen = 1       " disable matchparen.vim
-    let g:loaded_netrwPlugin = 1      " disable netrw.vim
-    let g:loaded_getscriptPlugin = 1  " disable getscriptPlugin.vim
+    let g:loaded_matchparen = 1         " disable matchparen.vim
+    let g:loaded_netrwPlugin = 1        " disable netrw.vim
+    let g:loaded_getscriptPlugin = 1    " disable getscriptPlugin.vim
+
+    " Ignore these things
+    set suffixes=.hg,.git,.svn          " version control
+    set suffixes+=.png,.jpg,.jpeg,.gif  " binary images
+    set suffixes+=.o,.obj,.exe,.dll     " compiled object files
+    set suffixes+=.cabal-dev            " cabal
+    set suffixes+=.dist                 " cabal distrubition
 
     " Basic remapping
     let mapleader = ',' | nmap ; :
@@ -140,7 +147,7 @@
     let NERDTreeDirArrows = 1
     let NERDTreeShowBookmarks = 1
     let NERDTreeBookmarksFile = $VIMRUNTIME.'/NERDTreeBookmarks'
-    " let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
+    let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
     " NERDTreeTabs
     NeoBundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
@@ -157,6 +164,8 @@
         \ 'active_filetypes': ['php', 'html', 'javascript'],
         \ 'passive_filetypes': ['css'] }
     let g:syntastic_stl_format = '%E{err: %e line: %fe}%B{, }%W{warn: %w line: %fw}'
+    " Syntax checkers
+    let g:syntastic_javascript_jslint_conf = '--node --nomen --anon --sloppy --regex'
     nmap <silent> <leader>E :Errors<cr>
 
     " Fugitive
@@ -250,10 +259,16 @@
         \ {'autoload' : {'filetypes' : 'haskell'}}
     NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal',
         \ {'autoload' : {'filetypes' : 'haskell'}}
+
+    " The Haskell mode
     NeoBundleLazy 'lukerandall/haskellmode-vim',
         \ {'autoload' : {'filetypes' : 'haskell'}}
+    " Configure browser for haskell_doc.vim
+    let g:haddock_browser = 'open'
+    let g:haddock_browser_callformat = '%s %s'
+    " Happy Haskell programming
     NeoBundle 'eagletmt/ghcmod-vim'
-    au! FileType haskell GhcModCheckAsync
+    au! FileType haskell compiler ghc | GhcModCheckAsync
 
     " Basic utility
     NeoBundle 'AutoComplPop'
@@ -307,6 +322,7 @@
 
     set shortmess=fmxsIaoO      " disable intro message
     set linespace=2             " extra spaces between rows
+    set textwidth=0             " disable automatic text-width
     set relativenumber          " show the line number
     set virtualedit=all         " allow virtual editing in all modes
     set nostartofline           " avoid moving cursor to BOL when jumping around
@@ -343,7 +359,7 @@
     set listchars=trail:.,precedes:<,extends:>,nbsp:.,tab:+-
 
 " Folding
-    set nofoldenable
+    set nofoldenable            " don't do any folding for now
 
 " Mouse
     set mousehide               " hide the mouse pointer while typing
