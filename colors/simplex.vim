@@ -1,6 +1,6 @@
 " Vim colour file
 " Maintainer:   Alex Masterov <alex.masterow@gmail.com>
-" Last Change:  2013 Apr 15
+" Last Change:  2013 Apr 22
 " Description:  GUI only
 
 set background=light
@@ -115,9 +115,20 @@ hi phpMemberSelector          guifg=#333333                   gui=none
 hi phpMagicConstants          guifg=#009926                   gui=none
 
 " Haskell
-hi hsVarSym                   guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi hsNiceOperator             guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi hs_DeclareFunction         guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi ConId                      guifg=#0050B1                   gui=none
+hi hsConSym                   guifg=#D14000                   gui=none
+hi hsVarSym                   guifg=#A67F59                   gui=none
+hi hsType                     guifg=#BA4747                   gui=bold
+hi hsNumber                   guifg=#1299DA                   gui=none
+hi hsImport                   guifg=#333333                   gui=bold
+hi hsModule                   guifg=#333333                   gui=bold
+hi hsPragma                   guifg=#009926                   gui=none
+hi hsBoolean                  guifg=#CD7F32                   gui=bold
+hi hsDelimiter                guifg=#999999                   gui=none
+hi hsStructure                guifg=#008080                   gui=none
+hi hsConditional              guifg=#008080                   gui=none
+hi hsNiceOperator             guifg=#A67F59                   gui=none
+hi hs_DeclareFunction         guifg=#D14000                   gui=none
 
 " JS
 hi javaScriptParens           guifg=#999999                   gui=none
@@ -163,6 +174,9 @@ hi yamlFlowIndicator          guifg=#999999                   gui=none
 hi yamlFlowMappingKey         guifg=#0050B1                   gui=none
 hi yamlBlockMappingKey        guifg=#0050B1                   gui=none
 hi yamlKeyValueDelimiter      guifg=#A67F59   guibg=#FFF9F9   gui=none
+
+" Syntastic
+hi SyntasticErrorSign         guifg=#FF7311                   gui=none
 
 " EasyMotion
 hi link EasyMotionShade    Comment

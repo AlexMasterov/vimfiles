@@ -157,8 +157,9 @@
     " Syntastic
     NeoBundle 'scrooloose/syntastic'
     let g:syntastic_auto_jump = 1
-    let g:syntastic_auto_loc_list = 2
+    let g:syntastic_auto_loc_list = 2  " auto close error window when there are no errors
     let g:syntastic_check_on_open = 0
+    let g:syntastic_error_symbol = '✗'
     let g:syntastic_mode_map = {
         \ 'mode': 'passive',
         \ 'active_filetypes': ['php', 'html', 'javascript'],
@@ -166,7 +167,7 @@
     let g:syntastic_stl_format = '%E{err: %e line: %fe}%B{, }%W{warn: %w line: %fw}'
     " Syntax checkers
     let g:syntastic_javascript_jslint_conf = '--node --nomen --anon --sloppy --regex'
-    nmap <silent> <leader>E :Errors<cr>
+    nmap <silent> ` :Errors<cr>
 
     " Fugitive
     NeoBundle 'tpope/vim-fugitive'
@@ -211,10 +212,10 @@
 
     " Supertab
     if exists('+omnifunc')
-        NeoBundle 'ervandew/supertab'
-        let g:SuperTabDefaultCompletionType = 'context'
+        " NeoBundle 'ervandew/supertab'
+        " let g:SuperTabDefaultCompletionType = 'context'
         " Disable cr to fix conflict with delimitMate
-        let g:SuperTabCrMapping = '<C-cr>'
+        " let g:SuperTabCrMapping = '<C-cr>'
     endif
 
     " Zen Coding
@@ -257,8 +258,16 @@
         \ {'build' : {'windows' : 'make -f make_mingw32.mak'}}
     NeoBundleLazy 'Twinside/vim-haskellConceal',
         \ {'autoload' : {'filetypes' : 'haskell'}}
+    NeoBundleLazy 'pbrisbin/html-template-syntax',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
     NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal',
         \ {'autoload' : {'filetypes' : 'haskell'}}
+    NeoBundleLazy 'haskell/haskell-mode-vim',
+        \ {'autoload' : {'filetypes' : 'haskell'}}
+    let hs_highlight_debug = 1
+    let hs_highlight_types = 1
+    let hs_highlight_boolean = 1
+    let hs_allow_hash_operator = 1
 
     " The Haskell mode
     NeoBundleLazy 'lukerandall/haskellmode-vim',
@@ -274,11 +283,10 @@
     NeoBundle 'AutoComplPop'
     NeoBundle 'tpope/vim-repeat'
     NeoBundle 'tpope/vim-surround'
+    NeoBundle 'tpope/vim-abolish'      " awesome replace
+    NeoBundle 'shell.vim--Odding'      " fullscreen mode
+    NeoBundle 'tpope/vim-speeddating'  " CTRL-A/CTRL-X to increment dates
     NeoBundle 'Raimondi/delimitMate'
-    " Fullscreen mode
-    NeoBundle 'shell.vim--Odding'
-    " CTRL-A/CTRL-X to increment dates
-    NeoBundle 'tpope/vim-speeddating'
 
     " Omni complete
     if exists('+omnifunc')
@@ -320,6 +328,7 @@
     set guifont=DejaVu_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
     " winsize 120 100 | winpos 0 0
 
+    set autowrite               " automatically save before commands like :make
     set shortmess=fmxsIaoO      " disable intro message
     set linespace=2             " extra spaces between rows
     set textwidth=0             " disable automatic text-width
@@ -327,6 +336,8 @@
     set virtualedit=all         " allow virtual editing in all modes
     set nostartofline           " avoid moving cursor to BOL when jumping around
     set lazyredraw              " don't redraw while executing macros
+    set timeoutlen=1200         " a little bit more time for macros
+    set ttimeoutlen=50          " make Esc work faster
 
 " Buffers & Windows
     set hidden                  " allow buffer switching without saving
