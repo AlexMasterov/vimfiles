@@ -1,10 +1,10 @@
 " Vim indent file
 " Language:     Haskell
 " Maintainer:   lilydjwg <lilydjwg@gmail.com>
-" Version:	1.0
-" References:	http://en.wikibooks.org/wiki/Haskell/Indentation
-" 		http://book.realworldhaskell.org/read/
-" See Also:	The Align plugin http://www.vim.org/scripts/script.php?script_id=294
+" Version:  1.0
+" References:   http://en.wikibooks.org/wiki/Haskell/Indentation
+"       http://book.realworldhaskell.org/read/
+" See Also: The Align plugin http://www.vim.org/scripts/script.php?script_id=294
 
 " Only load this indent file when no other was loaded.
 if exists("b:did_indent")
@@ -51,17 +51,17 @@ function HaskellIndent()
   let prevline = getline(lnum)
   let curline = getline(v:lnum)
   let curwords = split(curline)
-  if len(curwords) > 0 
+  if len(curwords) > 0
     if has_key(s:align_map, curwords[0])
       let word = s:align_map[curwords[0]]
       let m = -1
       let line = v:lnum
       while m == -1
-	let line -= 1
-	if line <= 0
-	  return -1
-	endif
-	let m = match(getline(line), word)
+    let line -= 1
+    if line <= 0
+      return -1
+    endif
+    let m = match(getline(line), word)
       endwhile
       return m
     elseif index(s:indent_self, curwords[0]) != -1
@@ -72,7 +72,7 @@ function HaskellIndent()
       return ind - &sw
     elseif curwords[0] == 'where'
       if prevline =~ '\v^\s+\|%(\s|\w)@='
-	return ind - 1
+    return ind - 1
       endif
     endif
   endif
@@ -91,7 +91,7 @@ function HaskellIndent()
   else
     for word in reverse(prevwords)
       if index(s:indent_next, word) != -1
-	return match(prevline, '\<'.word.'\>') + len(word) + 1
+    return match(prevline, '\<'.word.'\>') + len(word) + 1
       endif
     endfor
   endif
@@ -111,13 +111,13 @@ function s:HaskellDedent(isbs)
   let curind = indent('.')
   let line = line('.') - 1
   while curind > 0 && line > 0
-    let ind = indent(line) 
+    let ind = indent(line)
     if ind >= curind
       let line -= 1
     else
       echomsg curind ind
       call setline('.', repeat(' ', ind) .
-	    \ substitute(getline('.'), '^\s\+', '', ''))
+        \ substitute(getline('.'), '^\s\+', '', ''))
       return ''
     endif
   endwhile

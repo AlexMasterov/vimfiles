@@ -66,6 +66,8 @@
         au BufWritePre *.{hs,php,js,css,html,html.twig,hamlet,yml,vim} :%s/\s\+$//e | retab
         " Restore cursor to file position in previous editing session (from viminfo)
         au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")|exe 'normal! g`"zvzz'|endif
+        " Set default filetype
+        au BufNewFile,BufEnter * if bufname('%') == '' && &filetype == ''|setlocal filetype=text|endif
         " Large files are > 5M
         let g:LargeFile = 1024 * 1024 * 5
         au BufReadPre * if getfsize(expand('<afile>')) > g:LargeFile|setlocal eventignore+=FileType bufhidden=unload buftype=nowrite undolevels=-1|endif
@@ -89,20 +91,20 @@
     augroup indentation
         au!
         " HTML
-        au Filetype html setlocal ts=2 sts=2 sw=2
+        au FileType html setlocal ts=2 sts=2 sw=2
         " CSS
-        au Filetype css setlocal ts=2 sts=2 sw=2
+        au FileType css setlocal ts=2 sts=2 sw=2
         au Syntax   css syntax sync minlines=50
         " JavaScript
-        au Filetype javascript setlocal ts=4 sts=4 sw=4 noet
+        au FileType javascript setlocal ts=4 sts=4 sw=4 noet
         " PHP
-        au Filetype php setlocal ts=4 sts=4 sw=4 nowrap
+        au FileType php setlocal ts=4 sts=4 sw=4 nowrap
         " Haskell
-        au Filetype haskell setlocal ts=8 sts=4 sw=4 ai sta sr nojs
+        au FileType haskell setlocal ts=8 sts=4 sw=4 ai sta sr nojs
         " Hamlet
-        au Filetype hamlet setlocal ts=2 sts=2 sw=2
+        au FileType hamlet setlocal ts=2 sts=2 sw=2
         " Twig
-        au Filetype twig,html.twig setlocal ts=2 sts=2 sw=2 cms={#%s#}
+        au FileType twig,html.twig setlocal ts=2 sts=2 sw=2 cms={#%s#}
     augroup END
 
 " Setup NeoBundle Support
@@ -165,7 +167,7 @@
     let g:syntastic_mode_map = {
         \ 'mode': 'passive',
         \ 'active_filetypes': ['php','html','css','javascript'],
-        \ 'passive_filetypes': [] }
+        \ 'passive_filetypes': [''] }
     let g:syntastic_stl_format = '%E{err: %e line: %fe}%B{, }%W{warn: %w line: %fw}'
     " Syntax checkers
     let g:syntastic_csslint_options = '--ignore=ids'
@@ -262,8 +264,7 @@
     NeoBundleLazy 'ujihisa/neco-ghc',
         \ {'autoload' : {'filetypes' : 'haskell'}}
     NeoBundleLazy 'Shougo/vimproc',
-        \ {'autoload' : {'filetypes' : 'haskell'},
-        \ 'build' : {'windows' : 'make -f make_mingw32.mak'}}
+        \ {'build' : {'windows' : 'make -f make_mingw32.mak'}}
     NeoBundleLazy 'Twinside/vim-haskellConceal',
         \ {'autoload' : {'filetypes' : 'haskell'}}
     NeoBundleLazy 'haskell/haskell-mode-vim',
@@ -295,16 +296,20 @@
     NeoBundle 'shell.vim--Odding'      " fullscreen mode
     NeoBundle 'tpope/vim-speeddating'  " CTRL-A/CTRL-X to increment dates
     " NeoBundle 'jiangmiao/auto-pairs'
-    NeoBundle 'kana/vim-smartchr'      " Insert several candidates with a single key
-    " Haskell
-    au! FileType haskell
-        \  imap <buffer> <expr> \ smartchr#loop('\ ', '\')
-        \| imap <buffer> <expr> $ smartchr#loop(' $ ', '$')
-        \| imap <buffer> <expr> + smartchr#loop('+', ' ++ ')
-        \| imap <buffer> <expr> . smartchr#loop('.', ' . ', '..')
-        \| imap <buffer> <expr> : smartchr#loop(':', ' :: ', ' : ')
-        \| imap <buffer> <expr> = smartchr#loop('=', ' = ', ' == ')
-        \| imap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
+    NeoBundle 'kana/vim-smartchr'      " insert several candidates with a single key
+    " Keys sequence
+    augroup keysequence
+        au!
+        " Haskell
+        au FileType haskell
+            \  imap <buffer> <expr> \ smartchr#loop('\ ', '\')
+            \| imap <buffer> <expr> $ smartchr#loop(' $ ', '$')
+            \| imap <buffer> <expr> + smartchr#loop('+', ' ++ ')
+            \| imap <buffer> <expr> . smartchr#loop('.', ' . ', '..')
+            \| imap <buffer> <expr> : smartchr#loop(':', ' :: ', ' : ')
+            \| imap <buffer> <expr> = smartchr#loop('=', ' = ', ' == ')
+            \| imap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
+    augroup END
 
     " Omni complete
     if exists('+omnifunc')
@@ -331,7 +336,7 @@
             au FileType html setlocal omnifunc=htmlcomplete#CompleteTags
             au FileType javascript setlocal omnifunc=jscomplete#CompleteJS
             " Syntax complete if nothing else available
-            au Filetype * if &omnifunc == ''|setlocal omnifunc=syntaxcomplete#Complete|endif
+            au FileType * if &omnifunc == ''|setlocal omnifunc=syntaxcomplete#Complete|endif
             " Automatically open and close the popup menu / preview window
             au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
         augroup END
