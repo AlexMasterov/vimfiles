@@ -115,18 +115,19 @@ hi phpMemberSelector          guifg=#333333                   gui=none
 hi phpMagicConstants          guifg=#009926                   gui=none
 
 " Haskell
-hi ConId                      guifg=#0050B1                   gui=none
+hi ConId                      guifg=#008080                   gui=none
 hi hsConSym                   guifg=#D14000                   gui=none
-hi hsVarSym                   guifg=#A67F59                   gui=none
-hi hsType                     guifg=#BA4747                   gui=bold
+hi hsVarSym                   guifg=#333333                   gui=none
+hi hsType                     guifg=#1E347B                   gui=none
 hi hsNumber                   guifg=#1299DA                   gui=none
 hi hsImport                   guifg=#333333                   gui=bold
 hi hsModule                   guifg=#333333                   gui=bold
 hi hsPragma                   guifg=#009926                   gui=none
 hi hsBoolean                  guifg=#CD7F32                   gui=bold
 hi hsDelimiter                guifg=#999999                   gui=none
-hi hsStructure                guifg=#008080                   gui=none
-hi hsConditional              guifg=#008080                   gui=none
+hi hsStatement                guifg=#0050B1                   gui=none
+hi hsStructure                guifg=#0050B1                   gui=none
+hi hsConditional              guifg=#0050B1                   gui=none
 hi hsNiceOperator             guifg=#A67F59                   gui=none
 hi hs_DeclareFunction         guifg=#D14000                   gui=none
 
