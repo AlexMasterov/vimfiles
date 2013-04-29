@@ -178,6 +178,7 @@ hi yamlKeyValueDelimiter      guifg=#A67F59   guibg=#FFF9F9   gui=none
 
 " Syntastic
 hi SyntasticErrorSign         guifg=#FF7311                   gui=none
+hi SyntasticWarningSign       guifg=#FF7311                   gui=none
 
 " EasyMotion
 hi link EasyMotionShade    Comment

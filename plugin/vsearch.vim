@@ -1,10 +1,10 @@
 " From http://got-ravings.blogspot.com/2008/07/vim-pr0n-visual-search-mappings.html
 
 " Exit quickly when this plugin was already loaded
-if exists('g:vsearch')
+if exists('g:loaded_vsearch_plugin')
     finish
 endif
-let g:vsearch = 1
+let g:loaded_vsearch_plugin = 1
 
 " Makes * and # work on visual mode too
 function! s:VSetSearch(cmdtype)

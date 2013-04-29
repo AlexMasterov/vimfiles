@@ -2,26 +2,26 @@
 " fork: http://konishchevdmitry.blogspot.com/2008/07/vim.html
 
 " Exit quickly when this plugin was already loaded
-if exists('g:my_tabline')
+if exists('g:loaded_tabline_plugin')
     finish
 endif
-let g:my_tabline = 1
+let g:loaded_tabline_plugin = 1
 
 function! MyTabLine()
     let line = ''
     for i in range(tabpagenr('$'))
-        " select the highlighting
+        " Select the highlighting
         if i + 1 == tabpagenr()
             let line .= '%#TabLineSel#'
         else
             let line .= '%#TabLine#'
         endif
-        " set the tab page number (for mouse clicks)
+        " Set the tab page number (for mouse clicks)
         let line .= '%' . (i + 1) . 'T'
-        " the label is made by MyTabLabel()
+        " The label is made by MyTabLabel()
         let line .= ' %{MyTabLabel(' . (i + 1) . ')} '
     endfor
-    " after the last tab fill with TabLineFill and reset tab page nr
+    " After the last tab fill with TabLineFill and reset tab page nr
     let line .= '%#TabLineFill#%T'
     return line
 endfunction
@@ -30,13 +30,17 @@ function! MyTabLabel(n)
     let buflist = tabpagebuflist(a:n)
     let winnr = tabpagewinnr(a:n)
     let label = fnamemodify(bufname(buflist[winnr-1]), ':t')
+
     if label == ''
         let label = 'NoName'
+    elseif strlen(label) > 15
+        let label = strpart(label, 0, 15) . '..'
     endif
+
     if getbufvar(buflist[winnr-1], '&modified')
-        let label = '+'.label
+        let label = '+' . label
     endif
-    let label = a:n.':'.label
+    let label = a:n . ':' . label
     return label
 endfunction
 

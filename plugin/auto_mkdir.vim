@@ -1,12 +1,12 @@
 " file: auto_mkdir.vim
 
 " Exit quickly when this plugin was already loaded
-if exists('g:auto_mkdir')
+if exists('g:loaded_automkdir_plugin')
     finish
 endif
-let g:auto_mkdir = 1
+let g:loaded_automkdir_plugin = 1
 
-au! BufWritePre,FileWritePre * call <SID>auto_mkdir()
+au! BufWritePre,FileWritePre * :call <SID>auto_mkdir()
 
 function! <SID>auto_mkdir()
     " Get directory the file is supposed to be saved in
