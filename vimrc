@@ -7,7 +7,7 @@
     set nocompatible
     set noswapfile
     set noexrc
-    set viminfo+=n$DOTVIM/_viminfo
+    set viminfo+=n$DOTVIM/viminfo
 
     " Remember changes
     if has('persistent_undo')
@@ -64,7 +64,7 @@
         " Auto strip ^M characters
         au BufWritePre * silent! :%s/\r\+$//e
         " Auto strip trailing whitespace at the end of non-blank lines
-        au BufWritePre *.{hs,php,js,css,html,html.twig,hamlet,yml,vim} :%s/\s\+$//e | retab
+        au BufWritePre *.{hs,php,js,css,html,htmltwig,hamlet,yml,vim} :%s/\s\+$//e | retab
         " Restore cursor to file position in previous editing session (from viminfo)
         au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")|exe 'normal! g`"zvzz'|endif
         " Large files are > 5M
@@ -75,16 +75,22 @@
     " Basic filetypes
     augroup filetypes
         au!
-        au BufNewFile,BufRead */conf/*         setl filetype=nginx
-        au BufNewFile,BufRead *.twig           setl filetype=twig
-        au BufNewFile,BufRead *.html.twig      setl filetype=html.twig
-        au BufNewFile,BufRead *.{json,js.twig} setl filetype=javascript
-        au BufNewFile,BufRead jquery.*.js      setl filetype=jquery syntax=jquery
+        au BufNewFile,BufRead */conf/*            setl filetype=nginx
+        au BufNewFile,BufRead *.md                setl filetype=markdown
+        au BufNewFile,BufRead *.{json,js.twig}    setl filetype=javascript
+        au BufNewFile,BufRead jquery.*.js         setl filetype=jquery syntax=jquery
+        au BufNewFile,BufRead *.twig              setl filetype=twig
+        au BufNewFile,BufRead *.html.twig         setl filetype=htmltwig syntax=html.twig
+        au BufNewFile,BufRead *.{twig,html.twig}  setl commentstring={#%s#}
+        " Haskell
+        au BufNewFile,BufRead *.hs setl formatprg=pointfree
+        au FileWritePost,BufWritePost haskell.vim syntax off|syntax on
     augroup END
 
     " Basic indentation
     augroup indentation
         au!
+        au FileType python                     setl ts=4 sts=4 sw=4 si
         au FileType haskell                    setl ts=8 sts=4 sw=4 nojs ai sta sr
         au FileType php,yaml                   setl ts=4 sts=4 sw=4 nowrap
         au FileType css,scss,less,lucius       setl ts=2 sts=2 sw=2
@@ -103,7 +109,7 @@
             \| imap <buffer> <expr> . smartchr#loop('.', ' . ', '..')
             \| imap <buffer> <expr> : smartchr#loop(':', ' :: ', ' : ')
             \| imap <buffer> <expr> = smartchr#loop('=', ' = ', ' == ')
-            \| imap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
+            " \| imap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
         " PHP
         au FileType php
             \  imap <buffer> <expr> - smartchr#loop('-', '->')
@@ -114,6 +120,8 @@
             \  imap <buffer> <expr> ; smartchr#loop(';', ': ')
             \| imap <buffer> <expr> % smartchr#loop('%', '% ')
             \| imap <buffer> <expr> p smartchr#loop('p', 'px', 'px ')
+        " VIM
+        au FileWritePost,BufWritePost *.vim if &autoread|source <afile>|endif
     augroup END
 
 " Setup NeoBundle Support
@@ -129,50 +137,54 @@
     " Let NeoBundle manage NeoBundle
     NeoBundleFetch 'Shougo/neobundle.vim'
 
-" Bundles
-    " Personal
+    " Personal plugins
     NeoBundle 'Quetka/dotvim'
-    " Basic utility
-    NeoBundle 'tpope/vim-abolish'        " awesome replace
-    NeoBundle 'tpope/vim-surround'       " surroundings
-    NeoBundle 'tpope/vim-repeat'         " repeat last plugin command
-    NeoBundle 'tpope/vim-speeddating'    " increment dates
-    NeoBundle 'shell.vim--Odding'        " <F11>: fullscreen mode
-    NeoBundle 'kana/vim-smartchr'        " insert several candidates with a single key
-    NeoBundle 'gorkunov/smartpairs.vim'  " vv: one shortcut for all typical combinations
+    " Local plugins for doing development
+    NeoBundleLocal $DOTVIM.'/dev'
+
+    NeoBundle 'tpope/vim-repeat'       " repeat last plugin command
+    NeoBundle 'tpope/vim-abolish'      " awesome replace
+    NeoBundle 'tpope/vim-surround'     " surroundings
+    NeoBundle 'shell.vim--Odding'      " <F11>: fullscreen mode
+    NeoBundle 'kana/vim-smartchr'      " insert several candidates with a single key
+    NeoBundle 'tpope/vim-speeddating'  " increment date
+    " Experiment
+    " NeoBundle 'terryma/vim-multiple-cursors'
+    " let g:multi_cursor_next_key = '<C-n>'
+    " let g:multi_cursor_prev_key = '<C-p>'
+    " let g:multi_cursor_skip_key = '<C-x>'
+    " let g:multi_cursor_quit_key = '<C-c>'
+    NeoBundle 'gcmt/psearch.vim'
+    nmap <F1> :PSearch<CR>
 
     " Auto Pairs
     NeoBundle 'jiangmiao/auto-pairs'
-    let g:AutoPairsFlyMode = 1
+    let g:AutoPairsFlyMode = 0
     let g:AutoPairsShortcutJump = '<Nop>'
     let g:AutoPairsShortcutFastWrap = '<Nop>'
     let g:AutoPairsShortcutBackInsert = '<Nop>'
     let g:AutoPairs = {'(':')', '[':']', '{':'}', "'":"'", '"':'"'}
+
+    " Expand Region
+    NeoBundle 'terryma/vim-expand-region'
+    map vv <Plug>(expand_region_expand)
+    vmap <C-v> <Plug>(expand_region_shrink)
+
+    " Tabularize
+    NeoBundleLazy 'godlygeek/tabular',
+        \ {'autoload' : {'commands' : 'Tabularize'}}
+    map <leader>t== :Tabularize /=<CR>
+    map <leader>t=> :Tabularize /=><CR>
+    map <leader>t:  :Tabularize /:\zs<CR>
+    map <leader>t:: :Tabularize /:\zs<CR>
+    map <leader>t,  :Tabularize /,<CR>
+    map <leader>t<space> :Tabularize / <CR>
 
     " tComment
     NeoBundle 'tomtom/tcomment_vim'
     " q: toggle comment line
     nmap q gcc
     vmap q gc
-
-    " EasyMotion
-    NeoBundle 'Lokaltog/vim-easymotion'
-    let g:EasyMotion_mapping_w  = '<Space>w'
-    let g:EasyMotion_mapping_e  = '<Space>e'
-    let g:EasyMotion_mapping_b  = '<Space>b'
-
-    " Session manager
-    NeoBundle 'xolox/vim-session'
-    let g:session_autosave = 1
-    let g:session_autoload = 1
-    let g:session_default_to_last = 1
-    let g:session_directory = $DOTVIM.'/session'
-    set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
-    nmap <leader>sl :OpenSession<space>
-    nmap <leader>sa :SaveSession<space>
-    nmap <leader>ss :SaveSession!<CR>
-    nmap <leader>sc :CloseSession!<CR>
-    nmap <leader>sd :DeleteSession!<CR>
 
     " NERDTree
     NeoBundle 'scrooloose/nerdtree'
@@ -189,18 +201,45 @@
     let nerdtree_tabs_open_on_gui_startup = 0
     nmap <silent> <F3> :NERDTreeTabsToggle<CR>
 
+    " CtrlP
+    NeoBundle 'kien/ctrlp.vim'
+    let g:ctrlp_map = '<leader>f'
+    let g:ctrlp_clear_cache_on_exit = 0
+    let g:ctrlp_cache_dir = $DOTVIM.'/cache/ctrlp'
+
+    " EasyMotion
+    NeoBundle 'Lokaltog/vim-easymotion'
+    let g:EasyMotion_mapping_w  = '<Space>w'
+    let g:EasyMotion_mapping_e  = '<Space>e'
+    let g:EasyMotion_mapping_b  = '<Space>b'
+
+    " Session manager
+    NeoBundleLazy 'xolox/vim-session',
+        \ {'depends' : 'xolox/vim-misc'}
+    let g:session_autosave = 'yes'
+    let g:session_autoload = 'yes'
+    let g:session_default_to_last = 1
+    let g:session_directory = $DOTVIM.'/session'
+    set sessionoptions=buffers,curdir,folds,resize,tabpages,unix,slash
+    nmap <leader>sl :OpenSession<space>
+    nmap <leader>sa :SaveSession<space>
+    nmap <leader>ss :SaveSession!<CR>
+    nmap <leader>sc :CloseSession!<CR>
+    nmap <leader>sd :DeleteSession!<CR>
+
     " Syntastic
     NeoBundle 'scrooloose/syntastic'
-    let g:syntastic_auto_jump = 1
+    let g:syntastic_auto_jump = 0
     let g:syntastic_auto_loc_list = 2  " auto close error window when there are no errors
     let g:syntastic_check_on_open = 0
     let g:syntastic_error_symbol = '✗'
     let g:syntastic_warning_symbol = '∗'
+    let g:syntastic_always_populate_loc_list = 1
     let g:syntastic_stl_format = '%E{err: %e line: %fe}%B{, }%W{warn: %w line: %fw}'
     let g:syntastic_mode_map = {
         \ 'mode': 'passive',
-        \ 'active_filetypes':  ['haskell','php','css','javascript'],
-        \ 'passive_filetypes': ['html','twig'] }
+        \ 'active_filetypes':  ['python','php','css','javascript'],
+        \ 'passive_filetypes': ['haskell','html','twig'] }
     " Syntax checkers
     let g:syntastic_csslint_options = '--ignore=ids'
     let g:syntastic_javascript_jslint_conf = '--node --nomen --anon --sloppy --regex'
@@ -216,12 +255,6 @@
         let g:gundo_preview_statusline = ' '
         let g:gundo_tree_statusline = ' '
         nmap <silent> <F4> :GundoToggle<CR><CR>
-        " Colorv
-        NeoBundleLazy 'Rykka/colorv.vim',
-            \ {'autoload' : {'filetypes' : ['html','css','lucius','vim']}}
-        let g:colorv_cache_fav = $DOTVIM.'/colorv_cache'
-        let g:colorv_cache_file = $DOTVIM.'/colorv_cache_fav'
-        let g:colorv_preview_ftype = 'html,css,lucius,javascript,vim'
         " UltiSnips
         NeoBundle 'SirVer/ultisnips'
         let g:UltiSnipsExpandTrigger = '`'
@@ -229,31 +262,41 @@
         let g:UltiSnipsJumpForwardTrigger  = '<A-.>'
         let g:UltiSnipsJumpBackwardTrigger = '<A-,>'
         let g:UltiSnipsSnippetDirectories = ['snippets']
+        let g:UltiSnipsSnippetsDir = $HOME.'/dotfiles/vim/UltiSnips'
+        " Colorv
+        NeoBundleLazy 'Rykka/colorv.vim',
+            \ {'autoload' : {'filetypes' : ['html','css','lucius','vim']}}
+        let g:colorv_cache_fav = $DOTVIM.'/cache/colorv_cache'
+        let g:colorv_cache_file = $DOTVIM.'/cache/colorv_cache_fav'
+        let g:colorv_preview_ftype = 'html,css,lucius,javascript,vim'
     endif
-
-    " Tabularize
-    NeoBundle 'godlygeek/tabular'
-    map <leader>t== :Tabularize /=<CR>
-    map <leader>t=> :Tabularize /=><CR>
-    map <leader>t:  :Tabularize /:\zs<CR>
-    map <leader>t:: :Tabularize /:\zs<CR>
-    map <leader>t,  :Tabularize /,<CR>
-    map <leader>t<space> :Tabularize / <CR>
 
     " HTML
     NeoBundleLazy 'gregsexton/MatchTag',
-        \ {'autoload' : {'filetypes' : ['html','html.twig','twig','hamlet']}}
+        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
     NeoBundleLazy 'docunext/closetag.vim',
-        \ {'autoload' : {'filetypes' : ['html','html.twig','twig','hamlet']}}
+        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
+
+    " CSS
+    NeoBundleLazy 'miripiruni/CSScomb-for-Vim',
+        \ {'autoload' : {'filetypes' : ['css','lucius']}}
+    nmap <silent> <F9> :CSScomb<CR>
+
     " Zen Coding
     NeoBundleLazy 'mattn/zencoding-vim',
-        \ {'autoload' : {'filetypes' : ['html','html.twig','twig','hamlet']}}
-    let g:user_zen_expandabbr_key = '<C-q>'
+        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
+    let g:user_zen_expandabbr_key = '<Ctrl-q>'
 
-    "   CSS
-    NeoBundleLazy 'miripiruni/CSScomb-for-Vim',
-        \ {'autoload' : {'filetypes' : 'css,lucius'}}
-    nmap <silent> <F9> :CSSComb<CR>
+    " JavaScript
+    NeoBundleLazy 'teramako/jscomplete-vim',
+        \ {'autoload' : {'filetypes' : ['javascript','jquery']}}
+    let g:jscomplete_use = ['dom', 'moz']
+    " Syntax settings
+    NeoBundle 'nono/jquery.vim'
+    NeoBundle 'jelera/vim-javascript-syntax'
+    NeoBundle 'jiangmiao/simple-javascript-indenter'
+    let g:SimpleJsIndenter_BriefMode = 1
+    let g:SimpleJsIndenter_CaseIndentLevel = -1
 
     " PHP
     NeoBundle 'phpvim'
@@ -272,10 +315,11 @@
     " Configure browser for haskell_doc.vim
     let g:haddock_browser = 'open'
     let g:haddock_browser_callformat = '%s %s'
-   " NeoBundleLazy 'Shougo/vimproc',
-    "     \ {'build' : {'windows' : 'make -f make_mingw32.mak'}}
-    " NeoBundle 'eagletmt/ghcmod-vim'
-    " au! FileType haskell compiler ghc | GhcModCheckAsync
+    " NeoBundleLazy 'Shougo/vimproc',
+    "      \ {'build' : {'windows' : 'make -f make_mingw32.mak'}}
+    "  NeoBundle 'eagletmt/ghcmod-vim'
+    "  au! FileType haskell compiler ghc | GhcModCheckAsync
+    NeoBundle 'Superior-Haskell-Interaction-Mode-SHIM'
     " Syntax settings
     NeoBundle 'haskell/haskell-mode-vim'
     NeoBundle 'Twinside/vim-syntax-haskell-cabal'
@@ -283,34 +327,17 @@
     let hs_highlight_debug = 1
     let hs_highlight_types = 1
     let hs_highlight_boolean = 1
+    let hs_highlight_prelude = 1
+    let hs_highlight_functions = 1
+    let hs_highlight_classes = 1
+    let hs_highlight_delimiters = 1
     let hs_allow_hash_operator = 1
+    let hs_highlight_conceal = 1
 
-    " JavaScript
-    NeoBundleLazy 'teramako/jscomplete-vim',
-        \ {'autoload' : {'filetypes' : ['javascript','jquery']}}
-    let g:jscomplete_use = ['dom', 'moz']
-    " Syntax settings
-    NeoBundle 'nono/jquery.vim'
-    NeoBundle 'jelera/vim-javascript-syntax'
-    NeoBundle 'jiangmiao/simple-javascript-indenter'
-    let g:SimpleJsIndenter_BriefMode = 1
-    let g:SimpleJsIndenter_CaseIndentLevel = -1
-
-    " Ultimate auto-completion
-    NeoBundle 'Shougo/neocomplcache'
-    let g:neocomplcache_max_list = 10
-    let g:neocomplcache_enable_at_startup = 1
-    let g:neocomplcache_enable_auto_select = 1
-    let g:neocomplcache_enable_auto_close_preview = 1
-    let g:neocomplcache_enable_smart_case = 1
-    let g:neocomplcache_disable_auto_complete = 1
-    let g:neocomplcache_temporary_dir = $DOTVIM.'/neocomplcache'
-    " <Tab>: completion
-    imap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<C-x>\<C-u>"
-    imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
-    " UltiSnips integration
-    NeoBundle 'JazzCore/neocomplcache-ultisnips'
-
+    " Autocomplete
+    NeoBundle 'Valloric/YouCompleteMe'
+    " let g:ycm_key_invoke_completion = '<C-Tab>'
+    let g:ycm_autoclose_preview_window_after_completion = 1
     " Omni complete
     set complete=.,w,b,u,U
     set completeopt=menuone,longest,preview
@@ -319,13 +346,18 @@
         au!
         au FileType haskell setl omnifunc=necoghc#omnifunc
         au FileType php setl omnifunc=phpcomplete#CompletePHP
-        au FileType css setl omnifunc=csscomplete#CompleteCSS
+        au FileType sql setl omnifunc=sqlcomplete#Complete
         au FileType xml setl omnifunc=xmlcomplete#CompleteTags
+        au FileType css setl omnifunc=csscomplete#CompleteCSS
         au FileType html setl omnifunc=htmlcomplete#CompleteTags
+        au FileType ruby setl omnifunc=rubycomplete#Complete
+        au FileType python setl omnifunc=pythoncomplete#Complete
         au FileType javascript setl omnifunc=jscomplete#CompleteJS
         " Syntax complete if nothing else available
         au FileType * if &omnifunc == ''|setl omnifunc=syntaxcomplete#Complete|endif
+        au FileType * if &completefunc == ''|setl completefunc=syntaxcomplete#Complete|endif
     augroup END
+
 
 " Vim UI
     colorscheme simplex | syntax on
@@ -337,37 +369,49 @@
         set guifont=DejaVu_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
         " winsize 120 100 | winpos 0 0
     endif
-    set autowrite               " automatically save before commands like :make
-    set shortmess=fmxsIaoO      " disable intro message
+    set history=50              " history amount
     set linespace=2             " extra spaces between rows
+    set lazyredraw              " don't redraw while executing macros
     set textwidth=0             " disable automatic text-width
+    set shortmess=fmxsIaoO      " disable intro message
     set relativenumber          " show the line number
     set virtualedit=all         " allows cursor position past true end of line
+    set noshowmode              " don't show the mode ("-- INSERT --") at the bottom
+    " set timeoutlen=60           " mapping timeout
+    " set ttimeoutlen=0           " keycode timeout
+    set clipboard=unnamed       " yank and past use the OS clipboard
+    if exists('&regexpengine')
+        set regexpengine=2      " regexp engine (0=auto, 1=old, 2=NFA)
+    endif
+
+" Files & Folders
+    set autowrite               " auto save before commands like :make
+    set autoread                " auto reload changed files
+    set autochdir               " auto switch to the current file directory
     set nostartofline           " avoid moving cursor to BOL when jumping around
-    set lazyredraw              " don't redraw while executing macros
-    set timeoutlen=1200         " a little bit more time for macros
-    set ttimeoutlen=50          " make Esc work faster
 
 " Buffers & Windows
     set hidden                  " allows the closing of buffers without saving
-    set autoread                " auto reload changed files
-    set autochdir               " auto switch to the current file directory
     set switchbuf=useopen       " orders to open the buffer
     set showtabline=2           " always show the tab pages
     set scrolloff=3             " lines visible above/below cursor when scrolling
     set sidescrolloff=3         " lines visible left/right of cursor when scrolling
     set splitbelow splitright   " splitting a window below/right the current one
     set noequalalways           " resize windows as little as possible
+    set winminheight=0          " minimal height of a window
 
 " Formatting
     set wrap                    " wrap long lines
     set linebreak               " wrap without line breaks
-    set expandtab               " spaces instead of tabs
+    set shiftround              " indent multiple of shiftwidth
     set autoindent              " indent at the same level of the previous line
     set smartindent             " smart automatic indenting
-    set tabstop=4               " number of spaces
-    set shiftwidth=4            " number of spaces for (auto)indent
-    set softtabstop=4           " backspace delete indent
+    set cindent                 " smart indenting for c-like code
+    set copyindent              " copy the previous indentation on (auto)indenting
+    set expandtab               " spaces instead of tabs
+    set tabstop=4               " number of spaces per tab for display
+    set shiftwidth=4            " number of spaces per tab in insert mode
+    set softtabstop=4           " number of spaces when indenting
     " Backspacing settings
         " indent  allow backspacing over autoindent
         " eol     allow backspacing over line breaks (join lines)
@@ -376,10 +420,12 @@
     set backspace=indent,eol,start
     " Highlight invisible symbols
     set list
-    set listchars=trail:.,precedes:<,extends:>,nbsp:.,tab:+-
+    set listchars=trail:•,precedes:<,extends:>,nbsp:.,tab:+-
 
 " Folding
     set nofoldenable            " don't do any folding for now
+    " set foldmethod=indent       " open all folds initially
+    " set foldlevelstart=99       " close folds below this depth, initially
 
 " Mouse
     set mousehide               " hide the mouse pointer while typing
@@ -392,11 +438,12 @@
     set ignorecase              " case insensitive search
     set smartcase               " case sensitive when uc present
     set gdefault                " flag 'g' by default for replacing
-    set magic                   " turn magic on
+    set magic                   " change the way backslashes are used in search patterns
 
 " Command-line
     set wildmenu                    " show list instead of just completing
     set wildmode=list:longest,full  " completion modes
+    set wildignorecase              " in-case-sensitive dir/file completion
 
 " Statusline
     " Always show the statusline
@@ -414,7 +461,7 @@
     " set statusline+=%(%{SynStack()}\ %)                " synstack.vim: identify syntax
 
 " Normal mode
-    " <A-jkhl>: move selected lines
+    " Alt-[jkhl]: move selected lines
     nmap <A-j> ddp
     nmap <A-k> ddkP
     nmap <A-h> <<
@@ -426,39 +473,50 @@
     nmap ff $
     " tt: jump to first char
     nmap tt ^
-    " <A-w>: fast save
+    " p: paste and indent
+    nmap <silent> <leader>p p`[v`]=
+    " Alt-w: fast save
     nmap <A-w> :w!<CR>
-    " <C-C>: clear highlight after search
+    " Ctrl-C: clear highlight after search
     nmap <silent> <C-c> :nohl<CR>:let @/=""<CR>
-    " <C-jk>: scroll up/down
+    " Ctrl-[jk]: scroll up/down
     nmap <C-j> <PageDown>
     nmap <C-k> <PageUp>
-    " <C-hl>: scroll left/right
+    " Ctrl-[hl]: scroll left/right
     nmap <C-h> 10zh
     nmap <C-l> 10zl
-    " <A-2>: new tab
+    " Alt-2: new tab
     nmap <A-2> :tabnew<CR>
-    " <A-e>: close tab
+    " Alt-e: close tab
     nmap <A-1> :q<CR>
-    " <A-e>: previous tab
+    " Alt-e: previous tab
     nmap <A-q> gT
-    " <A-e>: next tab
+    " Alt-e: next tab
     nmap <A-e> gt
-    " <A-ad>: move tabs
+    " Alt-[ad]: move tabs
     nmap <silent> <A-a> :exe 'silent! tabmove '.(tabpagenr()-2)<CR>
     nmap <silent> <A-d> :exe 'silent! tabmove '.tabpagenr()<CR>
-    " <A-upio>: jump to window
+    " ,bl: show buffers
+    nmap <leader>bl :ls<CR>:b
+    " ,bp: previous buffer
+    nmap <leader>bp :bp<CR>
+    " ,bn: next buffer
+    nmap <leader>bn :bn<CR>
+    " Alt-[upio]: jump to window
     nmap <silent> <A-o> :wincmd k<CR>
     nmap <silent> <A-p> :wincmd l<CR>
     nmap <silent> <A-u> :wincmd h<CR>
     nmap <silent> <A-i> :wincmd j<CR>
-    " <A-r>: switch window
+    " Alt-r: switch window
     nmap <silent> <A-r> :wincmd w<CR>
-    " <A-r>: swap window
+    " Alt-r: swap window
     nmap <silent> <A-f> :wincmd x<CR>
-    " <A-[]>: split window
+    " Alt-[]: split window
     nmap <silent> <A-[> :split<CR>
     nmap <silent> <A-]> :vsplit<CR>
+    " zz: move to top/center/bottom
+    nmap <expr> zz (winline() == (winheight(0)+1)/ 2) ?
+                \ 'zt' : (winline() == 1)? 'zb' : 'zz'
     " *: don't jump when using * for search
     nmap * *<C-o>
     " nN#: search keep matches in the middle
@@ -467,7 +525,7 @@
     nmap # #zz
     " Q: auto indent text
     nmap Q ==
-    " <Tab>: bracket match
+    " Tab: bracket match
     nmap <Tab> %
     " vA: select all
     nmap vA ggVG
@@ -480,8 +538,8 @@
     " ,w: toggle wrap mode
     nmap <silent> <leader>w :setl wrap!<CR>
     " togglelist.vim: toggle window
-    nmap <silent> <F1> :ToggleLocationList<CR>
-    nmap <silent> <F2> :ToggleQuickfixList<CR>
+    " nmap <silent> <F1> :ToggleLocationList<CR>
+    " nmap <silent> <F2> :ToggleQuickfixList<CR>
     " Location List shortcuts
     nmap <silent> <A-,> :lprev<CR>
     nmap <silent> <A-.> :lnext<CR>
@@ -490,62 +548,66 @@
     nmap <silent> <C-.> :cp<CR>
 
 " Insert mode
-    " <A-jkhl>: standart move
+    " Alt-[jkhl]: standart move
     imap <A-j> <C-o>j
     imap <A-h> <C-o>h
     imap <A-k> <C-o>k
     imap <A-l> <C-o>l
-    " <C-a>: jump to head
+    " Ctrl-a: jump to head
     imap <A-a> <C-o>I
-    " <C-e>: jump to end
+    " Ctrl-e: jump to end
     imap <A-e> <C-o>A
-    " <C-q>: jump to first char
+    " Ctrl-q: jump to first char
     imap <A-q> <Home>
-    " <C-jk>: scroll up/down
+    " Ctrl-[jk]: scroll up/down
     imap <C-j> <PageDown>
     imap <C-k> <PageUp>
-    " <A-w>: fast save
+    " Alt-w: fast save
     imap <A-w> <Esc> :w!<CR>
-    " <C-s>: old fast save
+    " Ctrl-s: old fast save
     imap <C-s> <Esc> :w!<CR>
-    " <A-s>: fast Esc
+    " Alt-s: fast Esc
     imap <A-s> <Esc>
-    " <C-c>: old fast Esc
+    " Ctrl-c: old fast Esc dsa
     imap <C-c> <Esc>
-    " <A-r>: change language
+    " Alt-r: change language
     imap <A-r> <C-^>
-    " <A-m>: break line
+    " Alt-m: break line
     imap <A-m> <C-m>
 
 " Visual mode
-    " <A-jkhl>: move selected lines
+    " Alt-[jkhl]: move selected lines
     vmap <A-j> xp'[V']
     vmap <A-k> xkP'[V']
     vmap <A-h> <'[V']
     vmap <A-l> >'[V']
-    " <A-w>: fast save
+    " Alt-w: fast save
     vmap <A-w> <Esc>:w!<CR>
-    " <C-s>: old fast save
+    " Ctrl-s: old fast save
     vmap <C-s> <Esc>:w!<CR>
     " Q: auto indent text
     vmap Q ==
 
 " Command mode
-    " <C-h>: previous char
+    " Ctrl-h: previous char
     cmap <C-h> <Left>
-    " <C-l>: next char
+    " Ctrl-l: next char
     cmap <C-l> <Right>
-    " <C-j>: previous history
+    " Ctrl-h: previous word
+    cmap <A-h> <s-left>
+    " Ctrl-h: next word
+    cmap <A-l> <s-right>
+    " Ctrl-j: previous history
     cmap <C-j> <Down>
-    " <C-k>: next history
+    " Ctrl-k: next history
     cmap <C-k> <Up>
-    " <C-d>: delete char
+    " Ctrl-d: delete char
     cmap <C-d> <Del>
-    " <C-a>: jump to head
+    " Ctrl-a: jump to head
     cmap <C-a> <Home>
-    " <C-e>: jump to end
+    " Ctrl-e: jump to end
     cmap <C-e> <End>
-    " <C-p>: paste
+    " Ctrl-p: paste
     cmap <C-p> <C-r>*
     " Shortcuts
     cmap %% <C-R>=expand('%')<CR>
