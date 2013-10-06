@@ -33,7 +33,10 @@
     set synmaxcol=512
 
     " Avoid loading same plugins. +100 speed
-    let g:loaded_matchparen = 1         " disable matchparen.vim
+    let g:loaded_gzip = 1               " disable gzip.vim
+    let g:loaded_zipPlugin = 1          " disable zipPlugin.vim
+    let g:loaded_tarPlugin = 1          " disable tarPlugin.vim
+    " let g:loaded_matchparen = 1         " disable matchparen.vim
     let g:loaded_netrwPlugin = 1        " disable netrw.vim
     let g:loaded_getscriptPlugin = 1    " disable getscriptPlugin.vim
 
@@ -77,7 +80,7 @@
         au!
         au BufNewFile,BufRead */conf/*            setl filetype=nginx
         au BufNewFile,BufRead *.md                setl filetype=markdown
-        au BufNewFile,BufRead *.{json,js.twig}    setl filetype=javascript
+        au BufNewFile,BufRead js.twig             setl filetype=javascript
         au BufNewFile,BufRead jquery.*.js         setl filetype=jquery syntax=jquery
         au BufNewFile,BufRead *.twig              setl filetype=twig
         au BufNewFile,BufRead *.html.twig         setl filetype=htmltwig syntax=html.twig
@@ -138,7 +141,7 @@
     NeoBundleFetch 'Shougo/neobundle.vim'
 
     " Personal plugins
-    NeoBundle 'Quetka/dotvim'
+    NeoBundle 'AlexMasterov/dotvim'
     " Local plugins for doing development
     NeoBundleLocal $DOTVIM.'/dev'
 
@@ -154,7 +157,15 @@
     " let g:multi_cursor_prev_key = '<C-p>'
     " let g:multi_cursor_skip_key = '<C-x>'
     " let g:multi_cursor_quit_key = '<C-c>'
-    NeoBundle 'gcmt/psearch.vim'
+    NeoBundle 'AndrewRadev/splitjoin.vim'
+    nmap <silent> <A-n> :SplitjoinSplit<CR>
+    nmap <silent> <A-m> :SplitjoinJoin<CR>
+    NeoBundleLazy 'shmay/vim-yaml',
+        \ {'autoload' : {'filetypes' : 'yaml'}}
+    NeoBundleLazy 'elzr/vim-json',
+        \ {'autoload' : {'filetypes' : 'json'}}
+    NeoBundleLazy 'gcmt/psearch.vim',
+        \ {'autoload' : {'commands' : 'PSearch'}}
     nmap <F1> :PSearch<CR>
 
     " Auto Pairs
@@ -187,7 +198,8 @@
     vmap q gc
 
     " NERDTree
-    NeoBundle 'scrooloose/nerdtree'
+    NeoBundleLazy 'scrooloose/nerdtree',
+        \ {'autoload' : {'commands' : 'NERDTreeTabsToggle'}}
     let NERDTreeWinPos = 'right'
     let NERDTreeWinSize = 34
     let NERDTreeMinimalUI = 1
@@ -199,7 +211,7 @@
     NeoBundle 'jistr/vim-nerdtree-tabs'
     let nerdtree_tabs_focus_on_files = 1
     let nerdtree_tabs_open_on_gui_startup = 0
-    nmap <silent> <F3> :NERDTreeTabsToggle<CR>
+    nmap <silent> <F4> :NERDTreeTabsToggle<CR>
 
     " CtrlP
     NeoBundle 'kien/ctrlp.vim'
@@ -214,7 +226,7 @@
     let g:EasyMotion_mapping_b  = '<Space>b'
 
     " Session manager
-    NeoBundleLazy 'xolox/vim-session',
+    NeoBundle 'xolox/vim-session',
         \ {'depends' : 'xolox/vim-misc'}
     let g:session_autosave = 'yes'
     let g:session_autoload = 'yes'
@@ -247,14 +259,15 @@
 
     if has('python')
         " Gundo
-        NeoBundle 'sjl/gundo.vim'
+        NeoBundleLazy 'sjl/gundo.vim',
+            \ {'autoload' : {'commands' : 'GundoToggle'}}
         let g:gundo_help = 0
         let g:gundo_right = 1
         let g:gundo_width = 30
         let g:gundo_preview_bottom = 1
         let g:gundo_preview_statusline = ' '
         let g:gundo_tree_statusline = ' '
-        nmap <silent> <F4> :GundoToggle<CR><CR>
+        nmap <silent> <F3> :GundoToggle<CR><CR>
         " UltiSnips
         NeoBundle 'SirVer/ultisnips'
         let g:UltiSnipsExpandTrigger = '`'
@@ -272,20 +285,21 @@
     endif
 
     " HTML
-    NeoBundleLazy 'gregsexton/MatchTag',
-        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
     NeoBundleLazy 'docunext/closetag.vim',
-        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
+        \ {'autoload' : {'filetypes' : ['html','xml','twig','htmltwig','hamlet']}}
+    NeoBundleLazy 'gregsexton/MatchTag',
+        \ {'autoload' : {'filetypes' : ['html','xml','twig','htmltwig','hamlet']}}
+    au! FileType twig,htmltwig,hamlet runtime! ftplugin/html.vim
 
     " CSS
     NeoBundleLazy 'miripiruni/CSScomb-for-Vim',
-        \ {'autoload' : {'filetypes' : ['css','lucius']}}
+        \ {'autoload' : {'commands' : 'CSScomb'}}
     nmap <silent> <F9> :CSScomb<CR>
 
-    " Zen Coding
-    NeoBundleLazy 'mattn/zencoding-vim',
-        \ {'autoload' : {'filetypes' : ['html','xml','htmltwig','twig','hamlet']}}
-    let g:user_zen_expandabbr_key = '<Ctrl-q>'
+    " Emmet (ex Zen Coding)
+    NeoBundleLazy 'mattn/emmet-vim',
+        \ {'autoload' : {'filetypes' : ['html','xml','twig','htmltwig','hamlet']}}
+    let g:user_emmet_expandabbr_key = '<S-e>'
 
     " JavaScript
     NeoBundleLazy 'teramako/jscomplete-vim',
@@ -336,7 +350,6 @@
 
     " Autocomplete
     NeoBundle 'Valloric/YouCompleteMe'
-    " let g:ycm_key_invoke_completion = '<C-Tab>'
     let g:ycm_autoclose_preview_window_after_completion = 1
     " Omni complete
     set complete=.,w,b,u,U
@@ -369,6 +382,7 @@
         set guifont=DejaVu_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
         " winsize 120 100 | winpos 0 0
     endif
+    set report=0                " report changes
     set history=50              " history amount
     set linespace=2             " extra spaces between rows
     set lazyredraw              " don't redraw while executing macros
@@ -377,11 +391,18 @@
     set relativenumber          " show the line number
     set virtualedit=all         " allows cursor position past true end of line
     set noshowmode              " don't show the mode ("-- INSERT --") at the bottom
+    set matchtime=3             " blink matching chars for .x seconds
+    set matchpairs+=<:>         " highlight <>
     " set timeoutlen=60           " mapping timeout
     " set ttimeoutlen=0           " keycode timeout
-    set clipboard=unnamed       " yank and past use the OS clipboard
     if exists('&regexpengine')
         set regexpengine=2      " regexp engine (0=auto, 1=old, 2=NFA)
+    endif
+    " Use clipboard register
+    if has('unnamedplus')
+        set clipboard& clipboard+=unnamedplus
+    else
+        set clipboard& clipboard+=unnamed
     endif
 
 " Files & Folders
@@ -464,8 +485,8 @@
     " Alt-[jkhl]: move selected lines
     nmap <A-j> ddp
     nmap <A-k> ddkP
-    nmap <A-h> <<
-    nmap <A-l> >>
+    nmap <A-h> <<<Esc>
+    nmap <A-l> >>><Esc>
     " jk: don't skip wrap lines
     nmap j gj
     nmap k gk

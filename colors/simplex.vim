@@ -176,6 +176,15 @@ hi yamlFlowMappingKey         guifg=#0050B1                   gui=none
 hi yamlBlockMappingKey        guifg=#0050B1                   gui=none
 hi yamlKeyValueDelimiter      guifg=#A67F59   guibg=#FFF9F9   gui=none
 
+" JSON
+" github.com/elzr/vim-json
+hi jsonString                 guifg=#333333                   gui=none
+hi jsonEscape                 guifg=#A67F59                   gui=none
+hi jsonBraces                 guifg=#999999                   gui=none
+hi jsonBoolean                guifg=#CD7F32                   gui=bold
+hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi jsonKeywordRegion          guifg=#0050B1                   gui=none
+
 " Syntastic
 hi SyntasticErrorSign         guifg=#FF7311                   gui=none
 hi SyntasticWarningSign       guifg=#FF7311                   gui=none
