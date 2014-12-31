@@ -1,6 +1,6 @@
 " Vim colour file
-" Maintainer:   Alex Masterov <alex.masterow@gmail.com>
-" Last Change:  2013 Apr 22
+" Author:       Alex Masterov <alex.masterow@gmail.com>
+" Last Change:  2014 Dec
 " Description:  GUI only
 
 set background=light
@@ -34,6 +34,7 @@ hi ErrorMsg             guifg=#333333   guibg=#FFBBBB   gui=none
 hi Error                guifg=#333333   guibg=#FF0000   gui=none
 hi ModeMsg              guifg=#333333   guibg=#EEEEEE   gui=none
 hi MoreMsg              guifg=#333333   guibg=#EEEEEE   gui=none
+hi vimfilerDirectory    guifg=#D14000                   gui=none
 
 " Users
 hi User1                guifg=#0000FF   guibg=#EEEEEE   gui=none
@@ -95,6 +96,7 @@ hi link Debug           Special
 hi phpEcho                    guifg=#333333                   gui=bold
 hi phpType                    guifg=#0050B0                   gui=none
 hi phpParent                  guifg=#999999                   gui=none
+hi phpInteger                 guifg=#1299DA                   gui=none
 hi phpNumber                  guifg=#1299DA                   gui=none
 hi phpBoolean                 guifg=#CD7F32                   gui=bold
 hi phpClasses                 guifg=#B729D9                   gui=none
@@ -160,6 +162,8 @@ hi cssRenderAttr              guifg=#333333                   gui=none
 hi cssCommonAttr              guifg=#333333                   gui=none
 hi cssPositioningAttr         guifg=#446644   guibg=#DDEECC   gui=none
 hi cssBorderOutLineAttr       guifg=#A67F59   guibg=#FFF9F9   gui=none
+hi cssValueLength             guifg=#BA4747   guibg=#FFF9F9   gui=none
+hi cssUnitDecorators          guifg=#9DBAD7                   gui=none
 
 " Twig
 hi twigVariable               guifg=#333333                   gui=bold
@@ -169,13 +173,6 @@ hi twigOperator               guifg=#999999                   gui=none
 hi twigVarDelim               guifg=#999999                   gui=none
 hi twigTagDelim               guifg=#999999                   gui=none
 
-" Yaml
-hi yamlConstant               guifg=#CD7F32                   gui=bold
-hi yamlFlowIndicator          guifg=#999999                   gui=none
-hi yamlFlowMappingKey         guifg=#0050B1                   gui=none
-hi yamlBlockMappingKey        guifg=#0050B1                   gui=none
-hi yamlKeyValueDelimiter      guifg=#A67F59   guibg=#FFF9F9   gui=none
-
 " JSON
 " github.com/elzr/vim-json
 hi jsonString                 guifg=#333333                   gui=none
@@ -184,11 +181,3 @@ hi jsonBraces                 guifg=#999999                   gui=none
 hi jsonBoolean                guifg=#CD7F32                   gui=bold
 hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=none
 hi jsonKeywordRegion          guifg=#0050B1                   gui=none
-
-" Syntastic
-hi SyntasticErrorSign         guifg=#FF7311                   gui=none
-hi SyntasticWarningSign       guifg=#FF7311                   gui=none
-
-" EasyMotion
-hi link EasyMotionShade    Comment
-hi link EasyMotionTarget   ErrorMsg
