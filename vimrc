@@ -21,9 +21,7 @@
     set modelines=0       " prevents security exploits
 
     " Initialize autogroup in MyVimrc
-    augroup MyVimrc
-        autocmd!
-    augroup END
+    augroup MyVimrc| exe 'autocmd!' |augroup END
 
     " Echo startup time on start
     if has('vim_starting') && has('reltime')
@@ -58,6 +56,9 @@
     " Indent
     command! -bar -nargs=* Indent
         \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
+    " Font size
+    command! -nargs=* FontSize
+        \ let &guifont = substitute(&guifont, '\d\+', '\=submatch(0)+<args>', '')
     " Reload vimrc
     command! -bar ReloadVimrc
         \ if exists(':NeoBundleClearCache')| NeoBundleClearCache |endif | source $MYVIMRC | redraw
@@ -84,14 +85,17 @@
     " Only show the cursorline in the current window
     Autocmd WinEnter,CursorHold,CursorHoldI   * setl cursorline
     Autocmd WinLeave,CursorMoved,CursorMovedI * if &cursorline| setl nocursorline |endif
-    " Restore cursor position to where it was before closing
-    Autocmd BufReadPost * silent! exe 'normal! g`"'
     " Dont continue comments when pushing (see also :help fo-table)
     Autocmd BufEnter,WinEnter * set formatoptions-=ro
     " Automake directory
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
     " Converts all remaining tabs to spaces on save
     Autocmd BufReadPost,BufWritePost * if &modifiable| retab | FixWhitespace |endif
+    " Restore cursor position to where it was before closing
+    Autocmd BufReadPost *
+    \   if expand('%') !~# '\.git[\/\\]COMMIT_EDITMSG$' && line("'\"") > 1 && line("'\"") <= line('$')
+    \|      silent! exe 'normal! g`"zvzz'
+    \|  endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -126,11 +130,6 @@
         set undofile
         set undolevels=500 undoreload=1000
         set undodir=$VIMFILES/undo
-    endif
-
-    " DirectWrite
-    if WINDOWS() && has('directx')
-        set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
     endif
 
     " Regexp engine (0=auto, 1=old, 2=NFA)
@@ -214,7 +213,7 @@
 
         " Edit
         " NeoBundle 'cohama/lexima.vim'
-        NeoBundle 'tpope/vim-commentary'
+        NeoBundle 'tyru/caw.vim'
         NeoBundleLazy 'gcmt/wildfire.vim', {
         \   'mappings': '<Plug>'
         \}
@@ -237,6 +236,13 @@
         \   'insert': 1
         \}
 
+        " Text objects
+        NeoBundleLazy 'kana/vim-textobj-user'
+        NeoBundleLazy 'machakann/vim-textobj-delimited', {
+        \   'depends': 'kana/vim-textobj-user',
+        \   'mappings': ['vid', 'viD', 'vad', 'vaD']
+        \}
+
         " Haskell
         NeoBundleLazy 'eagletmt/ghcmod-vim', {'filetypes': 'haskell'}
         NeoBundleLazy 'eagletmt/neco-ghc',   {'filetypes': 'haskell'}
@@ -250,9 +256,11 @@
         NeoBundleLazy 'jiangmiao/simple-javascript-indenter',   {'filetypes': 'javascript'}
         " CSS
         NeoBundleLazy 'JulesWang/css.vim',                   {'filetypes': 'css'}
+        NeoBundleLazy 'hail2u/vim-css3-syntax',              {'filetypes': 'css'}
+        NeoBundleLazy 'gorodinskiy/vim-coloresque',          {'filetypes': 'css'}
         NeoBundleLazy '1995eaton/vim-better-css-completion', {'filetypes': 'css'}
         " JSON
-        NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
+        NeoBundleLazy 'elzr/vim-json',    {'filetypes': 'json'}
         " CSV
         NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
         " SQL
@@ -260,7 +268,8 @@
         " Nginx
         NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
         " Git
-        " NeoBundleLazy 'tpope/vim-fugitive'
+        " NeoBundle 'tpope/vim-fugitive'
+        " NeoBundle 'airblade/vim-gitgutter'
 
         " NeoBundleCheck
         NeoBundleSaveCache
@@ -321,6 +330,10 @@
         let g:lexima_no_map_to_escape = 1
     endif
 
+    if neobundle#is_installed('vim-gitgutter')
+        let g:gitgutter_enabled = 0
+    endif
+
     if neobundle#is_installed('wildfire.vim')
         nmap vv    <Plug>(wildfire-fuel)
         vmap vv    <Plug>(wildfire-fuel)
@@ -328,25 +341,20 @@
         nmap ,s    <Plug>(wildfire-quick-select)
     endif
 
-    if neobundle#tap('vim-commentary')
-         function! neobundle#hooks.on_source(bundle)
-             unmap cgc
-         endfunction
-         nmap q <Plug>CommentaryLine
-         vmap q <Plug>Commentary
-         nmap ,q gccyypgcc
-         xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
-
-         call neobundle#untap()
-     endif
+    if neobundle#is_installed('caw.vim')
+        let g:caw_i_skip_blank_line = 1
+        let g:caw_no_default_keymappings = 1
+        nmap q <Plug>(caw:i:toggle)
+        vmap q <Plug>(caw:i:toggle)
+    endif
 
     if neobundle#is_installed('vim-smalls')
         let g:smalls_highlight = {
-        \   'SmallsCandidate'  : [['none', 'none', 'none'],['none', '#DDEECC', '#000000']],
-        \   'SmallsCurrent'    : [['none', 'none', 'none'],['bold', '#9DBAD7', '#000000']],
-        \   'SmallsJumpTarget' : [['none', 'none', 'none'],['none', '#FF7311', '#000000']],
-        \   'SmallsPos'        : [['none', 'none', 'none'],['none', '#FF7311', '#000000']],
-        \   'SmallsCli'        : [['none', 'none', 'none'],['bold', '#DDEECC', '#000000']]
+        \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
+        \   'SmallsCurrent'    : [['NONE', 'NONE', 'NONE'],['BOLD', '#9DBAD7', '#000000']],
+        \   'SmallsJumpTarget' : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+        \   'SmallsPos'        : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+        \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['BOLD', '#DDEECC', '#000000']]
         \}
         call smalls#keyboard#cli#extend_table({
         \   '<A-j>' : 'do_excursion',
@@ -414,6 +422,7 @@
         " Completion patterns
         let g:neocomplete#force_overwrite_completefunc = 0
         let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
+        let g:neocomplete#force_omni_input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
 
@@ -447,7 +456,6 @@
             let g:unite_source_grep_command = 'ag'
             let g:unite_source_grep_default_opts = '--smart-case --nocolor --nogroup --hidden --line-numbers '
             let g:unite_source_grep_recursive_opt = ''
-            " let g:unite_source_rec_async_command  = 'ag -l .'
             let g:unite_source_rec_async_command  = 'ag -l --nocolor --nogroup --hidden -g .'
         endif
 
@@ -564,6 +572,7 @@
     if neobundle#is_installed('neomru.vim')
         let g:neomru#file_mru_limit = 10
         let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
+        let g:neomru#file_mru_ignore_pattern = 'COMMIT_EDITMSG'
         let g:neomru#directory_mru_limit = 10
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
         let g:neomru#time_format = '%d.%m %H:%M — '
@@ -585,6 +594,7 @@
     AutocmdFT cabal   Indent 2
     " Syntax
     AutocmdFT haskell setl iskeyword+='
+    AutocmdFT haskell setl commentstring=--\ %s
     " Autocomplete
     if neobundle#tap('neco-ghc')
         function! neobundle#hooks.on_source(bundle)
@@ -680,7 +690,12 @@
     if WINDOWS()
         set guifont=Droid_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
     else
-        set guifont=Droid\ Sans\ Mono\ 12,Consolas\ 11
+        set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
+    endif
+
+    " DirectWrite
+    if WINDOWS() && has('directx')
+        set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
     endif
 
 " View
@@ -708,6 +723,7 @@
         set wrap                         " wrap long lines
         set linebreak                    " wrap without line breaks
         set breakindent                  " wrap lines, taking indentation into account
+        set breakindentopt=shift:4       " indent broken lines
         set breakat=\ \ ;:,!?            " break point for linebreak
         set textwidth=0                  " do not wrap text
         set display+=lastline            " easy browse last line with wrap text
@@ -815,6 +831,9 @@
     " Inset the current timestamp
     ab ##t <C-r>=strftime('%Y-%m-%d')<CR>
     ca ##t <C-r>=strftime('%Y-%m-%d')<CR>
+    " Inset the current Unix time
+    ab ##l <C-r>=localtime()<CR>
+    ca ##l <C-r>=localtime()<CR>
 
 " The prefix keys
 "---------------------------------------------------------------------------
@@ -837,10 +856,15 @@
     " Ctrl-[jk]: scroll up/down
     nmap <C-j> <PageDown>
     nmap <C-k> <PageUp>
-    " Shift-x: delete a line
-    nmap <S-x> dd
     " Q: auto indent text
     nmap Q ==
+    " Y: yank line
+    nnoremap Y y$
+    " [xXcC]: delete to black hole register
+    nnoremap x "_x
+    nnoremap X "_dd
+    nnoremap c "_c
+    nnoremap C "_C
 
     " m-w: save
     nmap <silent> mw <Esc> :write!<CR>
@@ -887,26 +911,38 @@
     " Alt-r: change language
     imap <A-r> <C-^>
     " qq: smart fast Esc
-    imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>" : 'q'
+    imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
+    " Ctrl-c: old fast Esc
+    imap <C-c> <Esc>`^
 
 " Visual mode
 "---------------------------------------------------------------------------
     " jk: don't skip wrap lines
-    vmap j gj
-    vmap k gk
+    xmap j gj
+    xmap k gk
     " Alt-[jkhl]: move selected lines
-    vmap <A-j> xp'[V']
-    vmap <A-k> xkP'[V']
-    vmap <A-h> <'[V']
-    vmap <A-l> >'[V']
+    xnoremap <A-j> xp'[V']
+    xnoremap <A-k> xkP'[V']
+    xnoremap <A-h> <'[V']
+    xnoremap <A-l> >'[V']
     " Q: auto indent text
-    vmap Q ==<Esc>
+    xmap Q ==<Esc>
     " Space: fast Esc
-    vmap <Space> <Esc>
+    xmap <Space> <Esc>
     " Alt-w: fast save
-    vmap <silent> <A-w> <Esc>:update<CR>
+    xmap <silent> <A-w> <Esc>:update<CR>
     " Ctrl-s: old fast save
-    vmap <C-s> <Esc>:w!<CR>
+    xmap <C-s> <Esc>:w!<CR>
+    " .: repeat command for each line
+    xnoremap . :normal .<CR>
+    " [yY]: keep cursor position when yanking
+    xnoremap <silent> <expr> y 'ygv' . mode()
+    xnoremap <silent> <expr> Y 'Ygv' . mode()
+    " [xXcC]: delete to black hole register
+    xnoremap x "_x
+    xnoremap X "_X
+    xnoremap c "_c
+    xnoremap C "_C
 
 " Command mode
 "---------------------------------------------------------------------------
@@ -937,6 +973,8 @@
 
 " Experimental
 "---------------------------------------------------------------------------
+    " .ff: display all lines with keyword under cursor
+    nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
     " Tab: case conversion
     vmap <silent> <Tab> y:call CaseConversion()<CR>
     function! CaseConversion()
