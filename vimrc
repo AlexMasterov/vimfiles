@@ -12,7 +12,7 @@
     \   '.hg,.git,.svn'
     \.  ',.png,.jpg,.jpeg,.gif,.ico,.bmp'
     \.  ',.zip,.rar,.tar,.tar.bz,.tar.bz2'
-    \.  ',.o,.a,.so,.pyc,.bin,.exe,.lib,.dll'
+    \.  ',.o,.a,.so,.obj.pyc,.bin,.exe,.lib,.dll'
     \.  ',.lock,.bak,.dist,.md'
 
 " Environment
@@ -37,11 +37,11 @@
 
 " Functions
 "---------------------------------------------------------------------------
-    function! WINDOWS()
-        return (has('win32') || has('win64'))
+    function! WINDOWS() abort
+        return has('win32') || has('win64')
     endfunction
 
-    function! MakeDir(dir, ...)
+    function! MakeDir(dir, ...) abort
         let dir = expand(a:dir)
         if !isdirectory(a:dir) && (a:0 ||
                 \ input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
@@ -137,7 +137,7 @@
 
     " Regexp engine (0=auto, 1=old, 2=NFA)
     if exists('&regexpengine')
-        set regexpengine=1
+        set regexpengine=2
     endif
 
     " The Silver Searcher
@@ -182,8 +182,10 @@
         exe 'set runtimepath=$VIMFILES,$VIMRUNTIME,'.s:neobundle_path
     endif
     let g:neobundle#types#git#clone_depth = 1
+    let g:neobundle#install_max_processes  =
+        \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) : 1
 
-    function! CacheBundles()
+    function! CacheBundles() abort
         " Let NeoBundle manage NeoBundle
         NeoBundleFetch 'Shougo/neobundle.vim'
         " Local plugins for doing development
@@ -444,7 +446,7 @@
         imap <expr> <C-j>   pumvisible() ? '<C-n>' : '<C-j>'
         imap <expr> <C-k>   pumvisible() ? '<C-p>' : '<C-k>'
 
-        function! CheckBackSpace()
+        function! CheckBackSpace() abort
             let col = col('.') - 1
             return !col || getline('.')[col-1] =~ '\s'
         endfunction
@@ -466,7 +468,7 @@
         let g:unite_data_directory = $VIMCACHE.'/unite'
         " Search tool
         let g:unite_source_grep_command = executable('pt') ? 'pt' :
-                                        \ executable('ag') ? 'ag' : 'grep'
+                                        \ executable('ag') ? 'ag' : ''
         let g:unite_source_grep_recursive_opt = ''
         let g:unite_source_grep_encoding = 'utf-8'
         let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
@@ -518,7 +520,7 @@
         " Autocmd BufLeave \[unite\]* if &buftype ==# 'nofile'| setl bufhidden=wipe |endif
 
         AutocmdFT unite call UniteMySettings()
-        function! UniteMySettings()
+        function! UniteMySettings() abort
             " Normal mode
             nmap <buffer> q       <Plug>(unite_exit)
             nmap <buffer> `       <Plug>(unite_exit)
@@ -767,22 +769,22 @@
     \. "%-0.50f %2*%-2M%*"
     \. "%="
     \. "%(%{exists('*FileModTime()') ? FileModTime() : ''}\ %)"
+    \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
-    \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%(%{&fileencoding == '' ? &encoding : &fileencoding}\ %)"
     \. "%2*%(%Y\ %)%*"
 
     " Status-line functions
-    function! FileSize()
+    function! FileSize() abort
         let bytes = getfsize(expand('%:p'))
         if bytes <= 0| return '' |endif
         return bytes < 1024 ? bytes.'B' : (bytes / 1024).'K'
     endfunction
 
-    function! FileModTime()
+    function! FileModTime() abort
         let file = expand('%:p')
-        return filereadable(file) ? strftime('%y.%m.%d / %H:%M:%S', getftime(file)) : ''
+        return filereadable(file) ? strftime('%H:%M:%S %d%m[%y]', getftime(file)) : ''
     endfunction
 
 " Edit
@@ -992,7 +994,7 @@
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
     " Tab: case conversion
     vmap <silent> <Tab> y:call CaseConversion()<CR>
-    function! CaseConversion()
+    function! CaseConversion() abort
         " snake_case -> kebab-case -> camelCase -> MixedCase
         let word = @"
         if word =~# '^[a-z0-9_]\+[!?]\?$'
