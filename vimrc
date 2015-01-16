@@ -10,7 +10,10 @@
     " Ignore pattern
     let &suffixes =
     \   '.hg,.git,.svn'
-    \.  ',.png,.jpg,.jpeg,.gif,ico'
+    \.  ',.png,.jpg,.jpeg,.gif,.ico,.bmp'
+    \.  ',.zip,.rar,.tar,.tar.bz,.tar.bz2'
+    \.  ',.o,.a,.so,.pyc,.bin,.exe,.lib,.dll'
+    \.  ',.lock,.bak,.dist,.md'
 
 " Environment
 "---------------------------------------------------------------------------
@@ -90,7 +93,7 @@
     " Automake directory
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
     " Converts all remaining tabs to spaces on save
-    Autocmd BufReadPost,BufWritePost * if &modifiable| retab | FixWhitespace |endif
+    Autocmd BufReadPost,BufWrite * if &modifiable| FixWhitespace | retab |endif
     " Restore cursor position to where it was before closing
     Autocmd BufReadPost *
     \   if expand('%') !~# '\.git[\/\\]COMMIT_EDITMSG$' && line("'\"") > 1 && line("'\"") <= line('$')
@@ -213,7 +216,7 @@
 
         " Edit
         " NeoBundle 'cohama/lexima.vim'
-        NeoBundle 'tyru/caw.vim'
+        NeoBundle 'tpope/vim-commentary'
         NeoBundleLazy 'gcmt/wildfire.vim', {
         \   'mappings': '<Plug>'
         \}
@@ -341,11 +344,16 @@
         nmap ,s    <Plug>(wildfire-quick-select)
     endif
 
-    if neobundle#is_installed('caw.vim')
-        let g:caw_i_skip_blank_line = 1
-        let g:caw_no_default_keymappings = 1
-        nmap q <Plug>(caw:i:toggle)
-        vmap q <Plug>(caw:i:toggle)
+    if neobundle#tap('vim-commentary')
+        function! neobundle#hooks.on_source(bundle)
+            unmap cgc
+        endfunction
+        nmap q <Plug>CommentaryLine
+        vmap q <Plug>Commentary
+        nmap ,q gccyypgcc
+        xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
+
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-smalls')
@@ -416,15 +424,19 @@
         let g:neocomplete#auto_completion_start_length = 2
         let g:neocomplete#sources#syntax#min_keyword_length = 3
         let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
-        " Alias filetypes
-        let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-        let g:neocomplete#same_filetypes.html  = 'css'
         " Completion patterns
         let g:neocomplete#force_overwrite_completefunc = 0
         let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
         let g:neocomplete#force_omni_input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
+        " Alias filetypes
+        let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
+        let g:neocomplete#same_filetypes.html  = 'css'
+        " Sources
+        let g:neocomplete#sources = get(g:, 'neocomplete#sources', {})
+        let g:neocomplete#sources._ = ['buffer', 'dictionary']
+        let g:neocomplete#sources.php = ['buffer', 'dictionary']
 
         " Tab: completion
         imap <expr> <Tab>   pumvisible() ? '<C-n>' : CheckBackSpace() ? '<Tab>' : '<C-x><C-o>'
@@ -452,12 +464,15 @@
         let g:unite_source_rec_max_cache_files = -1
         let g:unite_source_buffer_time_format = '%H:%M '
         let g:unite_data_directory = $VIMCACHE.'/unite'
-        if executable('ag')
-            let g:unite_source_grep_command = 'ag'
-            let g:unite_source_grep_default_opts = '--smart-case --nocolor --nogroup --hidden --line-numbers '
-            let g:unite_source_grep_recursive_opt = ''
-            let g:unite_source_rec_async_command  = 'ag -l --nocolor --nogroup --hidden -g .'
-        endif
+        " Search tool
+        let g:unite_source_grep_command = executable('pt') ? 'pt' :
+                                        \ executable('ag') ? 'ag' : 'grep'
+        let g:unite_source_grep_recursive_opt = ''
+        let g:unite_source_grep_encoding = 'utf-8'
+        let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+        let g:unite_source_rec_async_command = g:unite_source_grep_command
+                    \. ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
+                    \. ' -l --nogroup --nocolor --depth 3 .'
 
         " Default profile
         let default_context = {
@@ -484,7 +499,7 @@
 
         " Custom filters
         call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
-        call unite#custom#source('file_rec/async', 'max_candidates', 5000)
+        call unite#custom#source('file_rec/async', 'max_candidates', 500)
         call unite#custom#source('file_rec/async,line', 'sorters', 'sorter_rank')
         call unite#custom#source('file_rec/async',
            \ 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
@@ -497,7 +512,7 @@
         call unite#custom#default_action('directory,neomru/directory', 'lcd')
 
         " Unite tuning
-        AutocmdFT unite setl nolist listchars=
+        AutocmdFT unite setl nolist listchars= guicursor=a:blinkon0
         Autocmd InsertEnter,InsertLeave \[unite\]* setl nonu nornu colorcolumn=""
         " Obliterate unite buffers (marks especially)
         " Autocmd BufLeave \[unite\]* if &buftype ==# 'nofile'| setl bufhidden=wipe |endif
@@ -553,7 +568,7 @@
         " /: search
         nmap <silent> / :<C-u>Unite line:forward:wrap -no-split -start-insert<CR>
         " Space-g: grep search
-        nmap <silent> [space]g :<C-u>Unite grep -auto-preview<CR>
+        nmap <silent> [space]g :<C-u>Unite grep:. -auto-preview<CR>
         " *: search keyword under the cursor
         nmap <silent> <expr> *
             \ ":\<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-".bufnr('%')."\<CR>"
@@ -973,7 +988,7 @@
 
 " Experimental
 "---------------------------------------------------------------------------
-    " .ff: display all lines with keyword under cursor
+    " ,f: display all lines with keyword under cursor
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
     " Tab: case conversion
     vmap <silent> <Tab> y:call CaseConversion()<CR>
