@@ -135,22 +135,23 @@
         set undodir=$VIMFILES/undo
     endif
 
-    " Regexp engine (0=auto, 1=old, 2=NFA)
-    if exists('&regexpengine')
-        set regexpengine=2
-    endif
-
-    " The Silver Searcher
-    if executable('ag')
-        set grepprg=ag\ --nogroup\ --nocolor
-    endif
-
     " Russian keyboard
     set iskeyword=@,48-57,_,192-255
     set keymap=russian-jcukenwin
     if has('multi_byte_ime')
         set iminsert=0 imsearch=0
     endif
+
+    " Regexp engine (0=auto, 1=old, 2=NFA)
+    if exists('&regexpengine')
+        set regexpengine=2
+    endif
+
+    " Search tool
+    let s:search_tool = executable('pt') ? 'pt' : executable('ag') ? 'ag' : ''
+    let &grepprg = s:search_tool
+    \.  ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
+    \.  ' --follow --smart-case --nogroup --nocolor'
 
 " Plugins
 "---------------------------------------------------------------------------
@@ -197,8 +198,12 @@
         \       'windows': 'make -f make_mingw64.mak'
         \}}
 
+        " Misc
         NeoBundleLazy 'tyru/restart.vim', {
         \   'commands': 'Restart'
+        \}
+        NeoBundleLazy 'tpope/vim-characterize', {
+        \   'mappings': '<Plug>'
         \}
 
         " UI
@@ -316,7 +321,7 @@
         nmap m<S-x> <Plug>BookmarkClearAll
         nmap <silent> [space]m :BookmarkShowAll<CR>
         Autocmd VimEnter,Colorscheme *
-            \ hi BookmarkLine guifg=#333333 guibg=#F5FCE5 gui=none
+            \ hi BookmarkLine guifg=#333333 guibg=#F5FCE5 gui=NONE
     endif
 
     if neobundle#is_installed('vim-brightest')
@@ -328,7 +333,7 @@
         let g:brightest#highlight = {'group': 'BrightestCursorLine'}
         let g:brightest#ignore_syntax_list = ['Comment']
         Autocmd VimEnter,Colorscheme *
-            \ hi BrightestCursorLine guifg=#000000 guibg=#e6e6fa gui=none
+            \ hi BrightestCursorLine guifg=#000000 guibg=#e6e6fa gui=NONE
     endif
 
     if neobundle#is_installed('lexima.vim')
@@ -337,6 +342,7 @@
 
     if neobundle#is_installed('vim-gitgutter')
         let g:gitgutter_enabled = 0
+        let g:gitgutter_sign_column_always = 1
     endif
 
     if neobundle#is_installed('wildfire.vim')
@@ -347,6 +353,7 @@
     endif
 
     if neobundle#tap('vim-commentary')
+        let g:commentary_map_backslash = 0
         function! neobundle#hooks.on_source(bundle)
             unmap cgc
         endfunction
@@ -467,12 +474,11 @@
         let g:unite_source_buffer_time_format = '%H:%M '
         let g:unite_data_directory = $VIMCACHE.'/unite'
         " Search tool
-        let g:unite_source_grep_command = executable('pt') ? 'pt' :
-                                        \ executable('ag') ? 'ag' : ''
+        let g:unite_source_grep_command = s:search_tool
         let g:unite_source_grep_recursive_opt = ''
         let g:unite_source_grep_encoding = 'utf-8'
         let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
-        let g:unite_source_rec_async_command = g:unite_source_grep_command
+        let g:unite_source_rec_async_command = s:search_tool
                     \. ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
                     \. ' -l --nogroup --nocolor --depth 3 .'
 
@@ -481,7 +487,8 @@
         \   'winheight': 10,
         \   'direction': 'below',
         \   'prompt_direction': 'top',
-        \   'cursor_line_time': '0.0'
+        \   'cursor_line_time': '0.0',
+        \   'short_source_names': 1
         \}
         " Quickfix profile
         let quickfix_context = {
@@ -504,7 +511,7 @@
         call unite#custom#source('file_rec/async', 'max_candidates', 500)
         call unite#custom#source('file_rec/async,line', 'sorters', 'sorter_rank')
         call unite#custom#source('file_rec/async',
-           \ 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
+            \ 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
         call unite#custom_source('file_rec/async,neomru/file',
             \ 'ignore_pattern', join(map(split(&suffixes, ','), '"\\".v:val."\$"'), '\|'))
          " Sort buffers by number
@@ -574,13 +581,12 @@
         " *: search keyword under the cursor
         nmap <silent> <expr> *
             \ ":\<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-".bufnr('%')."\<CR>"
-        " [space]r: resume search
+        " Space-r: resume search buffer
         nmap <silent> <expr> [space]r
-            \ ":\<C-u>UniteResume search-".bufnr('%')." -no-start-insert\<CR>"
+            \ ":\<C-u>UniteResume search-".bufnr('%')." -no-start-insert -force-redraw\<CR>"
 
         " Space-o: open message log
         nmap <silent> [space]o :<C-u>Unite output:message<CR>
-
         " Space-i: NeoBundle update
         nmap <silent> [space]i :<C-u>Unite neobundle/update
             \ -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
@@ -750,7 +756,11 @@
     endif
 
     " Highlight invisible symbols
-    set list listchars=trail:•,precedes:<,extends:>,nbsp:.,tab:+-
+    set list listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
+    " Avoid showing trailing whitespace when in Insert mode
+    let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\(\(.*\)\+\)')
+    Autocmd InsertEnter * exe 'setl listchars-=trail:'. s:trailchar
+    Autocmd InsertLeave * exe 'setl listchars+=trail:'. s:trailchar
 
     " Title-line
     set titlestring=%t\ (%{expand(\'%:p:.:h\')}/)
