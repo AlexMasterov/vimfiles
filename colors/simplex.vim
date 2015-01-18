@@ -1,9 +1,12 @@
 " Vim colour file
+" File:         simplex.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
-" Last Change:  2014 Dec
+" Last Updated: 2015 Yan
 " Description:  GUI only
 
-set background=light
+if !has('gui_running')
+    finish
+endif
 
 hi clear
 if exists('syntax_on')
@@ -11,66 +14,56 @@ if exists('syntax_on')
 endif
 let g:colors_name = 'simplex'
 
-hi Normal               guifg=#333333   guibg=#FFFFFF   gui=none
-hi Title                guifg=#333333   guibg=#FFFFFF   gui=none
-hi Cursor                               guibg=#FF7311   gui=none
-hi iCursor                              guibg=#FF7311   gui=none
-hi lCursor                              guibg=#FF7311   gui=none
-hi Visual                               guibg=#BBDDFF   gui=none
-hi VisualNOS                            guibg=#BBDDFF   gui=none
-hi LineNr               guifg=#BEBEBE   guibg=#F8F8F8   gui=none
-hi NonText              guifg=#FAFAFA   guibg=#FFFFFF   gui=none
-hi VertSplit            guifg=#EEEEEE   guibg=#EEEEEE   gui=none
-hi StatusLine           guifg=#333333   guibg=#EEEEEE   gui=none
-hi StatusLineNC         guifg=#888888   guibg=#EEEEEE   gui=none
-hi TabLine              guifg=#333333   guibg=#FFFFFF   gui=none
-hi TabLineFill          guifg=#333333   guibg=#FFFFFF   gui=none
-hi TabLineSel           guifg=#333333   guibg=#BBDDFF   gui=none
+set background=light
 
-hi Folded               guifg=#60656F   guibg=#EEEEEE   gui=none
-hi SignColumn           guifg=#EEEEEE   guibg=#FFFFFF   gui=none
+hi Normal               guifg=#333333 guibg=#FFFFFF gui=NONE
+hi NonText              guifg=#FAFAFA guibg=#FFFFFF gui=NONE
+hi Title                guifg=#333333 guibg=#FFFFFF gui=NONE
+hi Cursor               guifg=#FFFFFF guibg=#FF7311 gui=NONE
+hi iCursor              guifg=#333333 guibg=#FF7311 gui=NONE
+hi lCursor              guifg=#333333 guibg=#FF7311 gui=NONE
+hi Visual               guifg=#333333 guibg=#BBDDFF gui=NONE
+hi VisualNOS            guifg=#333333 guibg=#BBDDFF gui=NONE
+hi LineNr               guifg=#BEBEBE guibg=#F8F8F8 gui=NONE
+hi VertSplit            guifg=#EEEEEE guibg=#EEEEEE gui=NONE
+hi StatusLine           guifg=#333333 guibg=#EEEEEE gui=NONE
+hi StatusLineNC         guifg=#888888 guibg=#EEEEEE gui=NONE
+hi TabLine              guifg=#333333 guibg=#FFFFFF gui=NONE
+hi TabLineFill          guifg=#333333 guibg=#FFFFFF gui=NONE
+hi TabLineSel           guifg=#333333 guibg=#BBDDFF gui=NONE
 
-hi ErrorMsg             guifg=#333333   guibg=#FFBBBB   gui=none
-hi Error                guifg=#333333   guibg=#FF0000   gui=none
-hi ModeMsg              guifg=#333333   guibg=#EEEEEE   gui=none
-hi MoreMsg              guifg=#333333   guibg=#EEEEEE   gui=none
-hi vimfilerDirectory    guifg=#D14000                   gui=none
+hi Folded               guifg=#60656F guibg=#EEEEEE gui=NONE
 
-" Users
-hi User1                guifg=#0000FF   guibg=#EEEEEE   gui=none
-hi User2                guifg=#D14000   guibg=#EEEEEE   gui=none
+hi MoreMsg              guifg=#333333 guibg=#EEEEEE gui=NONE
+hi ErrorMsg             guifg=#333333 guibg=#FFBBBB gui=NONE
+hi Error                guifg=#333333 guibg=#FF0000 gui=NONE
 
-" Vim 7.x specific
-if version >= 700
-    hi Pmenu            guifg=#60656F   guibg=#F0F5FF   gui=none
-    hi PmenuSel         guifg=#FFFFFF   guibg=#3585EF   gui=bold
-    hi PmenuSbar        guifg=#D0D5DD   guibg=#E0E5EE   gui=bold
-    hi PmenuThumb       guifg=#E0E5EE   guibg=#C0C5DD   gui=bold
-    hi Search                           guibg=#FCFCAA   gui=none
-    hi IncSearch                        guibg=#FFFF33   gui=bold
-    hi MatchParen                       guibg=#CCFFDD   gui=none
-    hi CursorLine                       guibg=#F1FAFF   gui=none
-    hi CursorLineNr                     guibg=#F1FAFF   gui=none
-    hi CursorColumn                     guibg=#F1FAFF   gui=none
-    hi ColorColumn                      guibg=#FAFAFA   gui=none
-endif
+hi Search               guifg=#333333 guibg=#FCFCAA gui=NONE
+hi IncSearch            guifg=#333333 guibg=#FFFF33 gui=bold
+hi MatchParen           guifg=#333333 guibg=#CCFFDD gui=NONE
+hi CursorLine           guifg=#333333 guibg=#F1FAFF gui=NONE
+hi CursorLineNr         guifg=#333333 guibg=#F1FAFF gui=NONE
+hi CursorColumn         guifg=#333333 guibg=#F1FAFF gui=NONE
+hi ColorColumn          guifg=#333333 guibg=#FAFAFA gui=NONE
+hi SignColumn           guifg=#EEEEEE guibg=#FFFFFF gui=NONE
 
 " Syntax
-hi Todo                 guifg=#446644   guibg=#DDEECC   gui=none
-hi Type                 guifg=#0050B0                   gui=none
-hi Comment              guifg=#93A1A1                   gui=none
-hi Constant             guifg=#BA4747                   gui=none
-hi Function             guifg=#333333                   gui=bold
-hi Operator             guifg=#333333                   gui=none
-hi Delimiter            guifg=#333333                   gui=none
-hi Statement            guifg=#333333                   gui=none
-hi Identifier           guifg=#333333                   gui=none
-hi Conditional          guifg=#0050B0                   gui=none
-hi Define               guifg=#0050B0                   gui=bold
-hi PreProc              guifg=#446644                   gui=none
-hi Special              guifg=#006633                   gui=none
-hi Keyword              guifg=#007050                   gui=none
-hi Number               guifg=#4183C4                   gui=none
+"---------------------------------------------------------------------------
+hi Todo                 guifg=#446644 guibg=#DDEECC gui=NONE
+hi Type                 guifg=#0050B0 guibg=#FFFFFF gui=NONE
+hi Comment              guifg=#93A1A1 guibg=#FFFFFF gui=NONE
+hi Constant             guifg=#BA4747 guibg=#FFFFFF gui=NONE
+hi Function             guifg=#333333 guibg=#FFFFFF gui=bold
+hi Operator             guifg=#333333 guibg=#FFFFFF gui=NONE
+hi Delimiter            guifg=#333333 guibg=#FFFFFF gui=NONE
+hi Statement            guifg=#333333 guibg=#FFFFFF gui=NONE
+hi Identifier           guifg=#333333 guibg=#FFFFFF gui=NONE
+hi Conditional          guifg=#0050B0 guibg=#FFFFFF gui=NONE
+hi Define               guifg=#0050B0 guibg=#FFFFFF gui=bold
+hi PreProc              guifg=#446644 guibg=#FFFFFF gui=NONE
+hi Special              guifg=#006633 guibg=#FFFFFF gui=NONE
+hi Keyword              guifg=#007050 guibg=#FFFFFF gui=NONE
+hi Number               guifg=#4183C4 guibg=#FFFFFF gui=NONE
 
 hi link Character       Constant
 hi link String          Constant
@@ -92,92 +85,121 @@ hi link SpecialChar     Special
 hi link SpecialComment  Special
 hi link Debug           Special
 
+" Popup menu
+"---------------------------------------------------------------------------
+hi Pmenu                guifg=#60656F guibg=#F0F5FF gui=NONE
+hi PmenuSel             guifg=#FFFFFF guibg=#3585EF gui=bold
+hi PmenuSbar            guifg=#D0D5DD guibg=#E0E5EE gui=bold
+hi PmenuThumb           guifg=#E0E5EE guibg=#C0C5DD gui=bold
+" Do not display completion messages
+hi ModeMsg              guifg=bg guibg=bg gui=NONE
+hi Quesion              guifg=bg guibg=bg gui=NONE
+
+" User
+"---------------------------------------------------------------------------
+hi User1                guifg=#0000FF guibg=#EEEEEE gui=NONE
+hi User2                guifg=#D14000 guibg=#EEEEEE gui=NONE
+
 " PHP
-hi phpEcho                    guifg=#333333                   gui=bold
-hi phpType                    guifg=#0050B0                   gui=none
-hi phpParent                  guifg=#999999                   gui=none
-hi phpInteger                 guifg=#1299DA                   gui=none
-hi phpNumber                  guifg=#1299DA                   gui=none
-hi phpBoolean                 guifg=#CD7F32                   gui=bold
-hi phpClasses                 guifg=#B729D9                   gui=none
-hi phpStatement               guifg=#0050B1                   gui=none
-hi phpException               guifg=#0050B1                   gui=bold
-hi phpOperator                guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi phpStrEsc                  guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi phpInclude                 guifg=#333333                   gui=bold
-hi phpFunctions               guifg=#333333                   gui=bold
-hi phpBraceError              guifg=#FF0000                   gui=bold
-hi phpParentError             guifg=#FF0000                   gui=bold
-hi phpSemicolon               guifg=#FF0000                   gui=bold
-hi phpDefineFuncName          guifg=#3A75C4                   gui=bold
-hi phpDefineClassName         guifg=#3A75C4                   gui=bold
-hi phpMethodsVar              guifg=#008080                   gui=none
-hi phpVarSelector             guifg=#708090                   gui=none
-hi phpMemberSelector          guifg=#333333                   gui=none
-hi phpMagicConstants          guifg=#009926                   gui=none
+"---------------------------------------------------------------------------
+hi phpEcho                    guifg=#333333               gui=bold
+hi phpType                    guifg=#0050B0               gui=NONE
+hi phpParent                  guifg=#999999               gui=NONE
+hi phpInteger                 guifg=#1299DA               gui=NONE
+hi phpNumber                  guifg=#1299DA               gui=NONE
+hi phpBoolean                 guifg=#CD7F32               gui=bold
+hi phpClasses                 guifg=#B729D9               gui=NONE
+hi phpStatement               guifg=#0050B1               gui=NONE
+hi phpException               guifg=#0050B1               gui=bold
+hi phpOperator                guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+hi phpStrEsc                  guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+hi phpInclude                 guifg=#333333               gui=bold
+hi phpFunctions               guifg=#333333               gui=bold
+hi phpBraceError              guifg=#FF0000               gui=bold
+hi phpParentError             guifg=#FF0000               gui=bold
+hi phpSemicolon               guifg=#FF0000               gui=bold
+hi phpDefineFuncName          guifg=#3A75C4               gui=bold
+hi phpDefineClassName         guifg=#3A75C4               gui=bold
+hi phpMethodsVar              guifg=#008080               gui=NONE
+hi phpVarSelector             guifg=#708090               gui=NONE
+hi phpMemberSelector          guifg=#333333               gui=NONE
+hi phpMagicConstants          guifg=#009926               gui=NONE
 
 " Haskell
-hi ConId                      guifg=#008080                   gui=none
-hi hsConSym                   guifg=#D14000                   gui=none
-hi hsVarSym                   guifg=#333333                   gui=none
-hi hsType                     guifg=#1E347B                   gui=none
-hi hsNumber                   guifg=#1299DA                   gui=none
-hi hsImport                   guifg=#333333                   gui=bold
-hi hsModule                   guifg=#333333                   gui=bold
-hi hsPragma                   guifg=#009926                   gui=none
-hi hsBoolean                  guifg=#CD7F32                   gui=bold
-hi hsDelimiter                guifg=#999999                   gui=none
-hi hsStatement                guifg=#0050B1                   gui=none
-hi hsStructure                guifg=#0050B1                   gui=none
-hi hsConditional              guifg=#0050B1                   gui=none
-hi hsNiceOperator             guifg=#A67F59                   gui=none
-hi hs_DeclareFunction         guifg=#D14000                   gui=none
+"---------------------------------------------------------------------------
+hi ConId                      guifg=#008080               gui=NONE
+hi hsConSym                   guifg=#D14000               gui=NONE
+hi hsVarSym                   guifg=#333333               gui=NONE
+hi hsType                     guifg=#1E347B               gui=NONE
+hi hsNumber                   guifg=#1299DA               gui=NONE
+hi hsImport                   guifg=#333333               gui=bold
+hi hsModule                   guifg=#333333               gui=bold
+hi hsPragma                   guifg=#009926               gui=NONE
+hi hsBoolean                  guifg=#CD7F32               gui=bold
+hi hsDelimiter                guifg=#999999               gui=NONE
+hi hsStatement                guifg=#0050B1               gui=NONE
+hi hsStructure                guifg=#0050B1               gui=NONE
+hi hsConditional              guifg=#0050B1               gui=NONE
+hi hsNiceOperator             guifg=#A67F59               gui=NONE
+hi hs_DeclareFunction         guifg=#D14000               gui=NONE
 
 " JS
-hi javaScriptParens           guifg=#999999                   gui=none
-hi javaScriptBraces           guifg=#999999                   gui=none
-hi javaScriptBoolean          guifg=#CD7F32                   gui=bold
-hi javaScriptOpSymbols        guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi javaScriptDOMObjects       guifg=#708090                   gui=none
-hi javaScriptGlobalObjects    guifg=#708090                   gui=none
-hi javaScriptBrowserObjects   guifg=#708090                   gui=none
-hi javaScriptRegexpString     guifg=#009926                   gui=none
+"---------------------------------------------------------------------------
+hi javaScriptParens           guifg=#999999               gui=NONE
+hi javaScriptBraces           guifg=#999999               gui=NONE
+hi javaScriptBoolean          guifg=#CD7F32               gui=bold
+hi javaScriptOpSymbols        guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+hi javaScriptDOMObjects       guifg=#708090               gui=NONE
+hi javaScriptGlobalObjects    guifg=#708090               gui=NONE
+hi javaScriptBrowserObjects   guifg=#708090               gui=NONE
+hi javaScriptRegexpString     guifg=#009926               gui=NONE
 
 " HTML
-hi htmlArg                    guifg=#0077AA                   gui=none
-hi htmlTag                    guifg=#1E347B                   gui=none
-hi htmlTagN                   guifg=#1E347B                   gui=none
-hi htmlTagName                guifg=#1E347B                   gui=none
-hi htmlEndTag                 guifg=#1E347B                   gui=none
-hi htmlLink                   guifg=#0050B1                   gui=none
+"---------------------------------------------------------------------------
+hi htmlArg                    guifg=#0077AA               gui=NONE
+hi htmlTag                    guifg=#1E347B               gui=NONE
+hi htmlTagN                   guifg=#1E347B               gui=NONE
+hi htmlTagName                guifg=#1E347B               gui=NONE
+hi htmlEndTag                 guifg=#1E347B               gui=NONE
+hi htmlLink                   guifg=#0050B1               gui=NONE
 
 " CSS
-hi cssBraces                  guifg=#999999                   gui=none
-hi cssVendor                  guifg=#D14000                   gui=none
-hi cssUIAttr                  guifg=#333333                   gui=none
-hi cssBoxAttr                 guifg=#333333                   gui=none
-hi cssTextAttr                guifg=#333333                   gui=none
-hi cssFontAttr                guifg=#333333                   gui=none
-hi cssRenderAttr              guifg=#333333                   gui=none
-hi cssCommonAttr              guifg=#333333                   gui=none
-hi cssPositioningAttr         guifg=#446644   guibg=#DDEECC   gui=none
-hi cssBorderOutLineAttr       guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi cssValueLength             guifg=#BA4747   guibg=#FFF9F9   gui=none
-hi cssUnitDecorators          guifg=#9DBAD7                   gui=none
+"---------------------------------------------------------------------------
+hi cssBraces                  guifg=#999999               gui=NONE
+hi cssVendor                  guifg=#D14000               gui=NONE
+hi cssUIAttr                  guifg=#333333               gui=NONE
+hi cssBoxAttr                 guifg=#333333               gui=NONE
+hi cssTextAttr                guifg=#333333               gui=NONE
+hi cssFontAttr                guifg=#333333               gui=NONE
+hi cssRenderAttr              guifg=#333333               gui=NONE
+hi cssCommonAttr              guifg=#333333               gui=NONE
+hi cssPositioningAttr         guifg=#446644 guibg=#DDEECC gui=NONE
+hi cssBorderOutLineAttr       guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+hi cssValueLength             guifg=#BA4747 guibg=#FFF9F9 gui=NONE
+hi cssUnitDecorators          guifg=#9DBAD7               gui=NONE
 
 " Twig
-hi twigVariable               guifg=#333333                   gui=bold
-hi twigBlockName              guifg=#333333                   gui=bold
-hi twigStatement              guifg=#008080                   gui=none
-hi twigOperator               guifg=#999999                   gui=none
-hi twigVarDelim               guifg=#999999                   gui=none
-hi twigTagDelim               guifg=#999999                   gui=none
+"---------------------------------------------------------------------------
+hi twigVariable               guifg=#333333               gui=bold
+hi twigBlockName              guifg=#333333               gui=bold
+hi twigStatement              guifg=#008080               gui=NONE
+hi twigOperator               guifg=#999999               gui=NONE
+hi twigVarDelim               guifg=#999999               gui=NONE
+hi twigTagDelim               guifg=#999999               gui=NONE
 
-" JSON
-" github.com/elzr/vim-json
-hi jsonString                 guifg=#333333                   gui=none
-hi jsonEscape                 guifg=#A67F59                   gui=none
-hi jsonBraces                 guifg=#999999                   gui=none
-hi jsonBoolean                guifg=#CD7F32                   gui=bold
-hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=none
-hi jsonKeywordRegion          guifg=#0050B1                   gui=none
+" Yaml
+"---------------------------------------------------------------------------
+hi yamlKey                    guifg=#0050B1               gui=NONE
+" hi yamlConstant               guifg=#CD7F32               gui=bold
+" hi yamlFlowIndicator          guifg=#999999               gui=NONE
+" hi yamlFlowMappingKey         guifg=#0050B1               gui=NONE
+" hi yamlKeyValueDelimiter      guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+
+" JSON: github.com/elzr/vim-json
+"---------------------------------------------------------------------------
+hi jsonString                 guifg=#333333               gui=NONE
+hi jsonEscape                 guifg=#A67F59               gui=NONE
+hi jsonBraces                 guifg=#999999               gui=NONE
+hi jsonBoolean                guifg=#CD7F32               gui=bold
+hi jsonKeywordMatch           guifg=#A67F59 guibg=#FFF9F9 gui=NONE
+hi jsonKeywordRegion          guifg=#0050B1               gui=NONE

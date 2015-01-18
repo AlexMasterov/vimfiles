@@ -1,0 +1,36 @@
+" Author: Alex Masterov <alex.masterow@gmail.com>
+" Source: https://github.com/AlexMasterov/.vimrc
+
+echo ' Symfony 2 profile'
+
+let g:symfony_ignore = [
+\   'app/cache', 'src',
+\   '\.cache$'
+\]
+
+" Bundle settings
+"---------------------------------------------------------------------------
+if exists('g:loaded_neobundle')
+    if neobundle#is_installed('vim-projectionist')
+        let g:projectionist_heuristics = {
+        \   'composer.json': {
+        \       'app/config/*.yml': {
+        \           'type': 'config',
+        \       },
+        \       'web/js/*.js': {
+        \           'type': 'js',
+        \       },
+        \       'web/css/*.css': {
+        \           'type': 'css',
+        \       }
+        \   }
+        \}
+    endif
+
+    if neobundle#is_installed('unite.vim')
+        " Custom filters
+        call unite#custom_source('file_rec/async,neomru/file', 'ignore_pattern',
+            \  join(map(split(&suffixes, ','), '"\\".v:val."\$"'), '\|')
+            \. '\|'. join(g:symfony_ignore, '\|'))
+    endif
+endif

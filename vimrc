@@ -1,5 +1,6 @@
 " .vimrc / 2015 Yan
-" Alex Masterov <alex.masterow@gmail.com>
+" Author: Alex Masterov <alex.masterow@gmail.com>
+" Source: https://github.com/AlexMasterov/.vimrc
 
 " My vimfiles
 "---------------------------------------------------------------------------
@@ -13,7 +14,7 @@
     \.  ',.png,.jpg,.jpeg,.gif,.ico,.bmp'
     \.  ',.zip,.rar,.tar,.tar.bz,.tar.bz2'
     \.  ',.o,.a,.so,.obj.pyc,.bin,.exe,.lib,.dll'
-    \.  ',.lock,.bak,.dist,.md'
+    \.  ',.lock,.bak,.dist,.doc,.docx,.md'
 
 " Environment
 "---------------------------------------------------------------------------
@@ -67,6 +68,8 @@
         \ if exists(':NeoBundleClearCache')| NeoBundleClearCache |endif | source $MYVIMRC | redraw
     " Strip trailing whitespace at the end of non-blank lines
     command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge |endif
+    " Load Project settings
+    command! -nargs=1 Project source $VIMFILES/projects/vimrc.<args>
 
 " Events
 "---------------------------------------------------------------------------
@@ -205,6 +208,7 @@
         NeoBundleLazy 'tpope/vim-characterize', {
         \   'mappings': '<Plug>'
         \}
+        NeoBundle 'tpope/vim-projectionist'
 
         " UI
         NeoBundle 'Shougo/unite.vim'
@@ -270,7 +274,7 @@
         NeoBundleLazy 'gorodinskiy/vim-coloresque',          {'filetypes': 'css'}
         NeoBundleLazy '1995eaton/vim-better-css-completion', {'filetypes': 'css'}
         " JSON
-        NeoBundleLazy 'elzr/vim-json',    {'filetypes': 'json'}
+        NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
         " CSV
         NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
         " SQL
@@ -278,8 +282,10 @@
         " Nginx
         NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
         " Git
-        " NeoBundle 'tpope/vim-fugitive'
-        " NeoBundle 'airblade/vim-gitgutter'
+        NeoBundle 'itchyny/vim-gitbranch'
+        NeoBundleLazy 'cohama/agit.vim', {
+        \   'commands': 'Agit'
+        \}
 
         " NeoBundleCheck
         NeoBundleSaveCache
@@ -299,15 +305,17 @@
 " Bundle settings
 "---------------------------------------------------------------------------
     if neobundle#is_installed('restart.vim')
-        nmap <F9> <Esc> :Restart<CR>
+        nmap <F9> <Esc> :<C-u>Restart<CR>
     endif
 
     if neobundle#is_installed('vim-startify')
         let g:startify_bookmarks = [$MYVIMRC]
         let g:startify_change_to_dir = 1
+        let g:startify_change_to_vcs_root = 1
         let g:startify_session_dir = $VIMFILES.'/session'
         let g:startify_custom_indices = map(range(1,30), 'string(v:val)')
         let g:startify_list_order = ['sessions', 'bookmarks']
+        nmap <silent> <F10> :<C-u>Startify<CR>
         Autocmd WinEnter,CursorHold,CursorHoldI * if &filetype ==# 'startify'| setl nocursorline |endif
     endif
 
@@ -319,7 +327,7 @@
         nmap mk     <Plug>BookmarkPrev
         nmap mx     <Plug>BookmarkClear
         nmap m<S-x> <Plug>BookmarkClearAll
-        nmap <silent> [space]m :BookmarkShowAll<CR>
+        nmap <silent> [space]m :<C-u>BookmarkShowAll<CR>
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#333333 guibg=#F5FCE5 gui=NONE
     endif
@@ -340,9 +348,8 @@
         let g:lexima_no_map_to_escape = 1
     endif
 
-    if neobundle#is_installed('vim-gitgutter')
-        let g:gitgutter_enabled = 0
-        let g:gitgutter_sign_column_always = 1
+    if neobundle#is_installed('agit.vim')
+        nmap <silent> ,a :<C-u>Agit<CR>
     endif
 
     if neobundle#is_installed('wildfire.vim')
@@ -758,7 +765,7 @@
     " Highlight invisible symbols
     set list listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
     " Avoid showing trailing whitespace when in Insert mode
-    let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\(\(.*\)\+\)')
+    let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\(.*\)')
     Autocmd InsertEnter * exe 'setl listchars-=trail:'. s:trailchar
     Autocmd InsertLeave * exe 'setl listchars+=trail:'. s:trailchar
 
@@ -776,6 +783,7 @@
     let &statusline =
     \  "%1* %l%*.%L %*"
     \. "%1*%(#%{bufnr('$')}\ %)%*"
+    \. "%2*%(%{GitStatus()}\ %)%*"
     \. "%-0.50f %2*%-2M%*"
     \. "%="
     \. "%(%{exists('*FileModTime()') ? FileModTime() : ''}\ %)"
@@ -795,6 +803,11 @@
     function! FileModTime() abort
         let file = expand('%:p')
         return filereadable(file) ? strftime('%H:%M:%S %d%m[%y]', getftime(file)) : ''
+    endfunction
+
+    function! GitStatus() abort
+        return exists('*gitbranch#name()') && gitbranch#name() !=# '' ?
+                    \ printf('[%s]', gitbranch#name()) : ''
     endfunction
 
 " Edit
@@ -839,8 +852,8 @@
     set pumheight=15
     " Do not display completion messages
     Autocmd VimEnter,Colorscheme *
-        \  hi ModeMsg guifg=bg guibg=bg
-        \| hi Quesion guifg=bg guibg=bg
+        \  hi ModeMsg guifg=bg guibg=bg gui=NONE
+        \| hi Quesion guifg=bg guibg=bg gui=NONE
     " Syntax complete if nothing else available
     AutocmdFT * if &omnifunc == ''| setl omnifunc=syntaxcomplete#Complete |endif
 
@@ -881,8 +894,8 @@
     nmap <A-h> <<<Esc>
     nmap <A-l> >>><Esc>
     " Ctrl-[jk]: scroll up/down
-    nmap <C-j> <PageDown>
-    nmap <C-k> <PageUp>
+    nmap <expr> <C-j> max([winheight(0)-2, 1]). "\<C-d>" .(line('w$') >= line('$') ? 'L' : 'H')
+    nmap <expr> <C-k> max([winheight(0)-2, 1]). "\<C-u>" .(line('w0') <= 1         ? 'H' : 'L')
     " Q: auto indent text
     nmap Q ==
     " Y: yank line
@@ -960,6 +973,9 @@
     xmap <silent> <A-w> <Esc>:update<CR>
     " Ctrl-s: old fast save
     xmap <C-s> <Esc>:w!<CR>
+    " Ctrl-[jk]: scroll up/down
+    xmap <expr> <C-j> max([winheight(0)-2, 1]). "\<C-d>" .(line('w$') >= line('$') ? 'L' : 'H')
+    xmap <expr> <C-k> max([winheight(0)-2, 1]). "\<C-u>" .(line('w0') <= 1         ? 'H' : 'L')
     " .: repeat command for each line
     xnoremap . :normal .<CR>
     " [yY]: keep cursor position when yanking
@@ -1000,6 +1016,8 @@
 
 " Experimental
 "---------------------------------------------------------------------------
+    " ,d: diff this
+    nmap <silent> <expr> ,d ":\<C-u>".(&diff ? 'diffoff' : 'diffthis')."\<CR>"
     " ,f: display all lines with keyword under cursor
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
     " Tab: case conversion
