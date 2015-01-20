@@ -1,10 +1,7 @@
-" Author: Alex Masterov <alex.masterow@gmail.com>
-" Source: https://github.com/AlexMasterov/.vimrc
-
 echo ' Symfony 2 profile'
 
 let g:symfony_ignore = [
-\   'app/cache', 'src',
+\   'app/cache', 'src', 'vendor',
 \   '\.cache$'
 \]
 

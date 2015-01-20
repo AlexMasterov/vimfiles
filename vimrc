@@ -446,6 +446,7 @@
         let g:neocomplete#force_omni_input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
+        let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
         " Alias filetypes
         let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
         let g:neocomplete#same_filetypes.html  = 'css'
@@ -635,16 +636,15 @@
     endif
 
 " PHP
-    " Indent
     AutocmdFT php Indent 4
     " Autocomplete
     if neobundle#tap('phpcomplete.vim')
         function! neobundle#hooks.on_source(bundle)
             let g:phpcomplete_relax_static_constraint = 1
-            let g:phpcomplete_complete_for_unknown_classes = 0
-            let g:phpcomplete_search_tags_for_variables = 1
-            let g:phpcomplete_min_num_of_chars_for_namespace_completion = 1
             let g:phpcomplete_parse_docblock_comments = 1
+            let g:phpcomplete_search_tags_for_variables = 1
+            let g:phpcomplete_complete_for_unknown_classes = 0
+            let g:phpcomplete_min_num_of_chars_for_namespace_completion = 1
         endfunction
         AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
         call neobundle#untap()
@@ -748,6 +748,9 @@
     " Diff
     set diffopt=iwhite,vertical
 
+    " Fold
+    set nofoldenable
+
     " Wrapping
     if exists('+breakindent')
         set wrap                         " wrap long lines
@@ -765,7 +768,7 @@
     " Highlight invisible symbols
     set list listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
     " Avoid showing trailing whitespace when in Insert mode
-    let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\(.*\)')
+    let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
     Autocmd InsertEnter * exe 'setl listchars-=trail:'. s:trailchar
     Autocmd InsertLeave * exe 'setl listchars+=trail:'. s:trailchar
 
@@ -906,8 +909,26 @@
     nnoremap c "_c
     nnoremap C "_C
 
-    " m-w: save
-    nmap <silent> mw <Esc> :write!<CR>
+    " m-w: save file
+    nmap <silent> mw :<C-u>write!<CR>
+    " me: reopen file
+    nmap <silent> me :<C-u>e!<CR>
+    " mt: create tab
+    nmap <silent> mt :<C-u>tabnew<CR>
+    " mq: close tab
+    nmap <silent> mq :<C-u>tabclose!<CR>
+    " mr: tab next
+    nmap <silent> mr :<C-u>tabnext<CR>
+    " mv: tab prev
+    nmap <silent> mv :<C-u>tabprev<CR>
+    " md: close buffer
+    nmap <silent> md :<C-u>bdelete!<CR>
+    " ma: next window
+    nmap ma <Esc> <C-w>w
+    " ,h: split window horizontaly
+    nmap <leader>h <C-w>s
+    " ,v: split window verticaly
+    nmap <leader>v <C-w>v
     " ,ev: open .vimrc in a new tab
     nmap ,ev :tabnew $MYVIMRC<CR>
 
@@ -970,7 +991,7 @@
     " Space: fast Esc
     xmap <Space> <Esc>
     " Alt-w: fast save
-    xmap <silent> <A-w> <Esc>:update<CR>
+    xmap <silent> <A-w> :<C-u>update<CR>
     " Ctrl-s: old fast save
     xmap <C-s> <Esc>:w!<CR>
     " Ctrl-[jk]: scroll up/down
@@ -1016,6 +1037,10 @@
 
 " Experimental
 "---------------------------------------------------------------------------
+    " ,p: toggle paste mode
+    nmap <silent> ,p :<C-r>={
+        \ '0': 'set paste',
+        \ '1': 'set nopaste'}[&paste]<CR><CR>
     " ,d: diff this
     nmap <silent> <expr> ,d ":\<C-u>".(&diff ? 'diffoff' : 'diffthis')."\<CR>"
     " ,f: display all lines with keyword under cursor
