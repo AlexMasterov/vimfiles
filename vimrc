@@ -1,6 +1,6 @@
 " .vimrc / 2015 Yan
 " Author: Alex Masterov <alex.masterow@gmail.com>
-" Source: https://github.com/AlexMasterov/.vimrc
+" Source: https://github.com/AlexMasterov/.vim/vimrc
 
 " My vimfiles
 "---------------------------------------------------------------------------
@@ -14,7 +14,7 @@
     \.  ',.png,.jpg,.jpeg,.gif,.ico,.bmp'
     \.  ',.zip,.rar,.tar,.tar.bz,.tar.bz2'
     \.  ',.o,.a,.so,.obj.pyc,.bin,.exe,.lib,.dll'
-    \.  ',.lock,.bak,.dist,.doc,.docx,.md'
+    \.  ',.lock,.bak,.tmp,.dist,.doc,.docx,.md'
 
 " Environment
 "---------------------------------------------------------------------------
@@ -80,7 +80,7 @@
     " Resize splits then the window is resized
     Autocmd VimResized * wincmd =
     " Check timestamp more for 'autoread'
-    Autocmd WinEnter * if &autoread| checktime |endif
+    Autocmd CursorHold <buffer> if &autoread| checktime |endif
     " Leave Insert mode and save when Vim lost focus
     Autocmd FocusLost * call feedkeys("\<Esc>") | silent! wall
     " Disable paste mode when leaving Insert mode
@@ -91,7 +91,7 @@
     " Only show the cursorline in the current window
     Autocmd WinEnter,CursorHold,CursorHoldI   * setl cursorline
     Autocmd WinLeave,CursorMoved,CursorMovedI * if &cursorline| setl nocursorline |endif
-    " Dont continue comments when pushing (see also :help fo-table)
+    " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
     Autocmd BufEnter,WinEnter * set formatoptions-=ro
     " Automake directory
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
@@ -162,11 +162,13 @@
     let g:loaded_gzip = 1
     let g:loaded_zipPlugin = 1
     let g:loaded_tarPlugin = 1
+    let g:loaded_rrhelper = 1
     let g:loaded_matchparen = 1
     let g:loaded_netrwPlugin = 1
-    let g:loaded_vimballPlugin = 1
     let g:loaded_2html_plugin = 1
+    let g:loaded_vimballPlugin = 1
     let g:loaded_getscriptPlugin = 1
+    let g:loaded_spellfile_plugin = 1
     let g:did_install_default_menus = 1
 
     " Install NeoBundle
@@ -208,6 +210,9 @@
         NeoBundleLazy 'tpope/vim-characterize', {
         \   'mappings': '<Plug>'
         \}
+        NeoBundleLazy 'maksimr/vim-jsbeautify', {
+            \ 'filetypes': ['javascript', 'html', 'css']
+        \}
         NeoBundle 'tpope/vim-projectionist'
 
         " UI
@@ -226,7 +231,7 @@
         NeoBundle 'osyo-manga/vim-brightest'
 
         " Edit
-        " NeoBundle 'cohama/lexima.vim'
+        NeoBundle 'cohama/lexima.vim'
         NeoBundle 'tpope/vim-commentary'
         NeoBundleLazy 'gcmt/wildfire.vim', {
         \   'mappings': '<Plug>'
@@ -275,13 +280,15 @@
         NeoBundleLazy '1995eaton/vim-better-css-completion', {'filetypes': 'css'}
         " JSON
         NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
+        " Twig
+        NeoBundleLazy 'qbbr/vim-twig', {'filetypes': ['twig', 'html.twig']}
         " CSV
         NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
         " SQL
         NeoBundleLazy 'shmup/vim-sql-syntax', {'filetypes': 'sql'}
         " Nginx
         NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
-        " Git
+        " VCS
         NeoBundle 'itchyny/vim-gitbranch'
         NeoBundleLazy 'cohama/agit.vim', {
         \   'commands': 'Agit'
@@ -316,7 +323,8 @@
         let g:startify_custom_indices = map(range(1,30), 'string(v:val)')
         let g:startify_list_order = ['sessions', 'bookmarks']
         nmap <silent> <F10> :<C-u>Startify<CR>
-        Autocmd WinEnter,CursorHold,CursorHoldI * if &filetype ==# 'startify'| setl nocursorline |endif
+        AutocmdFT startify Autocmd WinEnter,CursorHold,CursorHoldI <buffer>
+            \ setl nocursorline
     endif
 
     if neobundle#is_installed('vim-bookmarks')
@@ -348,15 +356,25 @@
         let g:lexima_no_map_to_escape = 1
     endif
 
+    if neobundle#is_installed('vim-jsbeautify')
+        AutocmdFT javascript nmap <silent> <buffer> <F1> :call JsBeautify()<CR>
+        AutocmdFT html       nmap <silent> <buffer> <F1> :call HtmlBeautify()<CR>
+        AutocmdFT css        nmap <silent> <buffer> <F1> :call CSSBeautify()<CR>
+    endif
+
     if neobundle#is_installed('agit.vim')
-        nmap <silent> ,a :<C-u>Agit<CR>
+        nmap <silent> ,g :<C-u>Agit<CR>
     endif
 
     if neobundle#is_installed('wildfire.vim')
+        let g:wildfire_objects = {
+        \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
+        \   'html,twig,xml': ["at"]
+        \}
         nmap vv    <Plug>(wildfire-fuel)
-        vmap vv    <Plug>(wildfire-fuel)
-        vmap <C-v> <Plug>(wildfire-water)
-        nmap ,s    <Plug>(wildfire-quick-select)
+        xmap vv    <Plug>(wildfire-fuel)
+        xmap <C-v> <Plug>(wildfire-water)
+        nmap ,v    <Plug>(wildfire-quick-select)
     endif
 
     if neobundle#tap('vim-commentary')
@@ -453,7 +471,7 @@
         " Sources
         let g:neocomplete#sources = get(g:, 'neocomplete#sources', {})
         let g:neocomplete#sources._ = ['buffer', 'dictionary']
-        let g:neocomplete#sources.php = ['buffer', 'dictionary']
+        let g:neocomplete#sources.php = ['buffer']
 
         " Tab: completion
         imap <expr> <Tab>   pumvisible() ? '<C-n>' : CheckBackSpace() ? '<Tab>' : '<C-x><C-o>'
@@ -529,8 +547,9 @@
         call unite#custom#default_action('directory,neomru/directory', 'lcd')
 
         " Unite tuning
-        AutocmdFT unite setl nolist listchars= guicursor=a:blinkon0
-        Autocmd InsertEnter,InsertLeave \[unite\]* setl nonu nornu colorcolumn=""
+        AutocmdFT unite setl nolist guicursor=a:blinkon0
+        AutocmdFT unite Autocmd InsertEnter,InsertLeave <buffer>
+            \ setl nonu nornu nolist colorcolumn=""
         " Obliterate unite buffers (marks especially)
         " Autocmd BufLeave \[unite\]* if &buftype ==# 'nofile'| setl bufhidden=wipe |endif
 
@@ -606,7 +625,7 @@
         let g:neomru#file_mru_ignore_pattern = 'COMMIT_EDITMSG'
         let g:neomru#directory_mru_limit = 10
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
-        let g:neomru#time_format = '%d.%m %H:%M — '
+        let g:neomru#time_format = ' %d.%m %H:%M — '
         " Space-l: open recently-opened files
         nmap <silent> [space]l :<C-u>Unite neomru/file<CR>
         " Space-L: open recently-opened directories
@@ -676,6 +695,9 @@
     AutocmdFT css setl iskeyword+=-,%
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
+
+" Twig
+    AutocmdFT twig,twig.html Indent 2
 
 " JSON
     " Syntax
@@ -925,10 +947,10 @@
     nmap <silent> md :<C-u>bdelete!<CR>
     " ma: next window
     nmap ma <Esc> <C-w>w
-    " ,h: split window horizontaly
-    nmap <leader>h <C-w>s
-    " ,v: split window verticaly
-    nmap <leader>v <C-w>v
+    " mh: split window horizontaly
+    nmap mh <C-w>s
+    " mv: split window verticaly
+    nmap mv <C-w>v
     " ,ev: open .vimrc in a new tab
     nmap ,ev :tabnew $MYVIMRC<CR>
 
@@ -1043,6 +1065,8 @@
         \ '1': 'set nopaste'}[&paste]<CR><CR>
     " ,d: diff this
     nmap <silent> <expr> ,d ":\<C-u>".(&diff ? 'diffoff' : 'diffthis')."\<CR>"
+    " ,r: search and replace word under cursor
+    nmap ,r :%s/\<<C-r>=expand('<cword>')<CR>\>/
     " ,f: display all lines with keyword under cursor
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
     " Tab: case conversion
