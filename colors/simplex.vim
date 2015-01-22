@@ -31,8 +31,10 @@ hi StatusLineNC         guifg=#888888 guibg=#EEEEEE gui=NONE
 hi TabLine              guifg=#333333 guibg=#FFFFFF gui=NONE
 hi TabLineFill          guifg=#333333 guibg=#FFFFFF gui=NONE
 hi TabLineSel           guifg=#333333 guibg=#BBDDFF gui=NONE
+hi Directory            guifg=#333333               gui=NONE
 
 hi Folded               guifg=#60656F guibg=#EEEEEE gui=NONE
+hi FoldColumn           guifg=#60656F guibg=#EEEEEE gui=NONE
 
 hi MoreMsg              guifg=#333333 guibg=#EEEEEE gui=NONE
 hi ErrorMsg             guifg=#333333 guibg=#FFBBBB gui=NONE

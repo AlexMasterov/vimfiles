@@ -1,6 +1,6 @@
 " .vimrc / 2015 Yan
 " Author: Alex Masterov <alex.masterow@gmail.com>
-" Source: https://github.com/AlexMasterov/.vim/vimrc
+" Source: https://github.com/AlexMasterov/.vim
 
 " My vimfiles
 "---------------------------------------------------------------------------
@@ -62,7 +62,7 @@
         \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
     " Font size
     command! -nargs=* FontSize
-        \ let &guifont = substitute(&guifont, '\d\+', '\=submatch(0)+<args>', '')
+        \ let &guifont = substitute(&guifont, '\d\+', '\=submatch(0)+<args>', 'g')
     " Reload vimrc
     command! -bar ReloadVimrc
         \ if exists(':NeoBundleClearCache')| NeoBundleClearCache |endif | source $MYVIMRC | redraw
@@ -154,7 +154,7 @@
     let s:search_tool = executable('pt') ? 'pt' : executable('ag') ? 'ag' : ''
     let &grepprg = s:search_tool
     \.  ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
-    \.  ' --follow --smart-case --nogroup --nocolor'
+    \.  (&smartcase ? ' -S' : ''). ' --follow --nogroup --nocolor'
 
 " Plugins
 "---------------------------------------------------------------------------
@@ -231,7 +231,9 @@
         NeoBundle 'osyo-manga/vim-brightest'
 
         " Edit
-        NeoBundle 'cohama/lexima.vim'
+        NeoBundleLazy 'cohama/lexima.vim', {
+        \   'insert': 1
+        \}
         NeoBundle 'tpope/vim-commentary'
         NeoBundleLazy 'gcmt/wildfire.vim', {
         \   'mappings': '<Plug>'
@@ -386,28 +388,27 @@
         vmap q <Plug>Commentary
         nmap ,q gccyypgcc
         xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
-
         call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-smalls')
         let g:smalls_highlight = {
         \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
-        \   'SmallsCurrent'    : [['NONE', 'NONE', 'NONE'],['BOLD', '#9DBAD7', '#000000']],
+        \   'SmallsCurrent'    : [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
         \   'SmallsJumpTarget' : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
         \   'SmallsPos'        : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-        \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['BOLD', '#DDEECC', '#000000']]
+        \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
         \}
         call smalls#keyboard#cli#extend_table({
-        \   '<A-j>' : 'do_excursion',
-        \   '<A-k>' : 'do_excursion',
-        \   '<C-c>' : 'do_cancel',
-        \   '`'     : 'do_cancel'
+        \   "\<A-j>" : 'do_excursion',
+        \   "\<A-k>" : 'do_excursion',
+        \   "\<C-c>" : 'do_cancel',
+        \   "\`"     : 'do_cancel'
         \})
         call smalls#keyboard#excursion#extend_table({
-        \   'o' : 'do_set',
-        \   '`' : 'do_set',
-        \   'p' : 'do_jump'
+        \   "\o" : 'do_set',
+        \   "\`" : 'do_set',
+        \   "\p" : 'do_jump'
         \})
         nmap s <Plug>(smalls)
     endif
@@ -461,7 +462,8 @@
         " Completion patterns
         let g:neocomplete#force_overwrite_completefunc = 0
         let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
-        let g:neocomplete#force_omni_input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+        let g:neocomplete#force_omni_input_patterns.php = '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+        " '[^. \t]->\h\w*\|\h\w*::'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
         let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
@@ -504,9 +506,11 @@
         let g:unite_source_grep_recursive_opt = ''
         let g:unite_source_grep_encoding = 'utf-8'
         let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
-        let g:unite_source_rec_async_command = s:search_tool
-                    \. ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
-                    \. ' -l --nogroup --nocolor --depth 3 .'
+        if executable('ag')
+            let g:unite_source_rec_async_command = 'ag'
+                \. ' '. join(map(split(&suffixes, ','), '"\--ignore ".v:val.""'), ' ')
+                \. (&smartcase ? ' -S' : ''). ' -l --nogroup --nocolor --depth 3 .'
+        endif
 
         " Default profile
         let default_context = {
@@ -589,6 +593,8 @@
             cmap <buffer> ` <Esc>
         endfunction
 
+        " Space-d: open directories
+        nmap <silent> [space]d :<C-u>Unite directory<CR>
         " Space-b: open buffers
         nmap <silent> [space]b :<C-u>Unite buffer<CR>
         " Space-h: open windows
@@ -762,7 +768,7 @@
     set shortmess=aoOtTI         " shortens messages to avoid 'press a key' prompt
     set hidden                   " allows the closing of buffers without saving
     set switchbuf=useopen,split  " orders to open the buffer
-    set showtabline=2            " always show the tab pages
+    set showtabline=1            " always show the tab pages
     set winminheight=0           " minimal height of a window
     set noequalalways            " resize windows as little as possible
     set splitbelow splitright    " splitting a window below/right the current one
@@ -807,9 +813,10 @@
     " Format the statusline
     let &statusline =
     \  "%1* %l%*.%L %*"
-    \. "%1*%(#%{bufnr('$')}\ %)%*"
-    \. "%2*%(%{GitStatus()}\ %)%*"
-    \. "%-0.50f %2*%-2M%*"
+    \. "%1*%(#%{winbufnr(0)}\ %)%*"
+    \. "%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)"
+    \. "%-0.50f "
+    \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
     \. "%(%{exists('*FileModTime()') ? FileModTime() : ''}\ %)"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
@@ -819,6 +826,10 @@
     \. "%2*%(%Y\ %)%*"
 
     " Status-line functions
+    function! BufModified() abort
+        return getbufvar(winbufnr(0), '&modified') ? '+' : ''
+    endfunction
+
     function! FileSize() abort
         let bytes = getfsize(expand('%:p'))
         if bytes <= 0| return '' |endif
