@@ -132,7 +132,7 @@
         set undodir=$VIMFILES/undo
         " View
         set viewdir=$VIMFILES/views
-        set viewoptions=cursor,folds,options,slash,unix
+        set viewoptions=cursor,folds,slash,unix
     endif
 
     " Russian keyboard
@@ -234,7 +234,7 @@
         NeoBundle 'MattesGroeger/vim-bookmarks'
 
         " View
-        NeoBundle 'osyo-manga/vim-brightest'
+        " NeoBundle 'osyo-manga/vim-brightest'
 
         " Edit
         " NeoBundle 'cohama/lexima.vim'
@@ -347,6 +347,7 @@
     endif
 
     if neobundle#is_installed('crunch.vim')
+        let g:crunch_result_type_append = 0
         nmap <silent> ,x <Plug>CrunchOperator_
         xmap <silent> ,x <Plug>VisualCrunchOperator
         " ,z: toggle crunch append
@@ -512,12 +513,12 @@
 
     if neobundle#tap('neocomplete.vim')
         let g:neocomplete#enable_at_startup = 1
-        let g:neocomplete#enable_smart_case = 1
+        let g:neocomplete#enable_smart_case = 0
         let g:neocomplete#enable_camel_case = 1
         let g:neocomplete#enable_refresh_always = 1
         let g:neocomplete#enable_auto_select = 0
         let g:neocomplete#max_list = 7
-        let g:neocomplete#force_overwrite_completefunc = 0
+        let g:neocomplete#force_overwrite_completefunc = 1
         let g:neocomplete#auto_completion_start_length = 2
         let g:neocomplete#sources#syntax#min_keyword_length = 3
         let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
@@ -527,7 +528,7 @@
             \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
         let g:neocomplete#force_omni_input_patterns.php =
-            \ '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+            \ '[^. \t]->\|\h\w*::\|\(new\|use\|extends\|implements\)\s'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
         let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
@@ -536,10 +537,10 @@
         let g:neocomplete#same_filetypes.html  = 'css'
 
         " Tab: completion
-        imap <expr> <Tab>   pumvisible() ? '<C-n>' : CheckBackSpace() ? '<Tab>' : '<C-x><C-o>'
-        imap <expr> <S-Tab> pumvisible() ? '<C-p>' : '<C-x><C-o>'
-        imap <expr> <C-j>   pumvisible() ? '<C-n>' : '<C-j>'
-        imap <expr> <C-k>   pumvisible() ? '<C-p>' : '<C-k>'
+        imap <expr> <Tab>   pumvisible() ? "\<C-n>" : CheckBackSpace() ? "\<Tab>" : neocomplete#start_manual_complete()
+        imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
+        imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-j>"
+        imap <expr> <C-k>   pumvisible() ? "\<C-p>" : "\<C-k>"
 
         function! CheckBackSpace() abort
             let col = col('.') - 1
@@ -729,8 +730,7 @@
             let g:phpcomplete_relax_static_constraint = 1
             let g:phpcomplete_parse_docblock_comments = 1
             let g:phpcomplete_search_tags_for_variables = 1
-            let g:phpcomplete_complete_for_unknown_classes = 0
-            let g:phpcomplete_min_num_of_chars_for_namespace_completion = 1
+            let g:phpcomplete_complete_for_unknown_classes = 1
         endfunction
         AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
         call neobundle#untap()
@@ -923,10 +923,11 @@
 
 " Edit
 "---------------------------------------------------------------------------
-    set report=0         " reporting number of lines changes
-    set lazyredraw       " don't redraw while executing macros
-    set nostartofline    " avoid moving cursor to BOL when jumping around
-    set virtualedit=all  " allows the cursor position past true end of line
+    set report=0           " reporting number of lines changes
+    set lazyredraw         " don't redraw while executing macros
+    set nostartofline      " avoid moving cursor to BOL when jumping around
+    set virtualedit=all    " allows the cursor position past true end of line
+    set clipboard=unnamed  " use * register for copy-paste
 
     " Keymapping timeout (mapping / keycode)
     set notimeout ttimeoutlen=100
@@ -959,7 +960,7 @@
 
     " Autocomplete
     set complete-=i
-    set completeopt=menu
+    set completeopt=longest
     set pumheight=15
     " Do not display completion messages
     Autocmd VimEnter,Colorscheme *
@@ -1033,6 +1034,7 @@
     nmap <silent> md <Esc> :bdelete!<CR>
     " ma: next window
     nmap ma <Esc> <C-w>w
+    nmap <F2> <C-w>w
     " mh: split window horizontaly
     " nmap mh <C-w>s
     " mv: split window verticaly
@@ -1053,6 +1055,7 @@
 
     " Unbinds
     nmap <F1> <Nop>
+    nmap v<S-k> <Nop>
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -1079,6 +1082,8 @@
     imap <A-n> <C-m>
     " Alt-r: change language
     imap <A-r> <C-^>
+    " Ctrl-v: paste
+    imap <C-v> <S-Insert>
     " qq: smart fast Esc
     imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
     " Ctrl-c: old fast Esc
