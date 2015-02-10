@@ -216,6 +216,10 @@
         NeoBundle 'tpope/vim-projectionist', {
         \   'depends': 'tpope/vim-dispatch',
         \}
+        NeoBundleLazy 'arecarn/crunch.vim', {
+        \   'commands': 'Crunch',
+        \   'mappings': ['<Plug>CrunchOperator', '<Plug>VisualCrunchOperator']
+        \}
 
         " UI
         NeoBundle 'Shougo/unite.vim'
@@ -235,6 +239,12 @@
         " Edit
         " NeoBundle 'cohama/lexima.vim'
         NeoBundle 'tpope/vim-commentary'
+        NeoBundleLazy 'tpope/vim-surround', {
+        \   'mappings': ['<Plug>Dsurround', '<Plug>Csurround']
+        \}
+        NeoBundleLazy 'junegunn/vim-easy-align', {
+        \   'mappings': '<Plug>(EasyAlign)'
+        \}
         NeoBundleLazy 'gcmt/wildfire.vim', {
         \   'mappings': '<Plug>'
         \}
@@ -336,6 +346,15 @@
             \ setl nocursorline
     endif
 
+    if neobundle#is_installed('crunch.vim')
+        nmap <silent> ,x <Plug>CrunchOperator_
+        xmap <silent> ,x <Plug>VisualCrunchOperator
+        " ,z: toggle crunch append
+        nmap <silent> ,z :<C-r>={
+            \ '0': 'let g:crunch_result_type_append = 1',
+            \ '1': 'let g:crunch_result_type_append = 0'}[g:crunch_result_type_append]<CR><CR>
+    endif
+
     if neobundle#is_installed('vim-bookmarks')
         let g:bookmark_sign = '##'
         let g:bookmark_auto_save_file = $VIMCACHE.'/bookmarks'
@@ -347,6 +366,33 @@
         nmap <silent> [space]m :<C-u>BookmarkShowAll<CR>
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#333333 guibg=#F5FCE5 gui=NONE
+    endif
+
+    if neobundle#is_installed('vim-easy-align')
+        let g:easy_align_ignore_groups = ['Comment', 'String']
+        vmap <Enter> <Plug>(EasyAlign)
+    endif
+
+    if neobundle#is_installed('vim-surround')
+        let g:surround_no_mappings = 1
+        let g:surround_no_insert_mappings = 1
+        nmap ds <Plug>Dsurround
+        nmap cs <Plug>Csurround
+        nmap cS <Plug>CSurround
+        " Tab: toggle quotes
+        nnoremap <silent> <Tab> :<C-u>call ToggleQuote()<CR>
+        function! ToggleQuote() abort
+            let curline = line('.')
+            let q = searchpos("'", 'n', curline)
+            let qb = searchpos("'", 'bn', curline)
+            let dq = searchpos('"', 'n', curline)
+            let dqb = searchpos('"', 'bn', curline)
+            if q[0] > 0 && qb[0] > 0 && (dq[0] == 0 || dq[0] > q[0])
+                exe "normal mzcs'\"`z"
+            elseif dq[0] > 0 && dqb[0] > 0
+                exe "normal mzcs\"'`z"
+            endif
+        endfunction
     endif
 
     if neobundle#is_installed('vim-brightest')
@@ -912,7 +958,7 @@
     " set gdefault         " flag 'g' by default for replacing
 
     " Autocomplete
-    " set complete-=i
+    set complete-=i
     set completeopt=menu
     set pumheight=15
     " Do not display completion messages
@@ -1109,8 +1155,8 @@
     nmap ,r :%s/\<<C-r>=expand('<cword>')<CR>\>/
     " ,f: display all lines with keyword under cursor
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
-    " Tab: case conversion
-    vmap <silent> <Tab> y:call CaseConversion()<CR>
+    " Tab: toggle case conversion
+    xmap <silent> <Tab> y:call CaseConversion()<CR>
     function! CaseConversion() abort
         " snake_case -> kebab-case -> camelCase -> MixedCase
         let word = @"
