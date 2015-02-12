@@ -96,6 +96,8 @@
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
     " Converts all remaining tabs to spaces on save
     Autocmd BufReadPost,BufWrite * if &modifiable| FixWhitespace | retab |endif
+    " Restore original functionality of keys inside quickfix
+    Autocmd BufEnter,WinEnter quickfix nnoremap <buffer> <CR> <CR>
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -242,6 +244,10 @@
         NeoBundleLazy 'tpope/vim-surround', {
         \   'mappings': ['<Plug>Dsurround', '<Plug>Csurround']
         \}
+        NeoBundleLazy 'AndrewRadev/sideways.vim', {
+        \   'commands': 'Sideways',
+        \   'mappings': '<Plug>'
+        \}
         NeoBundleLazy 'junegunn/vim-easy-align', {
         \   'mappings': '<Plug>(EasyAlign)'
         \}
@@ -360,6 +366,7 @@
         let g:bookmark_sign = '##'
         let g:bookmark_auto_save_file = $VIMCACHE.'/bookmarks'
         let g:bookmark_highlight_lines = 1
+        nmap <S-m>  <Plug>BookmarkToggle
         nmap ml     <Plug>BookmarkNext
         nmap mk     <Plug>BookmarkPrev
         nmap mx     <Plug>BookmarkClear
@@ -412,6 +419,13 @@
         let g:lexima_no_map_to_escape = 1
         " Deleting the rule "`" (30-36)
         silent! call remove(g:lexima#default_rules, 30, -1)
+    endif
+
+    if neobundle#is_installed('sideways.vim')
+       nnoremap <silent> <C-h> :SidewaysLeft<CR>
+       nnoremap <silent> <C-l> :SidewaysRight<CR>
+       nnoremap <silent> <S-h> :SidewaysJumpLeft<CR>
+       nnoremap <silent> <S-l> :SidewaysJumpRight<CR>
     endif
 
     if neobundle#is_installed('vim-partial')
@@ -495,6 +509,8 @@
             \  ImapBufExpr - smartchr#loop('-', '->')
             \| ImapBufExpr $ smartchr#loop('$', '$this->')
             \| ImapBufExpr > smartchr#loop('>', '=>')
+            \| ImapBufExpr ; smartchr#loop(';', '::')
+            \| ImapBufExpr , smartchr#loop(',', ', ')
             \| ImapBufExpr = smartchr#loop('=', ' = ', ' == ', ' === ')
         AutocmdFT javascript
             \  ImapBufExpr , smartchr#loop(',', ', ')
@@ -515,6 +531,7 @@
         let g:neocomplete#enable_at_startup = 1
         let g:neocomplete#enable_smart_case = 0
         let g:neocomplete#enable_camel_case = 1
+        " let g:neocomplete#enable_insert_char_pre = 1
         let g:neocomplete#enable_refresh_always = 1
         let g:neocomplete#enable_auto_select = 0
         let g:neocomplete#max_list = 7
@@ -528,7 +545,7 @@
             \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
         let g:neocomplete#force_omni_input_patterns.php =
-            \ '[^. \t]->\|\h\w*::\|\(new\|use\|extends\|implements\)\s'
+            \ '[^. \t]->\|\h\w*::\|\(new\|use\|extends\|implements\|instanceof\)\s'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
         let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
@@ -688,12 +705,12 @@
     endif
 
     if neobundle#is_installed('neomru.vim')
-        let g:neomru#file_mru_limit = 10
         let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
-        let g:neomru#file_mru_ignore_pattern = 'COMMIT_EDITMSG'
-        let g:neomru#directory_mru_limit = 10
+        let g:neomru#file_mru_ignore_pattern = '[._]vimrc$'
+        let g:neomru#filename_format = ':~:.'
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
         let g:neomru#time_format = ' %d.%m %H:%M — '
+        call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
         " Space-l: open recently-opened files
         nmap <silent> [space]l :<C-u>Unite neomru/file<CR>
         " Space-L: open recently-opened directories
@@ -724,13 +741,17 @@
 
 " PHP
     AutocmdFT php Indent 4
+    " Syntax
+    AutocmdFT php Autocmd BufEnter <buffer>
+        \  hi link phpDocTags  phpDefine
+        \| hi link phpDocParam phpType
     " Autocomplete
     if neobundle#tap('phpcomplete.vim')
         function! neobundle#hooks.on_source(bundle)
             let g:phpcomplete_relax_static_constraint = 1
             let g:phpcomplete_parse_docblock_comments = 1
             let g:phpcomplete_search_tags_for_variables = 1
-            let g:phpcomplete_complete_for_unknown_classes = 1
+            let g:phpcomplete_complete_for_unknown_classes = 0
         endfunction
         AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
         call neobundle#untap()
@@ -764,6 +785,9 @@
 
 " HTML
     AutocmdFT html Indent 2
+    AutocmdFT html iabbrev <buffer> & &amp;
+    " Autocomplete
+    AutocmdFT html setl omnifunc=htmlcomplete#CompleteTags
 
 " CSS
     AutocmdFT css setl nowrap | Indent 2
@@ -795,6 +819,11 @@
 " Yaml
     AutocmdFT yaml setl nowrap | Indent 4
 
+" XML
+    AutocmdFT xml setl nowrap | Indent 4
+    " Autocomplete
+    AutocmdFT xml setl omnifunc=xmlcomplete#CompleteTags
+
 " Nginx
     Autocmd BufNewFile,BufRead *.conf setl filetype=nginx commentstring=#%s
 
@@ -816,7 +845,7 @@
 
     " Font
     if WINDOWS()
-        set guifont=Droid_Sans_Mono:h10:cRUSSIAN,Consolas:h11:cRUSSIAN
+        set guifont=Droid_Sans_Mono:h10,Consolas:h11
     else
         set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
     endif
@@ -998,8 +1027,8 @@
 " Normal mode
 "---------------------------------------------------------------------------
     " jk: don't skip wrap lines
-    nmap <expr> j (v:count == 0 ? 'gj' : 'j')
-    nmap <expr> k (v:count == 0 ? 'gk' : 'k')
+    nmap <expr> j v:count ? 'j' : 'gj'
+    nmap <expr> k v:count ? 'k' : 'gk'
     " Alt-[jkhl]: move selected lines
     nmap <A-j> ddp
     nmap <A-k> ddkP
@@ -1028,8 +1057,10 @@
     nmap <silent> mq <Esc> :tabclose!<CR>
     " mr: tab next
     nmap <silent> mr <Esc> :tabnext<CR>
+    nmap <silent> [space]k <Esc> :tabnext<CR>
     " mv: tab prev
     nmap <silent> mv <Esc> :tabprev<CR>
+    nmap <silent> [space]j <Esc> :tabprev<CR>
     " md: close buffer
     nmap <silent> md <Esc> :bdelete!<CR>
     " ma: next window
@@ -1053,9 +1084,15 @@
         exe printf('nmap <silent> [space]%d %dgt', n, n)
     endfor
 
+    " Test
+    nmap <silent> <Enter>   :tabnext<CR>
+    nmap <silent> <S-Enter> :tabprev<CR>
+    nmap <silent> <C-Enter> :bdelete!<CR>
+
     " Unbinds
     nmap <F1> <Nop>
     nmap v<S-k> <Nop>
+    nmap <Space><S-k> <Nop>
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -1160,6 +1197,11 @@
     nmap ,r :%s/\<<C-r>=expand('<cword>')<CR>\>/
     " ,f: display all lines with keyword under cursor
     nmap ,f [I:let nr = input('Which one: ')<Bar>exe 'normal '. nr .'[\t'<CR>
+    " This should preserve your last yank/delete as well.
+    nmap zl :let @z=@"<CR>x$p:let @"=@z<CR>
+    " Change word and repeat for next or previous with .
+    nmap ,c *``cgn
+    nmap ,C #``cgN
     " Tab: toggle case conversion
     xmap <silent> <Tab> y:call CaseConversion()<CR>
     function! CaseConversion() abort
