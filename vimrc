@@ -226,13 +226,20 @@
         " UI
         NeoBundle 'Shougo/unite.vim'
         NeoBundle 'Shougo/neomru.vim'
+        NeoBundleLazy 'osyo-manga/vim-reanimate', {
+        \   'depends': 'Shougo/unite.vim',
+        \   'commands': ['ReanimateSave', 'ReanimateLoad'],
+        \   'unite_sources': 'reanimate',
+        \}
         NeoBundleLazy 'osyo-manga/unite-vimpatches', {
         \   'unite_sources': 'vimpatches'
         \}
         NeoBundleLazy 'osyo-manga/unite-quickfix', {
         \   'unite_sources': 'quickfix'
         \}
-        NeoBundle 'mhinz/vim-startify'
+        NeoBundleLazy 'tsukkee/unite-tag', {
+        \   'unite_sources': 'tag'
+        \}
         NeoBundle 'MattesGroeger/vim-bookmarks'
 
         " View
@@ -337,19 +344,6 @@
 "---------------------------------------------------------------------------
     if neobundle#is_installed('restart.vim')
         nmap <F9> <Esc> :<C-u>Restart<CR>
-    endif
-
-    if neobundle#is_installed('vim-startify')
-        let g:startify_disable_at_vimenter = 1
-        let g:startify_bookmarks = [$MYVIMRC]
-        let g:startify_change_to_dir = 1
-        let g:startify_change_to_vcs_root = 1
-        let g:startify_session_dir = $VIMFILES.'/session'
-        let g:startify_custom_indices = map(range(1,30), 'string(v:val)')
-        let g:startify_list_order = ['sessions', 'bookmarks']
-        nmap <silent> <F10> :<C-u>Startify<CR>
-        AutocmdFT startify Autocmd WinEnter,CursorHold,CursorHoldI <buffer>
-            \ setl nocursorline
     endif
 
     if neobundle#is_installed('crunch.vim')
@@ -633,8 +627,8 @@
         " Obliterate unite buffers (marks especially)
         " Autocmd BufLeave \[unite\]* if &buftype ==# 'nofile'| setl bufhidden=wipe |endif
 
-        AutocmdFT unite call UniteMySettings()
-        function! UniteMySettings() abort
+        AutocmdFT unite call UniteSettings()
+        function! UniteSettings() abort
             " Normal mode
             nmap <buffer> q         <Plug>(unite_exit)
             nmap <buffer> `         <Plug>(unite_exit)
@@ -644,6 +638,7 @@
             nmap <buffer> <Tab>     <Plug>(unite_loop_cursor_down)
             nmap <buffer> p         <Plug>(unite_quick_match_default_action)
             nmap <silent> <buffer> <expr> cd unite#do_action('cd')
+            nmap <silent> <buffer> <expr> / unite#do_action('narrow')
             nmap <silent> <buffer> <expr> o unite#smart_map('o', unite#do_action('open'))
             nmap <silent> <buffer> <expr> s unite#smart_map('s', unite#do_action('split'))
             nmap <silent> <buffer> <expr> v unite#smart_map('v', unite#do_action('vsplit'))
@@ -654,7 +649,6 @@
             " Insert mode
             imap <buffer> <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<Esc>\<Plug>(unite_exit)" : 'q'
             imap <buffer> `         <Plug>(unite_exit)
-            imap <buffer> gg   <Esc><Plug>(unite_cursor_top)
             imap <buffer> <S-Space> <Plug>(unite_insert_leave)
             imap <buffer> ;         <Plug>(unite_insert_leave)
             imap <buffer> <Tab>     <Plug>(unite_select_next_line)
@@ -720,6 +714,45 @@
     if neobundle#is_installed('unite-vimpatches')
         " Space-p: open vimpatches log
         nmap <silent> [space]p :<C-u>Unite vimpatches<CR>
+    endif
+
+    if neobundle#is_installed('unite-tag')
+        " Ctrl-]: open tag under cursor
+        nmap <silent> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
+        " Space-t: open tag
+        nmap <silent> [space]t :<C-u>Unite tag<CR>
+        " Space-y: search tag by name
+        nmap [space]T :<C-u>call InputSearchTag()<CR>
+        function! InputSearchTag()
+            let search_word = input('Tag: ')
+            if search_word != ''
+                exe ':Unite tag:'. escape(search_word, '"')
+            endif
+        endfunction
+    endif
+
+    if neobundle#is_installed('vim-reanimate')
+        let g:reanimate_default_category = 'home'
+        let g:reanimate_save_dir = $VIMFILES.'/session'
+        let g:reanimate_event_disables = {'_': {'reanimate_confirm': 1, 'reanimate_error': 1}}
+        nmap <silent> ,sa :<C-u>ReanimateSaveInput<CR>
+        nmap <silent> ,ss :<C-u>ReanimateSaveWithTimeStamp<CR>
+        nmap <silent> ,ll :<C-u>ReanimateLoadLatest<CR>
+        nmap <silent> ,sl :<C-u>Unite reanimate -buffer-name=reanimate -default-action=reanimate_load<CR>
+
+        command! -nargs=0 ReanimateSaveWithTimeStamp
+            \ exe 'ReanimateSave' strftime('%Y%m%d%H%M%S')
+            \| echo ' Session saved. '. strftime('(%H:%M:%S — %d.%m.%Y)')
+
+        AutocmdFT unite call UniteReanimateSettings()
+        function! UniteReanimateSettings()
+            if unite#get_current_unite().profile_name ==# 'reanimate'
+                nmap <buffer> <expr> o unite#smart_map('o', unite#do_action('reanimate_load'))
+                nmap <buffer> <expr> s unite#smart_map('s', unite#do_action('reanimate_save'))
+                nmap <buffer> <expr> r unite#smart_map('r', unite#do_action('reanimate_rename'))
+                nmap <buffer> <expr> n unite#smart_map('n', unite#do_action('reanimate_new_save'))
+            endif
+        endfunction
     endif
 
 " Languages
