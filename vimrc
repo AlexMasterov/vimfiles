@@ -225,11 +225,6 @@
         " UI
         NeoBundle 'Shougo/unite.vim'
         NeoBundle 'Shougo/neomru.vim'
-        NeoBundleLazy 'osyo-manga/vim-reanimate', {
-        \   'depends': 'Shougo/unite.vim',
-        \   'commands': ['ReanimateSave', 'ReanimateLoad'],
-        \   'unite_sources': 'reanimate',
-        \}
         NeoBundleLazy 'osyo-manga/unite-vimpatches', {
         \   'unite_sources': 'vimpatches'
         \}
@@ -241,6 +236,10 @@
         \}
         NeoBundleLazy 'tsukkee/unite-tag', {
         \   'unite_sources': ['tag', 'tag/include', 'tag/file']
+        \}
+        NeoBundleLazy 'Shougo/unite-session', {
+        \   'commands': ['UniteSessionSave', 'UniteSessionLoad'],
+        \   'unite_sources': 'session'
         \}
         NeoBundleLazy 'thinca/vim-qfreplace', {
         \   'commands': 'Qfreplace',
@@ -341,7 +340,7 @@
         " CSV
         NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
         " SQL
-        NeoBundleLazy 'shmup/vim-sql-syntax', {'filetypes': 'sql'}
+        NeoBundleLazy 'shmup/vim-sql-syntax', {'filetypes': ['sql', 'php']}
         " Nginx
         NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
         " VCS
@@ -458,7 +457,7 @@
         nmap q <Plug>CommentaryLine
         vmap q <Plug>Commentary
         nmap <leader>q gccyypgcc
-        xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
+        xmap <silent> <expr> <leader>q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
         call neobundle#untap()
     endif
 
@@ -746,36 +745,36 @@
             cmap <buffer> ` <Esc>
         endfunction
 
-        " Space-d: open directories
+        " [prefix]d: open directories
         nmap <silent> [prefix]d :<C-u>Unite directory<CR>
-        " Space-b: open buffers
+        " [prefix]b: open buffers
         nmap <silent> [prefix]b :<C-u>Unite buffer<CR>
-        " Space-h: open windows
+        " [prefix]h: open windows
         nmap <silent> [prefix]h :<C-u>Unite window<CR>
-        " Space-t: open tab pages
+        " [prefix]t: open tab pages
         nmap <silent> <expr> [prefix]t ":\<C-u>Unite tab -select=".(tabpagenr()-1)."\<CR>"
 
-        " Space-f: open files
+        " [prefix]f: open files
         nmap <silent> [prefix]f :<C-u>Unite file_rec/async -start-insert<CR>
-        " Space-F: open files
+        " [prefix]F: open files
         nmap <silent> [prefix]F :<C-u>UniteWithInputDirectory file_rec/async -start-insert<CR>
-        " Space-n: create a new file
+        " [prefix]n: create a new file
         nmap <silent> [prefix]n :<C-u>Unite file/new -start-insert<CR>
 
         " /: search
         nmap <silent> / :<C-u>Unite line:forward:wrap -no-split -start-insert<CR>
-        " Space-g: grep search
+        " [prefix]g: grep search
         nmap <silent> [prefix]g :<C-u>Unite grep:. -auto-preview<CR>
         " *: search keyword under the cursor
         nmap <silent> <expr> *
             \ ":\<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-".bufnr('%')."\<CR>"
-        " Space-r: resume search buffer
+        " [prefix]r: resume search buffer
         nmap <silent> <expr> [prefix]r
             \ ":\<C-u>UniteResume search-".bufnr('%')." -no-start-insert -force-redraw\<CR>"
 
-        " Space-o: open message log
+        " [prefix]o: open message log
         nmap <silent> [prefix]e :<C-u>Unite output:message<CR>
-        " Space-i: NeoBundle update
+        " [prefix]i: NeoBundle update
         nmap <silent> [prefix]u :<C-u>Unite neobundle/update
             \ -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
     endif
@@ -787,28 +786,28 @@
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
         let g:neomru#time_format = ' %d.%m %H:%M — '
         call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
-        " Space-l: open recently-opened files
+        " [prefix]l: open recently-opened files
         nmap <silent> [prefix]l :<C-u>Unite neomru/file<CR>
-        " Space-L: open recently-opened directories
+        " [prefix]L: open recently-opened directories
         nmap <silent> [prefix]L :<C-u>Unite neomru/directory<CR>
     endif
 
     if neobundle#is_installed('unite-vimpatches')
-        " Space-p: open vimpatches log
+        " [prefix]p: open vimpatches log
         nmap <silent> [prefix]p :<C-u>Unite vimpatches<CR>
     endif
 
     if neobundle#is_installed('unite-outline')
-        " Space-o: outline
+        " [prefix]o: outline
         nmap [prefix]o :<C-u>Unite outline -winheight=16<CR>
     endif
 
     if neobundle#is_installed('unite-tag')
         " Ctrl-]: open tag under cursor
         nmap <silent> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
-        " Space-t: open tag
+        " [prefix]t: open tag
         nmap <silent> [prefix]t :<C-u>Unite tag<CR>
-        " Space-y: search tag by name
+        " [prefix]y: search tag by name
         nmap <silent> [prefix]T :<C-u>call <SID>inputSearchTag()<CR>
         function! s:inputSearchTag() abort
             let search_word = input('Tag: ')
@@ -818,25 +817,31 @@
         endfunction
     endif
 
-    if neobundle#is_installed('vim-reanimate')
-        let g:reanimate_default_category = 'home'
-        let g:reanimate_save_dir = $VIMFILES.'/session'
-        nmap <silent> <leader>sa :<C-u>ReanimateSaveInput<CR>
-        nmap <silent> <leader>ss :<C-u>ReanimateSaveWithTimeStamp<CR>
-        nmap <silent> <leader>ll :<C-u>ReanimateLoadLatest<CR>
-        nmap <silent> <leader>sl :<C-u>Unite reanimate -buffer-name=reanimate -default-action=reanimate_load<CR>
+    if neobundle#is_installed('unite-session')
+        let g:unite_source_session_path = $VIMFILES.'/session'
+        let g:unite_source_session_options = 'buffers,curdir,localoptions,winsize,winpos,winsize'
+        nmap <silent> <leader>sa :<C-u>call <SID>inputSessionName()<CR>
+        nmap <silent> <leader>ss :<C-u>SessionSaveWithTimeStamp<CR>
+        nmap <silent> <leader>sl :<C-u>Unite session -buffer-name=session -default-action=load<CR>
 
-        command! -nargs=0 ReanimateSaveWithTimeStamp
-            \  exe 'ReanimateSave' strftime('%Y%m%d%H%M%S')
+        command! -nargs=0 SessionSaveWithTimeStamp
+            \  exe 'UniteSessionSave' strftime('%y%m%d_%H%M%S')
             \| echo ' Session saved. '. strftime('(%H:%M:%S — %d.%m.%Y)')
 
-        AutocmdFT unite call <SID>UniteReanimateSettings()
-        function! s:UniteReanimateSettings() abort
-            if unite#get_current_unite().profile_name ==# 'reanimate'
-                nmap <silent> <buffer> <expr> o unite#do_action('reanimate_load')
-                nmap <silent> <buffer> <expr> s unite#do_action('reanimate_save')
-                nmap <silent> <buffer> <expr> r unite#do_action('reanimate_rename')
-                nmap <silent> <buffer> <expr> n unite#do_action('reanimate_new_save')
+        function! s:inputSessionName() abort
+            let session_name = input('Session: ')
+            if session_name != ''
+                exe ':UniteSessionSave '. escape(session_name, '"')
+            endif
+        endfunction
+
+        AutocmdFT unite call <SID>UniteSessionSettings()
+        function! s:UniteSessionSettings() abort
+            if unite#get_current_unite().profile_name ==# 'session'
+                nmap <silent> <buffer> <expr> o unite#do_action('load')
+                nmap <silent> <buffer> <expr> s unite#do_action('save')
+                nmap <silent> <buffer> <expr> d unite#do_action('delete')
+                nmap <silent> <buffer> <expr> r unite#do_action('rename')
             endif
         endfunction
     endif
@@ -893,7 +898,7 @@
             let g:pdv_template_dir = $VIMFILES.'/bundle/pdv/templates_snip'
         endfunction
         AutocmdFT php
-            \ nmap <silent> <buffer> ,c :call pdv#DocumentWithSnip()<CR>
+            \ nmap <silent> <buffer> <leader>c :call pdv#DocumentWithSnip()<CR>
         call neobundle#untap()
     endif
 
@@ -940,7 +945,7 @@
         Autocmd InsertEnter *.json setl concealcursor=
         Autocmd InsertLeave *.json setl concealcursor=inc
         AutocmdFT json
-            \ nmap <buffer> <silent> ,c :<C-r>={
+            \ nmap <buffer> <silent> <leader>c :<C-r>={
             \   '0': 'setl conceallevel=2',
             \   '2': 'setl conceallevel=0'}[&conceallevel]<CR><CR>
 
@@ -1201,10 +1206,11 @@
 
     " Test
     nmap <silent> <Enter>   :tabnext<CR>
-    nmap <silent> <S-Enter> :tabprev<CR>
     nmap <silent> <C-Enter> :bdelete!<CR>
     nmap <silent> [prefix]k <Esc> :tabnext<CR>
     nmap <silent> [prefix]j <Esc> :tabprev<CR>
+    " Switch between 2 last buffers
+    nmap <silent> <S-Enter> :b#<CR>
 
     " Unbinds
     map <F1> <Nop>
