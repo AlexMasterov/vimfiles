@@ -20,7 +20,7 @@ hi iCursor              guifg=#2B2B2B   guibg=#FF7311   gui=NONE
 hi lCursor              guifg=#2B2B2B   guibg=#FF7311   gui=NONE
 hi Visual                               guibg=#CCE5FF   gui=NONE
 hi VisualNOS            guifg=#2B2B2B   guibg=#CCE5FF   gui=NONE
-hi LineNr               guifg=#b6b6b6   guibg=#F6F7F7   gui=NONE
+hi LineNr               guifg=#B6B6B6   guibg=#F6F7F7   gui=NONE
 hi VertSplit            guifg=#EEEEEE   guibg=#F6F7F7   gui=NONE
 hi StatusLine           guifg=#2B2B2B   guibg=#E6E6E6   gui=NONE
 hi StatusLineNC         guifg=#888888   guibg=#EEEEEE   gui=NONE
@@ -33,11 +33,12 @@ hi WildMenu             guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
 hi Folded               guifg=#60656F   guibg=#EEEEEE   gui=NONE
 hi FoldColumn           guifg=#60656F   guibg=#EEEEEE   gui=NONE
 
-hi Question             guifg=#2B2B2B   guibg=#ffcdaa   gui=NONE
-hi WarningMsg           guifg=#2B2B2B   guibg=#ffd2cf   gui=NONE
+" hi Question             guifg=#2B2B2B   guibg=#FFCDAA   gui=NONE
+hi Question             guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
+hi WarningMsg           guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE
 hi MoreMsg              guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
 hi ErrorMsg             guifg=#2B2B2B   guibg=#FFBBBB   gui=NONE
-hi Error                guifg=#2B2B2B   guibg=#ff7369   gui=NONE
+hi Error                guifg=#2B2B2B   guibg=#FF7369   gui=NONE
 
 hi Search               guifg=#2B2B2B   guibg=#FCFCAA   gui=NONE
 hi IncSearch            guifg=#2B2B2B   guibg=#FFFF33   gui=bold
@@ -45,7 +46,7 @@ hi MatchParen           guifg=#2B2B2B   guibg=#FF9B55   gui=NONE
 hi CursorLine           guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorLineNr         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorColumn         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
-hi ColorColumn          guifg=#2B2B2B   guibg=#ffd2cf   gui=NONE
+hi ColorColumn          guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE
 hi SignColumn           guifg=#EEEEEE   guibg=#F6F7F7   gui=NONE
 
 hi DiffAdd              guifg=#2B2B2B   guibg=#F8FAFD   gui=NONE

@@ -8,6 +8,9 @@ let g:my_projects = get(g:, 'my_projects', {})
 
 command! -nargs=1 -complete=customlist,s:getProjectList C :call s:setProject(<f-args>)
 
+" C: tunning
+cmap <expr> <S-c> getcmdpos() == 1 ? "\C<Space>" : 'C'
+
 function! s:getProjectList(ArgLead, CmdLine, CursorPos) abort
     return exists('g:my_projects') && len(g:my_projects) ?
         \ filter(sort(keys(g:my_projects)), 'v:val =~ "^'. fnameescape(a:ArgLead) . '"') : []
