@@ -248,6 +248,10 @@
 
         " View
         NeoBundle 'osyo-manga/vim-brightest'
+        NeoBundleLazy 'scrooloose/nerdtree'
+        NeoBundleLazy 'jistr/vim-nerdtree-tabs', {
+        \   'commands': 'NERDTreeTabsToggle'
+        \}
 
         " Edit
         " NeoBundle 'cohama/lexima.vim'
@@ -331,8 +335,8 @@
         " CSS
         NeoBundleLazy 'JulesWang/css.vim',                   {'filetypes': 'css'}
         NeoBundleLazy 'hail2u/vim-css3-syntax',              {'filetypes': 'css'}
-        NeoBundleLazy 'gorodinskiy/vim-coloresque',          {'filetypes': 'css'}
         NeoBundleLazy '1995eaton/vim-better-css-completion', {'filetypes': 'css'}
+        NeoBundle 'lilydjwg/colorizer'
         " JSON
         NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
         " HTML / Twig
@@ -368,6 +372,22 @@
 "---------------------------------------------------------------------------
     if neobundle#is_installed('restart.vim')
         nmap <silent> <F9> :<C-u>Restart<CR>
+    endif
+
+    if neobundle#is_installed('nerdtree')
+        let NERDTreeWinPos = 'right'
+        let NERDTreeWinSize = 34
+        let NERDTreeMinimalUI = 1
+        let NERDTreeDirArrows = 1
+        let NERDTreeShowBookmarks = 0
+        let NERDTreeBookmarksFile = $VIMCACHE.'/NERDTreeBookmarks'
+        " let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
+    endif
+
+    if neobundle#is_installed('vim-nerdtree-tabs')
+        let nerdtree_tabs_focus_on_files = 0
+        let nerdtree_tabs_open_on_gui_startup = 0
+        nmap <silent> <leader><Enter> :<C-u>NERDTreeTabsToggle<CR>
     endif
 
     if neobundle#is_installed('crunch.vim')
@@ -508,13 +528,28 @@
         \   '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
         \   '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
         \   '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-        \   '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+        \   '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
         \}]
         AutocmdFT php let b:switch_custom_definitions = [
         \   ['public', 'protected', 'private'],
         \   ['extends', 'implements'],
         \   ['use', 'namespace'],
-        \   ['var_dump', 'print_r']
+        \   ['var_dump', 'print_r'],
+        \   {
+        \       '\([^=]\)===\([^=]\)': '\1==\2',
+        \       '\([^=]\)==\([^=]\)': '\1===\2'
+        \   }
+        \]
+        AutocmdFT html,twig,twig.html let b:switch_custom_definitions = [
+        \   ['id=', 'class=', 'style='],
+        \   {
+        \     '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
+        \     '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
+        \   },
+        \   {
+        \     '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
+        \     '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
+        \   }
         \]
         AutocmdFT css let b:switch_custom_definitions = [
         \   ['border-top', 'border-bottom'],
@@ -538,7 +573,7 @@
         \   ['none', 'block'],
         \   ['left', 'right'],
         \   ['top', 'bottom'],
-        \   ['em', 'px', '%'],
+        \   ['em', 'px', '%']
         \]
         nmap <silent> <Tab> :Switch<CR>
         xmap <silent> <Tab> :Switch<CR>
@@ -587,9 +622,9 @@
         let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
 
         " 'insert_char_pre' breaks phpcomplete.vim
-        if g:neocomplete#enable_insert_char_pre
-            \ && neobundle#is_installed('phpcomplete.vim')
-            AutocmdFT php let g:neocomplete#enable_insert_char_pre = 0
+        if neobundle#is_installed('phpcomplete.vim') && g:neocomplete#enable_insert_char_pre
+            AutocmdFT php
+                \ let g:neocomplete#enable_insert_char_pre = 0
                 \| Autocmd BufLeave,BufWinLeave <buffer>
                     \ let g:neocomplete#enable_insert_char_pre = 1
         endif
@@ -604,11 +639,11 @@
         let g:neocomplete#force_omni_input_patterns.php =
             \ '[^. \t]->\|\h\w*::\|\(new\|use\|extends\|implements\|instanceof\)\s'
         let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
-        " let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
+        let g:neocomplete#force_omni_input_patterns.css = '[[:alpha:]_:-][[:alnum:]_:-]*'
         let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
         " Alias filetypes
         let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-        let g:neocomplete#same_filetypes.html  = 'css'
+        let g:neocomplete#same_filetypes.html  = 'twig,twig.html'
 
         " Tab: completion
         imap <expr> <Tab>   pumvisible() ? "\<C-n>" : <SID>CheckBackSpace() ? "\<Tab>" : neocomplete#start_manual_complete()
@@ -620,7 +655,6 @@
             let col = col('.') - 1
             return !col || getline('.')[col-1] =~ '\s'
         endfunction
-
     endif
 
     if neobundle#is_installed('ultisnips')
@@ -655,7 +689,9 @@
         \   'direction': 'below',
         \   'prompt_direction': 'top',
         \   'cursor_line_time': '0.0',
-        \   'short_source_names': 1
+        \   'short_source_names': 1,
+        \   'prompt': '>',
+        \   'wipe': 1
         \}
         " Quickfix profile
         let quickfix_context = {
@@ -690,8 +726,13 @@
         AutocmdFT unite setl nolist guicursor=a:blinkon0
         AutocmdFT unite Autocmd InsertEnter,InsertLeave <buffer>
             \ setl nonu nornu nolist colorcolumn=
-        " Obliterate unite buffers (marks especially)
-        " Autocmd BufLeave \[unite\]* if &buftype ==# 'nofile'| setl bufhidden=wipe |endif
+        Autocmd VimEnter,Colorscheme *
+            \  hi uniteStatusHead             guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
+            \| hi uniteStatusNormal           guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
+            \| hi uniteStatusMessage          guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
+            \| hi uniteStatusLineNR           guifg=#D14000 guibg=#E6E6E6 gui=NONE
+            \| hi uniteStatusSourceNames      guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
+            \| hi uniteStatusSourceCandidates guifg=#0000FF guibg=#E6E6E6 gui=NONE
 
         AutocmdFT unite call UniteSettings()
         function! UniteSettings() abort
@@ -764,10 +805,10 @@
         " /: search
         nmap <silent> / :<C-u>Unite line:forward:wrap -no-split -start-insert<CR>
         " [prefix]g: grep search
-        nmap <silent> [prefix]g :<C-u>Unite grep:. -auto-preview<CR>
+        nmap <silent> [prefix]g :<C-u>Unite grep:. -no-split -auto-preview<CR>
         " *: search keyword under the cursor
         nmap <silent> <expr> *
-            \ ":\<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-".bufnr('%')."\<CR>"
+            \ ":\<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-".bufnr('%')." -no-wipe\<CR>"
         " [prefix]r: resume search buffer
         nmap <silent> <expr> [prefix]r
             \ ":\<C-u>UniteResume search-".bufnr('%')." -no-start-insert -force-redraw\<CR>"
@@ -927,8 +968,12 @@
 
 " CSS
     AutocmdFT css setl nowrap | Indent 2
-    " Syntax
     AutocmdFT css setl iskeyword+=-,%
+    if neobundle#is_installed('colorizer')
+        let g:color_ft = 'css,html,twig,twig.html'
+        AutocmdFT * Autocmd BufEnter <buffer>
+            \ :exe index(split(g:color_ft, ','), &filetype) == 0 ? 'ColorHighlight' : 'ColorClear'
+    endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
 
@@ -1082,8 +1127,7 @@
     endfunction
 
     function! GitStatus() abort
-        return exists('*gitbranch#name()') && gitbranch#name() !=# '' ?
-                    \ printf('[%s]', gitbranch#name()) : ''
+        return exists('*gitbranch#name()') && gitbranch#name() !=# '' ? printf('[%s]', gitbranch#name()) : ''
     endfunction
 
 " Edit
@@ -1128,6 +1172,7 @@
     set complete-=i
     set completeopt=longest
     set pumheight=15
+    set showfulltag
     " Do not display completion messages
     Autocmd VimEnter,Colorscheme *
         \  hi ModeMsg guifg=bg guibg=bg gui=NONE
@@ -1203,14 +1248,6 @@
     nmap <silent> mc <Esc> :nohl<CR>:let @/=""<CR>
     " Ctrl+c: old clear highlight after search
     nmap <silent> <C-c> <Esc> :nohl<CR>:let @/=""<CR>
-
-    " Test
-    nmap <silent> <Enter>   :tabnext<CR>
-    nmap <silent> <C-Enter> :bdelete!<CR>
-    nmap <silent> [prefix]k <Esc> :tabnext<CR>
-    nmap <silent> [prefix]j <Esc> :tabprev<CR>
-    " Switch between 2 last buffers
-    nmap <silent> <S-Enter> :b#<CR>
 
     " Unbinds
     map <F1> <Nop>
@@ -1313,9 +1350,22 @@
 
 " Experimental
 "---------------------------------------------------------------------------
+    " Test
+    " nmap <silent> <Enter>   :tabnext<CR>
+    nmap <silent> <C-Enter> :bdelete!<CR>
+    nmap <silent> [prefix]k <Esc> :tabnext<CR>
+    nmap <silent> [prefix]j <Esc> :tabprev<CR>
+    " #: switch between 2 last tabs
+    nmap # gt
+    " Shift-Enter: switch between 2 last buffers
+    nmap <silent> <S-Enter> :b#<CR>
+    " Shift-Tab: switch between windows
+    nmap <S-Tab> <C-w>w
     " t: [n] jumps to tab
-    nmap <expr> t v:count ? ("\<Esc>". v:count .'gt') : "\<Plug>(glowshi-ft-t)"
-    " [nN]: append blank line and space
+    nmap <silent> <expr> t     v:count ? ("\<Esc>". v:count .'gt') : "\<Plug>(glowshi-ft-t)"
+    " Tab: [n] jumps to tab
+    nmap <silent> <expr> <Tab> v:count ? ("\<Esc>". v:count .'gt') : "\:Switch<CR>"
+    " [nN]: append bla nk line and space
     nmap <silent> <expr> n v:count ?
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
     nmap <silent> <expr> N v:count ?

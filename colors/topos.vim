@@ -73,8 +73,6 @@ hi Keyword              guifg=#007050                   gui=NONE
 hi Comment              guifg=#93A1A1                   gui=NONE
 hi Todo                 guifg=#446644   guibg=#DDEECC   gui=NONE
 
-
-
 hi link Character       Constant
 hi link String          Constant
 hi link Boolean         Constant
