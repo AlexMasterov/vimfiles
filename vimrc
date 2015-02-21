@@ -1326,29 +1326,6 @@
     " qq: smart fast Esc
     imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
 
-    " inoremap <C-a> <C-o>0
-    " inoremap <C-e> <C-o>$
-    " inoremap <C-k> <Up>
-    " inoremap <C-j> <Down>
-    " inoremap <C-b> <Left>
-    " inoremap <C-f> <Right>
-    " inoremap <C-d> <Delete>
-
-    " Ctrl-w: Delete previous word, create undo point
-    " inoremap <C-w> <C-g>u<C-w>
-    " Ctrl-v: Paste. For some reason, <c-o> is not creating an undo point in the
-    " mapping
-    " inoremap <c-v> <c-g>u<c-o>gP
-    " inoremap <c-+> <c-o>r
-    " Ctrl-l: Move word right
-    " inoremap <c-l> <c-o>w
-    " Ctrl-e: Go to end of line
-    " inoremap <C-e> <esc>A
-
-    " Ctrl-h: Move word back. Consistent with zsh
-    " noremap <c-h> b
-    " inoremap <c-h> <c-o>b
-
 " Visual mode
 "---------------------------------------------------------------------------
     " jk: don't skip wrap lines
