@@ -106,32 +106,56 @@ hi Quesion              guifg=bg    guibg=bg    gui=NONE
 " User
 "---------------------------------------------------------------------------
 hi User1                guifg=#0000FF   guibg=#E6E6E6  gui=NONE
-hi User2                guifg=#D14000   guibg=#E6E6E6   gui=NONE
+hi User2                guifg=#D14000   guibg=#E6E6E6  gui=NONE
 
 " PHP
 "---------------------------------------------------------------------------
-hi phpEcho                    guifg=#2B2B2B                   gui=bold
-hi phpType                    guifg=#0050B0                   gui=NONE
-hi phpParent                  guifg=#999999                   gui=NONE
-hi phpInteger                 guifg=#1299DA                   gui=NONE
-hi phpNumber                  guifg=#1299DA                   gui=NONE
-hi phpBoolean                 guifg=#CD7F32                   gui=bold
-hi phpClasses                 guifg=#B729D9                   gui=NONE
-hi phpStatement               guifg=#0050B1                   gui=NONE
-hi phpException               guifg=#0050B1                   gui=bold
-hi phpOperator                guifg=#A67F59   guibg=#FFF9F9   gui=NONE
-hi phpStrEsc                  guifg=#A67F59   guibg=#FFF9F9   gui=NONE
-hi phpInclude                 guifg=#2B2B2B                   gui=bold
-hi phpFunctions               guifg=#2B2B2B                   gui=bold
-hi phpBraceError              guifg=#FF0000                   gui=bold
-hi phpParentError             guifg=#FF0000                   gui=bold
-hi phpSemicolon               guifg=#FF0000                   gui=bold
-hi phpDefineFuncName          guifg=#3A75C4                   gui=bold
-hi phpDefineClassName         guifg=#3A75C4                   gui=bold
-hi phpMethodsVar              guifg=#008080                   gui=NONE
-hi phpVarSelector             guifg=#708090                   gui=NONE
-hi phpMemberSelector          guifg=#2B2B2B                   gui=NONE
-hi phpMagicConstants          guifg=#009926                   gui=NONE
+" Syntax: https://github.com/StanAngeloff/php.vim
+" hi phpEcho                    guifg=#2B2B2B                   gui=bold
+" hi phpType                    guifg=#0050B0                   gui=NONE
+" hi phpParent                  guifg=#999999                   gui=NONE
+" hi phpInteger                 guifg=#1299DA                   gui=NONE
+" hi phpNumber                  guifg=#1299DA                   gui=NONE
+" hi phpBoolean                 guifg=#CD7F32                   gui=bold
+" hi phpClasses                 guifg=#B729D9                   gui=NONE
+" hi phpStatement               guifg=#0050B1                   gui=NONE
+" hi phpException               guifg=#0050B1                   gui=bold
+" hi phpOperator                guifg=#A67F59   guibg=#FFF9F9   gui=NONE
+" hi phpStrEsc                  guifg=#A67F59   guibg=#FFF9F9   gui=NONE
+" hi phpInclude                 guifg=#2B2B2B                   gui=bold
+" hi phpFunctions               guifg=#2B2B2B                   gui=bold
+" hi phpBraceError              guifg=#FF0000                   gui=bold
+" hi phpParentError             guifg=#FF0000                   gui=bold
+" hi phpSemicolon               guifg=#FF0000                   gui=bold
+" hi phpDefineFuncName          guifg=#3A75C4                   gui=bold
+" hi phpDefineClassName         guifg=#3A75C4                   gui=bold
+" hi phpMethodsVar              guifg=#008080                   gui=NONE
+" hi phpVarSelector             guifg=#708090                   gui=NONE
+" hi phpMemberSelector          guifg=#2B2B2B                   gui=NONE
+" hi phpMagicConstants          guifg=#009926                   gui=NONE
+
+" Syntax: https://github.com/mageekguy/php.vim
+hi phpDelimiter               guifg=#999999                   gui=NONE
+hi phpOperator                guifg=#0050B0                   gui=NONE
+hi phpIdentifier              guifg=#006C91                   gui=NONE
+hi phpInteger                 guifg=#0050B0                   gui=NONE
+hi phpAnnotation              guifg=#5B5C5B                   gui=NONE
+hi phpInclude                 guifg=#E24500                   gui=bold
+hi phpString                  guifg=#B16F2C                   gui=NONE
+hi phpNull                    guifg=#AF4141                   gui=NONE
+hi phpBoolean                 guifg=#AF4141                   gui=NONE
+hi phpVariable                guifg=#4D4D4D                   gui=NONE
+hi phpVariableSelector        guifg=#4D4D4D                   gui=NONE
+hi phpStatement               guifg=#2B2B2B                   gui=bold
+hi phpEncapsulation           guifg=#0079A2                   gui=NONE
+hi phpTryKeyword              guifg=#64AA03                   gui=bold
+hi phpCatchKeyword            guifg=#64AA03                   gui=NONE
+hi phpThrowKeyword            guifg=#2B2B2B                   gui=bold
+hi phpNamespaceKeyword        guifg=#2B2B2B                   gui=bold
+hi phpNamespace               guifg=#2B2B2B                   gui=NONE
+hi phpIf                      guifg=#0050B0                   gui=bold
+hi phpClassKeywords           guifg=#0050B0                   gui=bold
+" hi phpFunctionKeyword         guifg=#0050B0                   gui=NONE
 
 " Haskell
 "---------------------------------------------------------------------------
@@ -203,7 +227,7 @@ hi yamlKey                    guifg=#0050B1                   gui=NONE
 " hi yamlFlowMappingKey         guifg=#0050B1               gui=NONE
 " hi yamlKeyValueDelimiter      guifg=#A67F59 guibg=#FFF9F9 gui=NONE
 
-" JSON: github.com/elzr/vim-json
+" Syntax: github.com/elzr/vim-json
 "---------------------------------------------------------------------------
 hi jsonString                 guifg=#2B2B2B                   gui=NONE
 hi jsonEscape                 guifg=#A67F59                   gui=NONE

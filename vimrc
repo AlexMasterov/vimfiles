@@ -8,7 +8,7 @@
     let $VIMCACHE = $VIMFILES.'/cache'
 
     " Basic remapping
-    let g:mapleader = ',' | nmap ; :
+    let g:mapleader = ',' | noremap ; :
     " The prefix keys
     nmap <Space> [prefix]
     nnoremap [prefix] <Nop>
@@ -36,13 +36,13 @@
     augroup MyVimrc| exe 'autocmd!' |augroup END
 
     " Echo startup time on start
-    if has('vim_starting') && has('reltime')
-        " Shell: vim --startuptime filename -q; vim filename
-        " vim --cmd 'profile start profile.txt' --cmd 'profile file $HOME/.vimrc' +q && vim profile.txt
-        let s:startuptime = reltime()
-        au MyVimrc VimEnter * let s:startuptime = reltime(s:startuptime) | redraw
-                    \| echomsg ' startuptime:'. reltimestr(s:startuptime)
-    endif
+    " if has('vim_starting') && has('reltime')
+    "     " Shell: vim --startuptime filename -q; vim filename
+    "     " vim --cmd 'profile start profile.txt' --cmd 'profile file $HOME/.vimrc' +q && vim profile.txt
+    "     let s:startuptime = reltime()
+    "     au MyVimrc VimEnter * let s:startuptime = reltime(s:startuptime) | redraw
+    "                 \| echomsg ' startuptime:'. reltimestr(s:startuptime)
+    " endif
 
 " Functions
 "---------------------------------------------------------------------------
@@ -85,8 +85,8 @@
     " Disable paste mode when leaving Insert mode
     Autocmd InsertLeave * if &paste| set nopaste |endif
     " Toggle settings between modes
-    Autocmd InsertEnter * setl nolist colorcolumn=80
-    Autocmd InsertLeave * setl list   colorcolumn&
+    Autocmd InsertEnter * setl nu  nolist colorcolumn=80
+    Autocmd InsertLeave * setl rnu list   colorcolumn&
     " Only show the cursorline in the current window
     Autocmd WinEnter,CursorHold,CursorHoldI   * setl cursorline
     Autocmd WinLeave,CursorMoved,CursorMovedI * if &cursorline| setl nocursorline |endif
@@ -96,6 +96,8 @@
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
     " Converts all remaining tabs to spaces on save
     Autocmd BufReadPost,BufWrite * if &modifiable| FixWhitespace | retab |endif
+    " q: quit from some filetypes
+    Autocmd FileType help,quickrun nnoremap <silent> <buffer> q :quit!<CR>
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -203,9 +205,14 @@
 
         " Misc
         NeoBundle 'kopischke/vim-stay'
+        NeoBundle 'thinca/vim-quickrun'
         NeoBundle 'MattesGroeger/vim-bookmarks'
         NeoBundleLazy 'tyru/restart.vim', {
         \   'commands': 'Restart'
+        \}
+        NeoBundleLazy 'thinca/vim-quickrun', {
+        \   'commands': 'QuickRun',
+        \   'mappings': '<Plug>'
         \}
         NeoBundleLazy 'tpope/vim-characterize', {
         \   'mappings': '<Plug>'
@@ -245,20 +252,19 @@
         \   'commands': 'Qfreplace',
         \   'filetypes': ['unite', 'quickfix']
         \}
+        NeoBundleLazy 'osyo-manga/unite-filetype', {
+        \   'unite_sources': ['filetype', 'filetype/new']
+        \}
 
         " View
         NeoBundle 'osyo-manga/vim-brightest'
-        NeoBundleLazy 'scrooloose/nerdtree'
-        NeoBundleLazy 'jistr/vim-nerdtree-tabs', {
-        \   'commands': 'NERDTreeTabsToggle'
-        \}
 
         " Edit
         " NeoBundle 'cohama/lexima.vim'
         NeoBundle 'tpope/vim-commentary'
-        NeoBundleLazy 'AndrewRadev/splitjoin.vim', {
-        \   'commands': ['SplitjoinJoin', 'SplitjoinSplit'],
-        \   'mappings': ['gS', 'gJ']
+        NeoBundle 'terryma/vim-multiple-cursors'
+        NeoBundleLazy 'jakobwesthoff/argumentrewrap', {
+        \   'functions': 'argumentrewrap#RewrapArguments'
         \}
         NeoBundleLazy 'AndrewRadev/sideways.vim', {
         \   'commands': 'Sideways',
@@ -288,6 +294,7 @@
         NeoBundleLazy 'Shougo/context_filetype.vim'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
         \   'depends': 'Shougo/context_filetype.vim',
+        \   'commands': ['NeoCompleteLock', 'NeoCompleteUnlock'],
         \   'insert': 1
         \}
         NeoBundleLazy 'SirVer/ultisnips', {
@@ -319,8 +326,9 @@
         \   'disabled': !executable('hoogle'),
         \   'filetypes': 'haskell',
         \}
+
         " PHP
-        NeoBundleLazy 'StanAngeloff/php.vim',       {'filetypes': 'php'}
+        NeoBundleLazy 'mageekguy/php.vim',          {'filetypes': 'php'}
         NeoBundleLazy '2072/PHP-Indenting-for-VIm', {'filetypes': 'php'}
         NeoBundleLazy 'shawncplus/phpcomplete.vim', {'filetypes': 'php'}
         NeoBundleLazy 'tobyS/vmustache'
@@ -374,22 +382,6 @@
         nmap <silent> <F9> :<C-u>Restart<CR>
     endif
 
-    if neobundle#is_installed('nerdtree')
-        let NERDTreeWinPos = 'right'
-        let NERDTreeWinSize = 34
-        let NERDTreeMinimalUI = 1
-        let NERDTreeDirArrows = 1
-        let NERDTreeShowBookmarks = 0
-        let NERDTreeBookmarksFile = $VIMCACHE.'/NERDTreeBookmarks'
-        " let NERDTreeIgnore = map(split(&suffixes, ','), '"\\".v:val."\$"')
-    endif
-
-    if neobundle#is_installed('vim-nerdtree-tabs')
-        let nerdtree_tabs_focus_on_files = 0
-        let nerdtree_tabs_open_on_gui_startup = 0
-        nmap <silent> <leader><Enter> :<C-u>NERDTreeTabsToggle<CR>
-    endif
-
     if neobundle#is_installed('crunch.vim')
         let g:crunch_result_type_append = 0
         nmap <silent> <leader>x <Plug>CrunchOperator_
@@ -398,6 +390,22 @@
         nmap <silent> <leader>z :<C-r>={
             \ '0': 'let g:crunch_result_type_append = 1',
             \ '1': 'let g:crunch_result_type_append = 0'}[g:crunch_result_type_append]<CR><CR>
+    endif
+
+    if neobundle#is_installed('vim-multiple-cursors')
+        let g:multi_cursor_use_default_mapping = 0
+        let g:multi_cursor_start_key = '<leader>r'
+        let g:multi_cursor_prev_key = 'k'
+        let g:multi_cursor_next_key = 'j'
+        let g:multi_cursor_skip_key = '<Space>'
+        let g:multi_cursor_quit_key = '`'
+        " Prevent conflict with neocomplete.vim
+        function! Multiple_cursors_before()
+            if exists(':NeoCompleteLock') == 2| exe 'NeoCompleteLock' |endif
+        endfunction
+        function! Multiple_cursors_after()
+            if exists(':NeoCompleteUnlock') == 2| exe 'NeoCompleteUnlock' |endif
+        endfunction
     endif
 
     if neobundle#is_installed('vim-bookmarks')
@@ -433,7 +441,7 @@
         let g:brightest#highlight = {'group': 'BrightestCursorLine'}
         let g:brightest#ignore_syntax_list = ['Comment']
         Autocmd VimEnter,Colorscheme *
-            \ hi BrightestCursorLine guifg=#2B2B2B guibg=#F8F4DC gui=NONE
+            \ hi BrightestCursorLine guifg=#2B2B2B guibg=#FBF8EA gui=NONE
     endif
 
     if neobundle#is_installed('lexima.vim')
@@ -481,6 +489,10 @@
         call neobundle#untap()
     endif
 
+    if neobundle#is_installed('argumentrewrap')
+        nmap <silent> <S-k> :<C-u>call argumentrewrap#RewrapArguments()<CR>
+    endif
+
     if neobundle#is_installed('vim-smalls')
         let g:smalls_highlight = {
         \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
@@ -493,6 +505,7 @@
         \   "\<S-Space>" : 'do_excursion',
         \   "\<A-j>"     : 'do_excursion',
         \   "\<A-k>"     : 'do_excursion',
+        \   "\<C-c>"     : 'do_cancel',
         \   "\q"         : 'do_cancel',
         \   "\`"         : 'do_cancel'
         \})
@@ -613,21 +626,12 @@
         let g:neocomplete#enable_smart_case = 0
         let g:neocomplete#enable_camel_case = 1
         let g:neocomplete#enable_refresh_always = 1
-        let g:neocomplete#enable_insert_char_pre = 1
         let g:neocomplete#enable_auto_select = 0
         let g:neocomplete#max_list = 7
         let g:neocomplete#force_overwrite_completefunc = 1
         let g:neocomplete#auto_completion_start_length = 2
         let g:neocomplete#sources#syntax#min_keyword_length = 3
         let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
-
-        " 'insert_char_pre' breaks phpcomplete.vim
-        if neobundle#is_installed('phpcomplete.vim') && g:neocomplete#enable_insert_char_pre
-            AutocmdFT php
-                \ let g:neocomplete#enable_insert_char_pre = 0
-                \| Autocmd BufLeave,BufWinLeave <buffer>
-                    \ let g:neocomplete#enable_insert_char_pre = 1
-        endif
 
         " Completion patterns
         let g:neocomplete#sources#omni#input_patterns = get(g:, 'neocomplete#sources#omni#input_patterns', {})
@@ -680,7 +684,7 @@
             let g:unite_source_rec_async_command = 'ag'
                 \.  ' '. join(map(split(g:ignore_ext, ','), '"\--ignore *.".v:val.""'), ' ')
                 \.  ' '. join(map(split(g:ignore_dir, ','), '"\--ignore ".v:val.""'), ' ')
-                \.  (&smartcase ? ' -S' : ''). ' -l --nogroup --nocolor --depth 10 .'
+                \.  (&smartcase ? ' -S' : ''). ' -l --nogroup --nocolor .'
         endif
 
         " Default profile
@@ -690,6 +694,7 @@
         \   'prompt_direction': 'top',
         \   'cursor_line_time': '0.0',
         \   'short_source_names': 1,
+        \   'hide_source_names': 1,
         \   'prompt': '>',
         \   'wipe': 1
         \}
@@ -726,6 +731,8 @@
         AutocmdFT unite setl nolist guicursor=a:blinkon0
         AutocmdFT unite Autocmd InsertEnter,InsertLeave <buffer>
             \ setl nonu nornu nolist colorcolumn=
+            \| Autocmd WinEnter,CursorHold,CursorHoldI <buffer>
+                \ setl nocursorline
         Autocmd VimEnter,Colorscheme *
             \  hi uniteStatusHead             guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
             \| hi uniteStatusNormal           guifg=#2B2B2B guibg=#E6E6E6 gui=NONE
@@ -784,6 +791,16 @@
 
             " Command mode
             cmap <buffer> ` <Esc>
+
+            " Sorters
+            nmap <buffer> <expr> <F1> unite#mappings#set_current_filters(['sorter_ftime'])
+            imap <buffer> <expr> <F1> unite#mappings#set_current_filters(['sorter_ftime'])
+            nmap <buffer> <expr> <F2> unite#mappings#set_current_filters(['sorter_length'])
+            imap <buffer> <expr> <F2> unite#mappings#set_current_filters(['sorter_length'])
+            nmap <buffer> <expr> <F3> unite#mappings#set_current_filters(['sorter_rank'])
+            imap <buffer> <expr> <F3> unite#mappings#set_current_filters(['sorter_rank'])
+            nmap <buffer> <expr> <F4> unite#mappings#set_current_filters(['sorter_nothing'])
+            imap <buffer> <expr> <F4> unite#mappings#set_current_filters(['sorter_nothing'])
         endfunction
 
         " [prefix]d: open directories
@@ -799,8 +816,10 @@
         nmap <silent> [prefix]f :<C-u>Unite file_rec/async -start-insert<CR>
         " [prefix]F: open files
         nmap <silent> [prefix]F :<C-u>UniteWithInputDirectory file_rec/async -start-insert<CR>
-        " [prefix]n: create a new file
-        nmap <silent> [prefix]n :<C-u>Unite file/new -start-insert<CR>
+        " [prefix]n: create a new file in the project directory
+        nmap <silent> [prefix]n :<C-u>UniteWithProjectDir file file/new -start-insert<CR>
+        " [prefix]N: create a new file in the buffer's directory
+        nmap <silent> [prefix]N :<C-u>UniteWithBufferDir file file/new -start-insert<CR>
 
         " /: search
         nmap <silent> / :<C-u>Unite line:forward:wrap -no-split -start-insert<CR>
@@ -825,7 +844,7 @@
         let g:neomru#file_mru_ignore_pattern = '[._]vimrc$'
         let g:neomru#filename_format = ':~:.'
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
-        let g:neomru#time_format = ' %d.%m %H:%M — '
+        let g:neomru#time_format = '%d.%m %H:%M — '
         call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
         " [prefix]l: open recently-opened files
         nmap <silent> [prefix]l :<C-u>Unite neomru/file<CR>
@@ -840,18 +859,28 @@
 
     if neobundle#is_installed('unite-outline')
         " [prefix]o: outline
-        nmap [prefix]o :<C-u>Unite outline -winheight=16<CR>
+        nmap <silent> [prefix]o :<C-u>Unite outline -winheight=16 -silent<CR>
+    endif
+
+    if neobundle#is_installed('unite-filetype')
+        " [prefix]r: filetype change
+        nmap <silent> [prefix]r :<C-u>Unite filetype filetype/new -start-insert<CR>
     endif
 
     if neobundle#is_installed('unite-tag')
-        " Ctrl-]: open tag under cursor
-        nmap <silent> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
-        " [prefix]t: open tag
-        nmap <silent> [prefix]t :<C-u>Unite tag<CR>
-        " [prefix]y: search tag by name
-        nmap <silent> [prefix]T :<C-u>call <SID>inputSearchTag()<CR>
+        Autocmd BufEnter,WinEnter * call <SID>UniteTagSettings()
+        function! s:UniteTagSettings() abort
+            if empty(&buftype)
+                " Ctrl-]: open tag under cursor
+                nnoremap <silent> <buffer> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
+                " [prefix]t: open tag
+                nmap <silent> <buffer> [prefix]t :<C-u>UniteWithCursorWord tag tag/include<CR>
+                " [prefix]y: search tag by name
+                nmap <silent> <buffer> [prefix]T :<C-u>call <SID>inputSearchTag()<CR>
+            endif
+        endfu
         function! s:inputSearchTag() abort
-            let search_word = input('Tag: ')
+            let search_word = input(' Tag name: ')
             if search_word != ''
                 exe ':Unite tag:'. escape(search_word, '"')
             endif
@@ -870,7 +899,7 @@
             \| echo ' Session saved. '. strftime('(%H:%M:%S — %d.%m.%Y)')
 
         function! s:inputSessionName() abort
-            let session_name = input('Session: ')
+            let session_name = input(' Session name: ')
             if session_name != ''
                 exe ':UniteSessionSave '. escape(session_name, '"')
             endif
@@ -919,9 +948,7 @@
 " PHP
     AutocmdFT php Indent 4
     " Syntax
-    AutocmdFT php Autocmd BufEnter <buffer>
-        \  hi link phpDocTags  phpDefine
-        \| hi link phpDocParam phpType
+    let g:php_highlight_html = 1
     " Autocomplete
     if neobundle#tap('phpcomplete.vim')
         function! neobundle#hooks.on_source(bundle)
@@ -968,11 +995,12 @@
 
 " CSS
     AutocmdFT css setl nowrap | Indent 2
+    " Syntax
     AutocmdFT css setl iskeyword+=-,%
     if neobundle#is_installed('colorizer')
         let g:color_ft = 'css,html,twig,twig.html'
-        AutocmdFT * Autocmd BufEnter <buffer>
-            \ :exe index(split(g:color_ft, ','), &filetype) == 0 ? 'ColorHighlight' : 'ColorClear'
+        AutocmdFT * Autocmd BufReadPost,BufEnter,WinEnter <buffer>
+            \ :exe index(split(g:color_ft, ','), &filetype) == -1 ? 'ColorClear' : 'ColorHighlight'
     endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
@@ -1032,9 +1060,9 @@
     endif
 
     " DirectWrite
-    if s:is_windows && has('directx')
-        set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
-    endif
+    " if s:is_windows && has('directx')
+    "     set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    " endif
 
 " View
 "---------------------------------------------------------------------------
@@ -1044,7 +1072,7 @@
     exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
 
     set cursorline               " highlight the current line
-    set number                   " show the line number
+    set relativenumber           " show the line number
     set shortmess=aoOtTI         " shortens messages to avoid 'press a key' prompt
     set hidden                   " allows the closing of buffers without saving
     set switchbuf=useopen,split  " orders to open the buffer
@@ -1085,7 +1113,7 @@
     let &wildignore = g:ignore_dir
 
     " Title-line
-    set titlestring=%t\ (%{expand(\'%:p:.:h\')}/)
+    set titlestring=%t\ %{(!empty(expand('%:h'))\ ?\ printf('(%s)',\ expand('%:h'))\ :\ '')}
 
     " Command-line
     set cmdheight=1  " height of command line
@@ -1097,7 +1125,7 @@
     set laststatus=2
     " Format the statusline
     let &statusline =
-    \  "%1* %l%*.%L %*"
+    \ "%1* %L %*"
     \. "%1*%(#%{winbufnr(0)}\ %)%*"
     \. "%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)"
     \. "%-0.50f "
@@ -1172,7 +1200,6 @@
     set complete-=i
     set completeopt=longest
     set pumheight=15
-    set showfulltag
     " Do not display completion messages
     Autocmd VimEnter,Colorscheme *
         \  hi ModeMsg guifg=bg guibg=bg gui=NONE
@@ -1204,25 +1231,33 @@
     nmap <expr> j v:count ? 'j' : 'gj'
     nmap <expr> k v:count ? 'k' : 'gk'
     " Alt-[jkhl]: move selected lines
-    nmap <A-j> ddp
-    nmap <A-k> ddkP
-    nmap <A-h> <<<Esc>
-    nmap <A-l> >>><Esc>
+    noremap <A-j> ddp
+    noremap <A-k> ddkP
+    noremap <A-h> <<<Esc>
+    noremap <A-l> >>><Esc>
     " Ctrl-[jk]: scroll up/down
-    nmap <C-j> <C-d>
-    nmap <C-k> <C-u>
+    noremap <C-j> <C-d>
+    noremap <C-k> <C-u>
     " Q: auto indent text
-    nmap Q ==
+    noremap Q ==
     " Y: yank line
     nnoremap Y y$
-    " [xXcC]: don't update register
-    nnoremap x "_x
-    nnoremap X "_dd
+    " [cd]w: change word
+    nnoremap cw ciw
+    nnoremap dw diw
+    " [dDcC]: don't update register
+    nnoremap dd dd
+    nnoremap d "_d
+    nnoremap D "_D
     nnoremap c "_c
     nnoremap C "_C
+    " nnoremap x "_x
+    " nnoremap X "_dd
 
     " m-w: save file
-    nmap <silent> mw <Esc> :write!<CR>
+    nmap <silent> mw <Esc> :update!<CR>
+    " m-W: force save file
+    nmap <silent> mW <Esc> :write!<CR>
     " me: reopen file
     nmap <silent> me <Esc> :edit!<CR>
     " mt: create tab
@@ -1235,8 +1270,8 @@
     nmap <silent> mv <Esc> :tabprev<CR>
     " md: close buffer
     nmap <silent> md <Esc> :bdelete!<CR>
-    " ma: next window
-    nmap ma <Esc> <C-w>w
+    " mm: next window
+    nmap mm <C-w>w
     " mh: split window horizontaly
     nmap mh <C-w>s
     " mv: split window verticaly
@@ -1251,7 +1286,7 @@
 
     " Unbinds
     map <F1> <Nop>
-    map <S-k> <Nop>
+    " map <S-k> <Nop>
     map ZZ <Nop>
     map ZQ <Nop>
 
@@ -1263,31 +1298,56 @@
     imap <A-k> <C-o>gk
     imap <A-l> <C-o>l
     " jj: fast Esc
-    imap jj <Esc>`^
+    inoremap jj <Esc>`^
     " Ctrl-a: jump to head
-    imap <C-a> <C-o>I
+    inoremap <C-a> <C-o>I
     " Ctrl-e: jump to end
-    imap <C-e> <C-o>A
+    inoremap <C-e> <C-o>A
     " Ctrl-b: jump back to beginning of previous word
-    imap <C-b> <Esc>Bi
+    inoremap <C-b> <Esc>Bi
     " Ctrl-q: jump to first char
-    imap <C-q> <Home>
+    inoremap <C-q> <Home>
     " Ctrl-d: delete next char
-    imap <C-f> <Del>
+    inoremap <C-f> <Del>
     " Ctrl-BS: delete word
-    imap <C-BS> <C-w>
+    inoremap <C-BS> <C-w>
     " Ctrl-Enter: break line below
-    imap <C-CR> <Esc>O
+    inoremap <C-CR> <Esc>O
     " Shift-Enter: break line above
-    imap <S-CR> <C-m>
+    inoremap <S-CR> <C-m>
     " Ctrl-c: old fast Esc
-    imap <C-c> <Esc>`^
+    inoremap <C-c> <Esc>`^
+    " Ctrl-_: undo
+    inoremap <C-_> <C-o>u
     " Alt-r: change language
-    imap <A-e> <C-^>
+    inoremap <A-e> <C-^>
     " Ctrl-v: paste
     imap <C-v> <S-Insert>
     " qq: smart fast Esc
     imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
+
+    " inoremap <C-a> <C-o>0
+    " inoremap <C-e> <C-o>$
+    " inoremap <C-k> <Up>
+    " inoremap <C-j> <Down>
+    " inoremap <C-b> <Left>
+    " inoremap <C-f> <Right>
+    " inoremap <C-d> <Delete>
+
+    " Ctrl-w: Delete previous word, create undo point
+    " inoremap <C-w> <C-g>u<C-w>
+    " Ctrl-v: Paste. For some reason, <c-o> is not creating an undo point in the
+    " mapping
+    " inoremap <c-v> <c-g>u<c-o>gP
+    " inoremap <c-+> <c-o>r
+    " Ctrl-l: Move word right
+    " inoremap <c-l> <c-o>w
+    " Ctrl-e: Go to end of line
+    " inoremap <C-e> <esc>A
+
+    " Ctrl-h: Move word back. Consistent with zsh
+    " noremap <c-h> b
+    " inoremap <c-h> <c-o>b
 
 " Visual mode
 "---------------------------------------------------------------------------
@@ -1300,85 +1360,95 @@
     xnoremap <A-h> <'[V']
     xnoremap <A-l> >'[V']
     " Q: auto indent text
-    xmap Q ==<Esc>
+    xnoremap Q ==<Esc>
     " Space: fast Esc
-    xmap <Space> <Esc>
+    xnoremap <Space> <Esc>
     " Alt-w: fast save
     xmap <silent> <A-w> <Esc> :update<CR>
     " Ctrl-s: old fast save
     xmap <C-s> <Esc> :write!<CR>
     " Ctrl-[jk]: scroll up/down
-    xmap <C-j> <C-d>
-    xmap <C-k> <C-u>
+    xnoremap <C-j> <C-d>
+    xnoremap <C-k> <C-u>
     " .: repeat command for each line
     xnoremap . :normal .<CR>
+    " @: repeats macro for each line
+    xnoremap @ :normal@
     " [yY]: keep cursor position when yanking
     xnoremap <silent> <expr> y 'ygv'. mode()
     xnoremap <silent> <expr> Y 'Ygv'. mode()
-    " [xXcC]: delete to black hole register
-    xnoremap x "_x
-    xnoremap X "_X
+    " Ctrl-c: copy
+    vnoremap <C-c> y`]
+    " Backspace: delete selected and go into insert mode
+    xnoremap <BS> c
+    " p: paste not replace the default register
+    xnoremap p "_dP
+    " [dDcC]: delete to black hole register
+    xnoremap d "_d
+    xnoremap D "_D
     xnoremap c "_c
     xnoremap C "_C
+    " xnoremap x "_x
+    " xnoremap X "_X
 
 " Command mode
 "---------------------------------------------------------------------------
     " Ctrl-h: previous char
-    cmap <C-h> <Left>
+    cnoremap <C-h> <Left>
     " Ctrl-l: next char
-    cmap <C-l> <Right>
+    cnoremap <C-l> <Right>
     " Ctrl-h: previous word
-    cmap <A-h> <S-left>
+    cnoremap <A-h> <S-left>
     " Ctrl-h: next word
-    cmap <A-l> <S-right>
+    cnoremap <A-l> <S-right>
     " Ctrl-j: previous history
-    cmap <C-j> <Down>
+    cnoremap <C-j> <Down>
     " Ctrl-k: next history
-    cmap <C-k> <Up>
+    cnoremap <C-k> <Up>
     " Ctrl-d: delete char
-    cmap <A-d> <Del>
+    cnoremap <A-d> <Del>
     " Ctrl-a: jump to head
-    cmap <C-a> <Home>
+    cnoremap <C-a> <Home>
     " Ctrl-e: jump to end
-    cmap <C-e> <End>
+    cnoremap <C-e> <End>
     " jj: smart fast Esc
-    cmap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
+    cnoremap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
     " qq: smart fast Esc
-    cmap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
+    cnoremap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
     " `: old fast Esc
-    cmap <silent> ` <C-c>
+    cnoremap <silent> ` <C-c>
 
 " Experimental
 "---------------------------------------------------------------------------
-    " Test
-    " nmap <silent> <Enter>   :tabnext<CR>
-    nmap <silent> <C-Enter> :bdelete!<CR>
-    nmap <silent> [prefix]k <Esc> :tabnext<CR>
-    nmap <silent> [prefix]j <Esc> :tabprev<CR>
-    " #: switch between 2 last tabs
-    nmap # gt
-    " Shift-Enter: switch between 2 last buffers
-    nmap <silent> <S-Enter> :b#<CR>
-    " Shift-Tab: switch between windows
-    nmap <S-Tab> <C-w>w
-    " t: [n] jumps to tab
-    nmap <silent> <expr> t     v:count ? ("\<Esc>". v:count .'gt') : "\<Plug>(glowshi-ft-t)"
-    " Tab: [n] jumps to tab
-    nmap <silent> <expr> <Tab> v:count ? ("\<Esc>". v:count .'gt') : "\:Switch<CR>"
-    " [nN]: append bla nk line and space
-    nmap <silent> <expr> n v:count ?
-        \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
-    nmap <silent> <expr> N v:count ?
-        \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
     " <L>p: toggle paste  mode
     nmap <silent> <leader>p :<C-r>={
         \ '0': 'set paste',
         \ '1': 'set nopaste'}[&paste]<CR><CR>
+
+    " [nN]: append blank line and space
+    noremap <silent> <expr> n v:count ?
+        \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
+    noremap <silent> <expr> N v:count ?
+        \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
+
+    " Input vertical serial number
+    noremap <silent> <expr> - v:count ?
+        \ ":\<C-u>for i in reverse(range(1, v:count)) \| call append(line('.'), i) \| endfor\<CR>" : '='
+    noremap <silent> <expr> = v:count ?
+        \ ":\<C-u>for i in range(1, v:count) \| call append(line('.'), i) \| endfor\<CR>" : '+'
+
     " H: go to beginning of line
-    nmap <expr> H getpos('.')[2] == 1 ? 'k' : '0'
+    noremap <expr> H getpos('.')[2] == 1 ? 'k' : '0'
     " L: go to end of line
-    nmap <expr> L <SID>end_of_line()
+    noremap <expr> L <SID>end_of_line()
     function! s:end_of_line() abort
         let l = len(getline('.'))
         return (l == 0 || l == getpos('.')[2]) ? 'jg_' : 'g_'
     endfunction
+
+    " zz: move to top/center/bottom
+    noremap <expr> zz (winline() == (winheight(0)+1)/ 2) ?
+      \ 'zt' : (winline() == 1)? 'zb' : 'zz'
+
+    " Alt-a: select all
+    nnoremap <silent> <A-a> :keepjumps normal ggVG<CR>
