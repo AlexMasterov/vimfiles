@@ -134,13 +134,13 @@
         set undodir=$VIMFILES/undo
         " View
         set viewdir=$VIMFILES/views
-        set viewoptions=cursor,folds,slash,unix
+        set viewoptions=cursor,slash,unix
     endif
 
     " Russian keyboard
     set iskeyword=@,48-57,_,192-255
     set keymap=russian-jcukenwin
-    if has('multi_byte_ime')
+    if has('multi_byte')
         set iminsert=0 imsearch=0
     endif
 
@@ -215,6 +215,9 @@
         \   'mappings': '<Plug>'
         \}
         NeoBundleLazy 'tpope/vim-characterize', {
+        \   'mappings': '<Plug>'
+        \}
+        NeoBundleLazy 'kana/vim-smartword', {
         \   'mappings': '<Plug>'
         \}
         NeoBundleLazy 'maksimr/vim-jsbeautify', {
@@ -318,12 +321,14 @@
         \   'disabled': !executable('ghc-mod'),
         \   'filetypes': 'haskell',
         \}
-        NeoBundleLazy 'ujihisa/ref-hoogle', {
+        NeoBundleLazy 'ujihisa/unite-haskellimport', {
         \   'disabled': !executable('hoogle'),
         \   'filetypes': 'haskell',
         \}
-        NeoBundleLazy 'ujihisa/unite-haskellimport', {
-        \   'disabled': !executable('hoogle'),
+        NeoBundleLazy 'philopon/haskell-indent.vim', {
+        \   'filetypes': 'haskell',
+        \}
+        NeoBundleLazy 'philopon/hassistant.vim', {
         \   'filetypes': 'haskell',
         \}
 
@@ -340,6 +345,8 @@
         NeoBundleLazy 'othree/yajs.vim',                        {'filetypes': 'javascript'}
         NeoBundleLazy 'othree/javascript-libraries-syntax.vim', {'filetypes': 'javascript'}
         NeoBundleLazy 'jiangmiao/simple-javascript-indenter',   {'filetypes': 'javascript'}
+        NeoBundleLazy 'hujo/jscomplete-html5API',               {'filetypes': 'javascript'}
+        NeoBundleLazy 'https://bitbucket.org/teramako/jscomplete-vim.git', {'filetypes': 'javascript'}
         " CSS
         NeoBundleLazy 'JulesWang/css.vim',                   {'filetypes': 'css'}
         NeoBundleLazy 'hail2u/vim-css3-syntax',              {'filetypes': 'css'}
@@ -400,10 +407,10 @@
         let g:multi_cursor_skip_key = '<Space>'
         let g:multi_cursor_quit_key = '`'
         " Prevent conflict with neocomplete.vim
-        function! Multiple_cursors_before()
+        function! Multiple_cursors_before() abort
             if exists(':NeoCompleteLock') == 2| exe 'NeoCompleteLock' |endif
         endfunction
-        function! Multiple_cursors_after()
+        function! Multiple_cursors_after() abort
             if exists(':NeoCompleteUnlock') == 2| exe 'NeoCompleteUnlock' |endif
         endfunction
     endif
@@ -425,6 +432,13 @@
     if neobundle#is_installed('vim-visual-increment')
         xmap <C-a> <Plug>VisualIncrement
         xmap <C-x> <Plug>VisualDecrement
+    endif
+
+    if neobundle#is_installed('vim-smartword')
+        nmap w  <Plug>(smartword-w)
+        vmap w  <Plug>(smartword-w)
+        map  e  <Plug>(smartword-e)
+        map  b  <Plug>(smartword-b)
     endif
 
     if neobundle#is_installed('vim-easy-align')
@@ -531,6 +545,7 @@
     endif
 
     if neobundle#is_installed('switch.vim')
+        let g:switch_mapping = ''
         let g:switch_def_quotes = [{
         \   '''\(.\{-}\)''': '"\1"',
         \   '"\(.\{-}\)"':  '''\1''',
@@ -595,7 +610,15 @@
     endif
 
     if neobundle#is_installed('vim-smartchr')
-        command! -nargs=* ImapBufExpr imap <buffer> <expr> <args>
+        command! -nargs=* ImapBufExpr inoremap <buffer> <expr> <args>
+        AutocmdFT php,javascript
+            \  ImapBufExpr , smartchr#loop(',', ', ')
+            \| ImapBufExpr + smartchr#loop(' + ', '++', '+')
+            \| ImapBufExpr - smartchr#loop(' - ', '--', '-')
+            \| ImapBufExpr =
+                \  search('\(&\<Bar><Bar>\<Bar>+\<Bar>-\<Bar>/\<Bar>>\<Bar><\) \%#', 'bcn')?'<bs>= '
+                \: search('\(*\<Bar>!\)\%#', 'bcn') ? '= '
+                \: smartchr#one_of(' = ', ' == ', '=')
         AutocmdFT haskell
             \  ImapBufExpr \ smartchr#loop('\ ', '\')
             \| ImapBufExpr - smartchr#loop('-', ' -> ', ' <- ')
@@ -604,13 +627,11 @@
             \| ImapBufExpr $ smartchr#loop('$', '$this->')
             \| ImapBufExpr > smartchr#loop('>', '=>')
             \| ImapBufExpr ; smartchr#loop(';', '::')
-            \| ImapBufExpr , smartchr#loop(',', ', ')
-            \| ImapBufExpr = smartchr#loop('=', ' = ', ' == ', ' === ')
+            \| ImapBufExpr _ smartchr#loop('__', '_')
+            \| ImapBufExpr % smartchr#loop(' % ', '%')
+            \| ImapBufExpr & smartchr#loop('&', ' & ', ' && ')
         AutocmdFT javascript
-            \  ImapBufExpr , smartchr#loop(',', ', ')
-            \| ImapBufExpr + smartchr#loop('+', ' + ')
             \| ImapBufExpr - smartchr#loop('-', '--', '_')
-            \| ImapBufExpr = smartchr#loop('=', ' = ', ' == ')
             \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
         AutocmdFT css
             \  ImapBufExpr ; smartchr#loop(';', ': ')
@@ -625,8 +646,8 @@
         let g:neocomplete#enable_at_startup = 1
         let g:neocomplete#enable_smart_case = 0
         let g:neocomplete#enable_camel_case = 1
-        let g:neocomplete#enable_refresh_always = 1
         let g:neocomplete#enable_auto_select = 0
+        let g:neocomplete#enable_refresh_always = 1
         let g:neocomplete#max_list = 7
         let g:neocomplete#force_overwrite_completefunc = 1
         let g:neocomplete#auto_completion_start_length = 2
@@ -663,10 +684,11 @@
 
     if neobundle#is_installed('ultisnips')
         let g:UltiSnipsExpandTrigger = '`'
-        let g:UltiSnipsListSnippets = '<F12>'
+        let g:UltiSnipsListSnippets = '<Nop>'
         let g:UltiSnipsJumpForwardTrigger = '<Tab>'
         let g:UltiSnipsJumpBackwardTrigger = '<S-Tab>'
         let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
+        snoremap <C-c> <Esc>
         Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
     endif
 
@@ -854,7 +876,7 @@
 
     if neobundle#is_installed('unite-vimpatches')
         " [prefix]p: open vimpatches log
-        nmap <silent> [prefix]p :<C-u>Unite vimpatches<CR>
+        nmap <silent> [prefix]U :<C-u>Unite vimpatches -buffer-name=neobundle<CR>
     endif
 
     if neobundle#is_installed('unite-outline')
@@ -863,6 +885,7 @@
     endif
 
     if neobundle#is_installed('unite-filetype')
+        call unite#custom#source('filetype', 'sorters', 'sorter_length')
         " [prefix]r: filetype change
         nmap <silent> [prefix]r :<C-u>Unite filetype filetype/new -start-insert<CR>
     endif
@@ -889,7 +912,7 @@
 
     if neobundle#is_installed('unite-session')
         let g:unite_source_session_path = $VIMFILES.'/session'
-        let g:unite_source_session_options = 'buffers,curdir,localoptions,winsize,winpos,winsize'
+        let g:unite_source_session_options = 'buffers,curdir,winsize,winpos,winsize'
         nmap <silent> <leader>sa :<C-u>call <SID>inputSessionName()<CR>
         nmap <silent> <leader>ss :<C-u>SessionSaveWithTimeStamp<CR>
         nmap <silent> <leader>sl :<C-u>Unite session -buffer-name=session -default-action=load<CR>
@@ -923,26 +946,32 @@
         AutocmdFT qfreplace Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
         AutocmdFT qfreplace Autocmd BufLeave,BufDelete <buffer> set laststatus=2
         AutocmdFT qfreplace setl nornu nonu colorcolumn= laststatus=0
-        AutocmdFT qfreplace Autocmd InsertEnter,InsertLeave <buffer>
-            \ setl nornu nonu colorcolumn=
+            \| Autocmd InsertEnter,InsertLeave <buffer> setl nornu nonu colorcolumn=
         AutocmdFT qfreplace nmap <silent> <buffer> ` :bd!<CR>
     endif
 
 " Languages
 "---------------------------------------------------------------------------
 " Haskell
-    AutocmdFT haskell Indent 4
+    AutocmdFT haskell,lhaskell,chaskell Indent 4
     AutocmdFT cabal   Indent 2
     " Syntax
-    AutocmdFT haskell setl iskeyword+='
-    AutocmdFT haskell setl commentstring=--\ %s
+    AutocmdFT haskell,lhaskell,chaskell setl iskeyword+='
+    AutocmdFT haskell,lhaskell,chaskell setl commentstring=--\ %s
     " Autocomplete
     if neobundle#tap('neco-ghc')
         function! neobundle#hooks.on_source(bundle)
             let g:necoghc_enable_detailed_browse = 1
         endfunction
-        AutocmdFT haskell setl omnifunc=necoghc#omnifunc
         call neobundle#untap()
+        AutocmdFT haskell,lhaskell,chaskell setl omnifunc=necoghc#omnifunc
+    endif
+    " Misc
+    if neobundle#is_installed('ghcmod-vim')
+        AutocmdFT haskell,lhaskell,chaskell
+            \  nnoremap <silent> <buffer> <leader>t :<C-u>GhcModType<CR>
+            \| nnoremap <silent> <buffer> <leader>l :<C-u>GhcModLint<CR>
+            \| Autocmd BufWritePost,FileWritePost <buffer> GhcModCheckAsync
     endif
 
 " PHP
@@ -984,6 +1013,14 @@
             let g:SimpleJsIndenter_BriefMode = 1
             let g:SimpleJsIndenter_CaseIndentLevel = -1
         endfunction
+        call neobundle#untap()
+    endif
+    " Autocomplete
+    if neobundle#tap('jscomplete-vim')
+        function! neobundle#hooks.on_source(bundle)
+            let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API']
+        endfunction
+        Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
         call neobundle#untap()
     endif
 
@@ -1060,9 +1097,9 @@
     endif
 
     " DirectWrite
-    " if s:is_windows && has('directx')
-    "     set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
-    " endif
+    if s:is_windows && has('directx')
+        set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    endif
 
 " View
 "---------------------------------------------------------------------------
@@ -1131,7 +1168,6 @@
     \. "%-0.50f "
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
-    \. "%(%{exists('*FileModTime()') ? FileModTime() : ''}\ %)"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
@@ -1147,11 +1183,6 @@
         let bytes = getfsize(expand('%:p'))
         if bytes <= 0| return '' |endif
         return bytes < 1024 ? bytes.'B' : (bytes / 1024).'K'
-    endfunction
-
-    function! FileModTime() abort
-        let file = expand('%:p')
-        return filereadable(file) ? strftime('%H:%M:%S %d%m[%y]', getftime(file)) : ''
     endfunction
 
     function! GitStatus() abort
@@ -1197,7 +1228,7 @@
     " set gdefault         " flag 'g' by default for replacing
 
     " Autocomplete
-    set complete-=i
+    set complete=.
     set completeopt=longest
     set pumheight=15
     " Do not display completion messages
@@ -1348,14 +1379,14 @@
     xnoremap <C-j> <C-d>
     xnoremap <C-k> <C-u>
     " .: repeat command for each line
-    xnoremap . :normal .<CR>
-    " @: repeats macro for each line
-    xnoremap @ :normal@
+    vnoremap . :normal .<CR>
+    " @: repeat macro for each line
+    vnoremap @ :normal @
     " [yY]: keep cursor position when yanking
     xnoremap <silent> <expr> y 'ygv'. mode()
     xnoremap <silent> <expr> Y 'Ygv'. mode()
     " Ctrl-c: copy
-    vnoremap <C-c> y`]
+    xnoremap <C-c> y`]
     " Backspace: delete selected and go into insert mode
     xnoremap <BS> c
     " p: paste not replace the default register
@@ -1383,11 +1414,13 @@
     " Ctrl-k: next history
     cnoremap <C-k> <Up>
     " Ctrl-d: delete char
-    cnoremap <A-d> <Del>
+    cnoremap <C-d> <Del>
     " Ctrl-a: jump to head
     cnoremap <C-a> <Home>
     " Ctrl-e: jump to end
     cnoremap <C-e> <End>
+    " Ctrl-v: open the command-line window
+    cnoremap <C-v> <C-f>a
     " jj: smart fast Esc
     cnoremap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
     " qq: smart fast Esc
@@ -1408,7 +1441,7 @@
     noremap <silent> <expr> N v:count ?
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
 
-    " Input vertical serial number
+    " [-=]: Input vertical serial number
     noremap <silent> <expr> - v:count ?
         \ ":\<C-u>for i in reverse(range(1, v:count)) \| call append(line('.'), i) \| endfor\<CR>" : '='
     noremap <silent> <expr> = v:count ?
@@ -1429,3 +1462,23 @@
 
     " Alt-a: select all
     nnoremap <silent> <A-a> :keepjumps normal ggVG<CR>
+
+    " [prefix]p: indent paste
+    nnoremap <silent> [prefix]p o<Esc>pm``[=`]``^
+    xnoremap <silent> [prefix]p s<Esc>pm``[=`]``^
+    nnoremap <silent> [prefix]P U<Esc>Pm``[=`]``^
+    xnoremap <silent> [prefix]P W<Esc>Pm``[=`]``^
+
+    noremap <A-n> gt
+    noremap <A-m> gT
+    nnoremap [prefix]i $i
+    nnoremap [prefix]x ^x
+    " gv: last selected text operator
+    onoremap gv :<C-u>normal! gv<CR>
+    " [prefix]v: select last changed text
+    nnoremap [prefix]v `[v`]
+    " [prefix]I: move last changed text
+    nnoremap [prefix]I `.zz
+
+    " <L>R: rename word under cursor
+    nmap <leader>R :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
