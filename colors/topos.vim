@@ -1,7 +1,7 @@
 " Vim colour file
 " File:         topos.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
-" Last Updated: 2015 Feb
+" Last Updated: 2015 March
 " Description:  GUI only
 
 hi clear
@@ -33,9 +33,9 @@ hi WildMenu             guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
 hi Folded               guifg=#60656F   guibg=#EEEEEE   gui=NONE
 hi FoldColumn           guifg=#60656F   guibg=#EEEEEE   gui=NONE
 
-" hi Question             guifg=#2B2B2B   guibg=#FFCDAA   gui=NONE
-hi Question             guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
+hi Question             guifg=#2B2B2B   guibg=#FFCDAA   gui=NONE
 hi WarningMsg           guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE
+hi ModeMsg              guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
 hi MoreMsg              guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
 hi ErrorMsg             guifg=#2B2B2B   guibg=#FFBBBB   gui=NONE
 hi Error                guifg=#2B2B2B   guibg=#FF7369   gui=NONE
@@ -99,40 +99,11 @@ hi Pmenu                guifg=#60656F   guibg=#F0F5FF   gui=NONE
 hi PmenuSel             guifg=#FFFFFF   guibg=#3585EF   gui=bold
 hi PmenuSbar            guifg=#D0D5DD   guibg=#E0E5EE   gui=bold
 hi PmenuThumb           guifg=#E0E5EE   guibg=#C0C5DD   gui=bold
-" Do not display completion messages
-hi ModeMsg              guifg=bg    guibg=bg    gui=NONE
-hi Quesion              guifg=bg    guibg=bg    gui=NONE
 
 " User
 "---------------------------------------------------------------------------
 hi User1                guifg=#0000FF   guibg=#E6E6E6  gui=NONE
 hi User2                guifg=#D14000   guibg=#E6E6E6  gui=NONE
-
-" PHP
-"---------------------------------------------------------------------------
-" Syntax: https://github.com/StanAngeloff/php.vim
-" hi phpEcho                    guifg=#2B2B2B                   gui=bold
-" hi phpType                    guifg=#0050B0                   gui=NONE
-" hi phpParent                  guifg=#999999                   gui=NONE
-" hi phpInteger                 guifg=#1299DA                   gui=NONE
-" hi phpNumber                  guifg=#1299DA                   gui=NONE
-" hi phpBoolean                 guifg=#CD7F32                   gui=bold
-" hi phpClasses                 guifg=#B729D9                   gui=NONE
-" hi phpStatement               guifg=#0050B1                   gui=NONE
-" hi phpException               guifg=#0050B1                   gui=bold
-" hi phpOperator                guifg=#A67F59   guibg=#FFF9F9   gui=NONE
-" hi phpStrEsc                  guifg=#A67F59   guibg=#FFF9F9   gui=NONE
-" hi phpInclude                 guifg=#2B2B2B                   gui=bold
-" hi phpFunctions               guifg=#2B2B2B                   gui=bold
-" hi phpBraceError              guifg=#FF0000                   gui=bold
-" hi phpParentError             guifg=#FF0000                   gui=bold
-" hi phpSemicolon               guifg=#FF0000                   gui=bold
-" hi phpDefineFuncName          guifg=#3A75C4                   gui=bold
-" hi phpDefineClassName         guifg=#3A75C4                   gui=bold
-" hi phpMethodsVar              guifg=#008080                   gui=NONE
-" hi phpVarSelector             guifg=#708090                   gui=NONE
-" hi phpMemberSelector          guifg=#2B2B2B                   gui=NONE
-" hi phpMagicConstants          guifg=#009926                   gui=NONE
 
 " Syntax: https://github.com/mageekguy/php.vim
 hi phpDelimiter               guifg=#999999                   gui=NONE

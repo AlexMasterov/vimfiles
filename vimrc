@@ -28,6 +28,9 @@
     if &compatible
         set nocompatible  " be improved
     endif
+    if s:is_windows
+        set shellslash
+    endif
     set noexrc            " avoid reading local (g)vimrc, exrc
     set modelines=0       " prevents security exploits
 
@@ -81,8 +84,8 @@
     Autocmd InsertEnter * setl nu  nolist nocursorline colorcolumn=120
     Autocmd InsertLeave * setl rnu list cursorline colorcolumn&
     " Only show the cursorline in the current window
-    Autocmd WinEnter,CursorHold  * setl cursorline
-    Autocmd WinLeave,CursorMoved * if &cursorline| setl nocursorline |endif
+    Autocmd BufEnter,WinEnter,CursorHold  * setl cursorline
+    Autocmd BufLeave,WinLeave,CursorMoved * if &cursorline| setl nocursorline |endif
     " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
     Autocmd BufEnter,WinEnter * setl formatoptions-=ro
     " Automake directory
@@ -320,12 +323,17 @@
         \}
 
         " PHP
-        NeoBundleLazy 'mageekguy/php.vim',          {'filetypes': 'php'}
+        " NeoBundleLazy 'mageekguy/php.vim',          {'filetypes': 'php'}
         NeoBundleLazy '2072/PHP-Indenting-for-VIm', {'filetypes': 'php'}
+        NeoBundleLazy 'shawncplus/phpcomplete.vim', {
+        \   'filetypes': 'php',
+        \   'insert': 1
+        \}
         NeoBundleLazy 'tobyS/vmustache'
         NeoBundleLazy 'tobyS/pdv', {
         \   'depends': 'tobyS/vmustache',
         \   'functions': 'pdv#DocumentWithSnip',
+        \   'filetypes': 'php',
         \}
         " JavaScript
         NeoBundleLazy 'othree/yajs.vim',                        {'filetypes': 'javascript'}
@@ -341,7 +349,8 @@
         " JSON
         NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
         " HTML / Twig
-        NeoBundleLazy 'qbbr/vim-twig', {'filetypes': ['twig', 'html.twig']}
+        NeoBundleLazy 'evidens/vim-twig', {'filetypes': ['twig', 'html.twig']}
+        NeoBundleLazy 'tokutake/twig-indent', {'filetypes': ['twig', 'html.twig']}
         " CSV
         NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
         " SQL
@@ -472,7 +481,7 @@
     if neobundle#is_installed('wildfire.vim')
         let g:wildfire_objects = {
         \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
-        \   'html,twig,xml': ["at"]
+        \   'html,twig,html.twig,xml': ["at"]
         \}
         nmap vv    <Plug>(wildfire-fuel)
         xmap vv    <Plug>(wildfire-fuel)
@@ -496,6 +505,7 @@
     endif
 
     if neobundle#is_installed('splitjoin.vim')
+    """ Join line in Insert mode using <C-J>
         nnoremap <silent> J :<C-u>call <SID>trySplitJoin('SplitjoinJoin',  'J')<CR>
         nnoremap <silent> S :<C-u>call <SID>trySplitJoin('SplitjoinSplit', "r\015")<CR>
         function! s:trySplitJoin(cmd, default) abort
@@ -520,15 +530,16 @@
         \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
         \}
         call smalls#keyboard#cli#extend_table({
-        \   "\<S-Space>" : 'do_excursion',
-        \   "\<A-j>"     : 'do_excursion',
-        \   "\<A-k>"     : 'do_excursion',
-        \   "\<C-c>"     : 'do_cancel',
-        \   "\q"         : 'do_cancel',
-        \   "\`"         : 'do_cancel'
+        \   "\<C-o>" : 'do_excursion',
+        \   "\<C-i>" : 'do_excursion',
+        \   "\<C-j>" : 'do_excursion',
+        \   "\<C-k>" : 'do_excursion',
+        \   "\<C-c>" : 'do_cancel',
+        \   "\q"     : 'do_cancel',
+        \   "\`"     : 'do_cancel'
         \})
         call smalls#keyboard#excursion#extend_table({
-        \   "\q" : 'do_cancel',
+        \   "\Q" : 'do_cancel',
         \   "\o" : 'do_set',
         \   "\`" : 'do_set',
         \   "\p" : 'do_jump'
@@ -572,7 +583,7 @@
         \       '\([^=]\)==\([^=]\)': '\1===\2'
         \   }
         \]
-        AutocmdFT html,twig,twig.html let b:switch_custom_definitions = [
+        AutocmdFT html,twig,html.twig let b:switch_custom_definitions = [
         \   ['id=', 'class=', 'style='],
         \   {
         \     '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
@@ -641,12 +652,13 @@
         let g:neocomplete#enable_at_startup = 1
         let g:neocomplete#enable_smart_case = 0
         let g:neocomplete#enable_camel_case = 1
+        let g:neocomplete#enable_auto_delimiter = 1
         let g:neocomplete#enable_insert_char_pre = 1
         let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
-        let g:neocomplete#min_keyword_length = 1
-        let g:neocomplete#sources#syntax#min_keyword_length = 1
-        let g:neocomplete#auto_completion_start_length = 2
-        let g:neocomplete#manual_completion_start_length = 2
+        let g:neocomplete#min_keyword_length = 2
+        let g:neocomplete#auto_completion_start_length = 1
+        let g:neocomplete#manual_completion_start_length = 0
+        let g:neocomplete#sources#syntax#min_keyword_length = 3
         let g:neocomplete#sources#buffer#disabled_pattern = '\.log\|\.log\.'
 
         let g:neocomplete#enable_cursor_hold_i = 1
@@ -654,22 +666,34 @@
         " Reset 'CursorHold' time
         Autocmd InsertEnter * setl updatetime=260
         Autocmd InsertLeave * set  updatetime=4000
-
-        " Completion patterns
-        let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
-        let g:neocomplete#force_omni_input_patterns.php =
-            \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\|\(new\|use\|extends\|implements\|instanceof\)\s'
-        let g:neocomplete#force_omni_input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
-        let g:neocomplete#force_omni_input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
+        " Custom settings
+        call neocomplete#custom#source('omni', 'rank', 10)
+        call neocomplete#custom#source('tag', 'rank', 20)
+        call neocomplete#custom#source('buffer', 'rank', 30)
+        call neocomplete#custom#source('ultisnips', 'rank', 100)
+        call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
         " Alias filetypes
         let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
         let g:neocomplete#same_filetypes.html  = 'twig'
+        " Sources
+        let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
+        let g:neocomplete#sources._ = ['buffer']
+        let g:neocomplete#sources.php = ['buffer', 'omni', 'tag', 'ultisnips']
+        " Completion patterns
+        let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
+        let g:neocomplete#sources#omni#input_patterns.php =
+            \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
+        let g:neocomplete#sources#omni#input_patterns.javascript = '[^. \t]\.\%(\h\w*\)\?'
+        let g:neocomplete#sources#omni#input_patterns.sql = '[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
 
         " Tab: completion
-        imap <expr> <Tab>   pumvisible() ? "\<C-n>" : <SID>checkBackSpace() ? "\<Tab>" : neocomplete#start_manual_complete()
+        imap <C-l>  <C-x><C-f>
         imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
         imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-j>"
         imap <expr> <C-k>   pumvisible() ? "\<C-p>" : "\<C-k>"
+        imap <silent> <expr> <Tab> pumvisible() ?
+            \ "\<C-n>" : <SID>checkBackSpace() ?
+            \ "\<Tab>" : neocomplete#start_manual_complete()
 
         function! s:checkBackSpace() abort
             let col = col('.') - 1
@@ -679,7 +703,7 @@
 
     if neobundle#is_installed('ultisnips')
         let g:UltiSnipsExpandTrigger = '`'
-        let g:UltiSnipsListSnippets = '<Nop>'
+        let g:UltiSnipsListSnippets = '<F12>'
         let g:UltiSnipsJumpForwardTrigger = '<Tab>'
         let g:UltiSnipsJumpBackwardTrigger = '<S-Tab>'
         let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
@@ -705,7 +729,7 @@
 
         " Default profile
         let s:unite_default = {
-        \   'winheight': 10,
+        \   'winheight': 14,
         \   'direction': 'below',
         \   'prompt_direction': 'top',
         \   'cursor_line_time': '0.0',
@@ -780,7 +804,7 @@
 
             " Insert mode
             imap <buffer> `       <Plug>(unite_exit)
-            imap <buffer> ,,      <Plug>(unite_complete)
+            imap <buffer> <C-n>   <Plug>(unite_complete)
             imap <buffer> <Tab>   <Plug>(unite_select_next_line)
             imap <buffer> <S-Tab> <Plug>(unite_select_previous_line)
             imap <buffer> <C-a>   <Plug>(unite_move_head)
@@ -827,11 +851,15 @@
 
     if neobundle#is_installed('neomru.vim')
         let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
-        let g:neomru#file_mru_ignore_pattern = '[._]vimrc$'
+        let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc|txt\)$'
         let g:neomru#filename_format = ':~:.'
         let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
         let g:neomru#time_format = '%d.%m %H:%M — '
+        " Limit results for recently edited files
         call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
+        " Search relative to Project Root if it exists
+        call unite#custom#source('neomru/file,neomru/directory',
+            \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
         " [prefix]l: open recently-opened files
         nmap <silent> [prefix]l :<C-u>Unite neomru/file<CR>
         " [prefix]L: open recently-opened directories
@@ -943,14 +971,23 @@
     " Syntax
     let g:php_highlight_html = 1
     " Autocomplete
-    AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
+    if neobundle#tap('phpcomplete.vim')
+        function! neobundle#hooks.on_source(bundle)
+            let g:phpcomplete_relax_static_constraint = 0
+            let g:phpcomplete_parse_docblock_comments = 0
+            let g:phpcomplete_search_tags_for_variables = 1
+            let g:phpcomplete_complete_for_unknown_classes = 0
+        endfunction
+        AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
+        call neobundle#untap()
+    endif
     " PHP Documentor
     if neobundle#tap('pdv')
         function! neobundle#hooks.on_source(bundle)
             let g:pdv_template_dir = $VIMFILES.'/bundle/pdv/templates_snip'
         endfunction
         AutocmdFT php
-            \ nmap <silent> <buffer> <leader>c :call pdv#DocumentWithSnip()<CR>
+            \ nmap <silent> <buffer> <leader>c :<C-u>call pdv#DocumentWithSnip()<CR>
         call neobundle#untap()
     endif
 
@@ -990,7 +1027,7 @@
     " Syntax
     AutocmdFT css setl iskeyword+=-,%
     if neobundle#is_installed('colorizer')
-        let g:color_ft = 'css,html,twig,twig.html'
+        let g:color_ft = 'css,html,twig,html.twig'
         AutocmdFT * Autocmd BufReadPost,BufEnter,WinEnter <buffer>
             \ :exe index(split(g:color_ft, ','), &filetype) == -1 ? 'ColorClear' : 'ColorHighlight'
     endif
@@ -998,7 +1035,7 @@
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
 
 " Twig
-    AutocmdFT twig,twig.html Indent 2
+    AutocmdFT twig,html.twig Indent 2
 
 " JSON
     " Syntax
@@ -1063,14 +1100,14 @@
     " Reload the colorscheme whenever we write the file
     exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
 
+    set shortmess=aoOtTIc
     set cursorline               " highlight the current line
     set relativenumber           " show the line number
-    set shortmess=aoOtTI         " shortens messages to avoid 'press a key' prompt
     set hidden                   " allows the closing of buffers without saving
     set switchbuf=useopen,split  " orders to open the buffer
     set showtabline=1            " always show the tab pages
-    set winminheight=0
     set noequalalways            " resize windows as little as possible
+    set winminheight=0
     set splitbelow splitright
 
     " Diff
@@ -1179,13 +1216,9 @@
     " set gdefault         " flag 'g' by default for replacing
 
     " Autocomplete
-    " set complete=.
+    set complete=.
     set completeopt=longest
     set pumheight=9
-    " Do not display completion messages
-    Autocmd VimEnter,Colorscheme *
-        \  hi ModeMsg guifg=bg guibg=bg gui=NONE
-        \| hi Quesion guifg=bg guibg=bg gui=NONE
     " Syntax complete if nothing else available
     Autocmd BufEnter,WinEnter * if &omnifunc == ''| setl omnifunc=syntaxcomplete#Complete |endif
 
@@ -1268,7 +1301,7 @@
 
     " Unbinds
     map <F1> <Nop>
-    " map <S-k> <Nop>
+    map <S-k> <Nop>
     map ZZ <Nop>
     map ZQ <Nop>
 
@@ -1285,9 +1318,9 @@
     inoremap <C-a> <C-o>I
     " Ctrl-e: jump to end
     inoremap <C-e> <C-o>A
-    " Ctrl-b: jump back to beginning of previous word
-    inoremap <C-b> <Esc>Bi
-    " Ctrl-q: jump to first char
+    " Ctrl-d: deleting till start of line
+    inoremap <C-d> <C-g>u<C-u>
+    " Ctrl-b: jump back to beginning of previous wordmp to first char
     inoremap <C-q> <Home>
     " Ctrl-d: delete next char
     inoremap <C-f> <Del>
@@ -1398,21 +1431,29 @@
     noremap <silent> <expr> = v:count ?
         \ ":\<C-u>for i in range(1, v:count) \| call append(line('.'), i) \| endfor\<CR>" : '+'
 
-    " H: go to beginning of line
-    noremap <expr> H getpos('.')[2] == 1 ? 'k' : '0'
-    " L: go to end of line
-    noremap <expr> L <SID>end_of_line()
-    function! s:end_of_line() abort
-        let l = len(getline('.'))
-        return (l == 0 || l == getpos('.')[2]) ? 'jg_' : 'g_'
-    endfunction
-
     " zz: move to top/center/bottom
     noremap <expr> zz (winline() == (winheight(0)+1)/ 2) ?
-      \ 'zt' : (winline() == 1)? 'zb' : 'zz'
+      \ 'zt' : (winline() == 1) ? 'zb' : 'zz'
 
     " Alt-a: select all
     nnoremap <silent> <A-a> :keepjumps normal ggVG<CR>
+
+    " #: keep search pattern at the center of the screen
+    nnoremap <silent># #zz
+
+    " Ctrl-d: duplicate line
+    nnoremap <silent> <C-d> yyp
+
+    " gr: replace word under the cursor
+    nnoremap gr :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
+    " g.: smart replace word under the cursor
+    nnoremap <silent> g. :let @/=escape(expand('<cword>'),'$*[]/')<CR>cgn
+    " gl: select last changed text
+    nnoremap gl `[v`]
+    " gp: select last paste in visual mode
+    nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
+    " gv: last selected text operator
+    onoremap gv :<C-u>normal! gv<CR>
 
     " [prefix]p: indent paste
     nnoremap <silent> [prefix]p o<Esc>pm``[=`]``^
@@ -1420,17 +1461,12 @@
     nnoremap <silent> [prefix]P U<Esc>Pm``[=`]``^
     xnoremap <silent> [prefix]P W<Esc>Pm``[=`]``^
 
-    noremap <A-n> gt
-    noremap <A-m> gT
-    noremap ,b :buffer<space>
-    nnoremap [prefix]i $i
-    nnoremap [prefix]x ^x
-    " gv: last selected text operator
-    onoremap gv :<C-u>normal! gv<CR>
-    " [prefix]v: select last changed text
-    nnoremap [prefix]v `[v`]
-    " [prefix]I: move last changed text
-    nnoremap [prefix]I `.zz
-
-    " <L>R: rename word under cursor
-    nmap <leader>R :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
+    " Buffers
+    nnoremap <S-Space> <C-^>
+    nnoremap <silent> <S-Del> :bd<CR>
+    nnoremap <silent> <S-BS>  :bp<BAR>bd#<CR>
+    " Tabs
+    nnoremap H gT
+    nnoremap L gt
+    nnoremap > gT
+    nnoremap < gt
