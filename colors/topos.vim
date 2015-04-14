@@ -30,8 +30,8 @@ hi TabLineSel           guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
 hi Directory            guifg=#2B2B2B                   gui=NONE
 hi WildMenu             guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
 
-hi Folded               guifg=#60656F   guibg=#EEEEEE   gui=NONE
-hi FoldColumn           guifg=#60656F   guibg=#EEEEEE   gui=NONE
+hi Folded               guifg=#006C91   guibg=#F6F7F7   gui=NONE
+hi FoldColumn           guifg=#2B2B2B   guibg=#C9B0B0   gui=NONE
 
 hi Question             guifg=#2B2B2B   guibg=#FFCDAA   gui=NONE
 hi WarningMsg           guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE
@@ -42,7 +42,7 @@ hi Error                guifg=#2B2B2B   guibg=#FF7369   gui=NONE
 
 hi Search               guifg=#2B2B2B   guibg=#FCFCAA   gui=NONE
 hi IncSearch            guifg=#2B2B2B   guibg=#FFFF33   gui=bold
-hi MatchParen           guifg=#2B2B2B   guibg=#FF9B55   gui=NONE
+hi MatchParen           guifg=#2B2B2B   guibg=#FFE1CC   gui=NONE
 hi CursorLine           guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorLineNr         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorColumn         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
@@ -127,6 +127,24 @@ hi phpNamespace               guifg=#2B2B2B                   gui=NONE
 hi phpIf                      guifg=#0050B0                   gui=bold
 hi phpClassKeywords           guifg=#0050B0                   gui=bold
 " hi phpFunctionKeyword         guifg=#0050B0                   gui=NONE
+
+" Syntax: vim off.
+hi phpSpecialFunction         guifg=#bf40bf                   gui=none
+hi def link phpParent           phpDelimiter
+hi def link phpFunctions        phpIdentifier
+hi def link phpDefine           phpOperator
+hi def link phpNumber           phpInteger
+hi def link phpConditional      phpIf
+hi def link phpStringSingle     phpString
+hi def link phpStringDouble     phpString
+hi def link phpStorageClass     phpEncapsulation
+hi def link phpType             phpEncapsulation
+hi def link phpDocTags          phpAnnotation
+hi def link phpException        phpThrowKeyword
+hi def link phpClasses          phpIdentifier
+hi def link phpLabel            Conditional
+hi def link phpComparison       Operator
+
 
 " Haskell
 "---------------------------------------------------------------------------
