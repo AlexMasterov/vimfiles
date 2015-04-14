@@ -1410,8 +1410,10 @@
 
     " ;d: delete buffer
     nnoremap <silent> ;d :<C-u>bdelete!<CR>
-    " ;,: previous buffers
-    nno.emap <silent> ;, <C-^>
+    " ;b: next buffer
+    nnoremap <silent> ;b :<C-u>bnext<CR>
+    " ;B: previous buffer
+    nnoremap <silent> ;B :<C-u>bprev<CR>
 
     " ;n: create tab
     nnoremap <silent> ;n :<C-u>tabnew<CR>
