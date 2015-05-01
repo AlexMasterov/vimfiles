@@ -1,4 +1,4 @@
-" .vimrc / 2015 Apr
+" .vimrc / 2015 May
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/dotvim
 
@@ -12,8 +12,6 @@
     " The prefix keys
     nmap ; [prefix]
     nnoremap [prefix] <Nop>
-
-    let g:color_codes_ft = 'css,html,twig,html.twig'
 
     let &suffixes = ''
     " Ignore pattern
@@ -54,7 +52,7 @@
 "---------------------------------------------------------------------------
     function! s:makeDir(dir, ...)
         let dir = expand(a:dir, 1)
-        if !isdirectory(dir)
+        if !isdirectory(dir) 
             \ && (a:0 || input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
             silent! call mkdir(iconv(dir, &encoding, &termencoding), 'p')
         endif
@@ -81,7 +79,7 @@
     " Resize splits then the window is resized
     Autocmd VimResized * wincmd =
     " Leave Insert mode and save when Vim lost focus
-    " Autocmd FocusLost * if &filetype !=# 'unite'| call feedkeys("\<Esc>`^") | silent! wall |endif
+    Autocmd FocusLost * if &filetype !=# 'unite'| call feedkeys("\<Esc>`^") | silent! wall |endif
     " Disable paste mode when leaving Insert mode
     Autocmd InsertLeave * if &paste| set nopaste |endif
     " Toggle settings between modes
@@ -122,10 +120,10 @@
     if has('vim_starting')
         set viminfo+=n$VIMFILES/viminfo
         " Cache
-        Mkdir $VIMCACHE 1
+        call <SID>makeDir($VIMCACHE, 1)
         set noswapfile
         " Undo
-        Mkdir $VIMFILES/undo 1
+        call <SID>makeDir($VIMFILES.'/undo', 1)
         set undofile
         set undolevels=500 undoreload=1000
         set undodir=$VIMFILES/undo
@@ -164,10 +162,10 @@
     " Install NeoBundle
     if has('vim_starting')
         let s:neobundle_path = $VIMFILES.'/bundle/neobundle.vim'
-        let s:neobundle_uri  = 'https://github.com/Shougo/neobundle.vim'
         if !isdirectory(s:neobundle_path)
-            Mkdir $VIMFILES/bundle 1
+            call <SID>makeDir($VIMFILES.'/bundle', 1)
             if executable('git')
+                let s:neobundle_uri  = 'https://github.com/Shougo/neobundle.vim'
                 call system(printf('git clone --depth 1 %s %s',
                             \ s:neobundle_uri, s:neobundle_path))
             else
@@ -195,9 +193,9 @@
         " Util
         NeoBundle 'kopischke/vim-stay'
         NeoBundle 'kshenoy/vim-signature'
-"      NeoBundleLazy 'lilydjwg/colorizer', {
-"       \   'commands': 'ColorToggle'
-"       \}
+        NeoBundleLazy 'lilydjwg/colorizer', {
+        \   'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
+        \}
         NeoBundleLazy 'mbbill/undotree', {
         \   'commands': 'UndotreeToggle'
         \}
@@ -252,12 +250,11 @@
         NeoBundleLazy 'mattn/httpstatus-vim', {
         \   'unite_sources': 'httpstatus'
         \}
-        NeoBundleLazy 'xolox/vim-misc'
+        NeoBundle 'xolox/vim-misc'
         NeoBundle 'xolox/vim-session', { 
         \   'depends': 'xolox/vim-misc',
         \}
 
-        " View
         NeoBundle 'luochen1990/rainbow'
         NeoBundle 'osyo-manga/vim-brightest'
 
@@ -291,9 +288,7 @@
         NeoBundleLazy 'AndrewRadev/switch.vim', {
         \   'commands': 'Switch',
         \}
-        NeoBundleLazy 'kana/vim-smartchr', {
-        \   'insert': 1
-        \}
+        NeoBundle 'kana/vim-smartchr'
         NeoBundleLazy 'cohama/lexima.vim', {
         \   'depends': 'vim-smartchr',
         \   'insert': 1
@@ -302,7 +297,7 @@
         \   'functions': 'UltiSnips#FileTypeChanged',
         \   'insert': 1
         \}
-        NeoBundleLazy 'Shougo/context_filetype.vim'
+        NeoBundle 'Shougo/context_filetype.vim'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
         \   'depends': 'Shougo/context_filetype.vim',
         \   'commands': ['NeoCompleteLock', 'NeoCompleteUnlock'],
@@ -338,16 +333,17 @@
         \}
 
         " PHP
-        NeoBundleLazy '2072/PHP-Indenting-for-VIm', {'filetypes': 'php'}
         " NeoBundleLazy 'swekaj/php-foldexpr.vim',    {'filetypes': 'php'}
+        NeoBundleLazy '2072/PHP-Indenting-for-VIm', {'filetypes': 'php'}
         NeoBundleLazy 'shawncplus/phpcomplete.vim', {'filetypes': 'php',
         \   'insert': 1
         \}
+        NeoBundleLazy 'adoy/vim-php-refactoring-toolbox', {'filetypes': 'php'}
         NeoBundleLazy 'joonty/vdebug', {'filetypes': 'php'}
         NeoBundleLazy 'tobyS/vmustache'
         NeoBundleLazy 'tobyS/pdv', {
         \   'depends': 'tobyS/vmustache',
-        \   'functions': 'pdv#DocumentWithSnip',
+        \   'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine'],
         \   'filetypes': 'php',
         \}
         " JavaScript
@@ -373,6 +369,8 @@
         NeoBundleLazy 'shmup/vim-sql-syntax', {'filetypes': ['sql', 'php']}
         " Nginx
         NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
+        " Docker
+        NeoBundle 'ekalinin/Dockerfile.vim'
         " Log
         NeoBundle 'dzeban/vim-log-syntax'
         " VCS
@@ -457,7 +455,7 @@
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
 
         function! s:inputSessionName()
-            let session_name = input(' Session name: ')
+            let session_name = input(" Session name: \n\r ")
             if session_name != ''
                 exe ':SaveSession '. escape(session_name, '"')
             endif
@@ -466,15 +464,24 @@
         Autocmd VimLeavePre * call <SID>autoSaveSession()
         function! s:autoSaveSession()
             let session = fnamemodify(v:this_session, ':t')
-            if !empty(session)
-                :SaveSession
-            endif
+            if !empty(session)| SaveSession |endif
         endfunction
     endif
 
     if neobundle#is_installed('vim-signature')
         let g:SignatureMarkTextHL = "'BookmarkLine'"
         let g:SignatureIncludeMarks = 'abcdefghijklmnopqrstuvwxyz'
+        let g:SignatureMap = {
+        \   'Leader':            '\',
+        \   'ToggleMarkAtLine':  '=',
+        \   'PlaceNextMark':     '',
+        \   'GotoNextSpotAlpha': '<Up>',
+        \   'GotoPrevSpotAlpha': '<Down>',
+        \   'GotoNextLineAlpha': '<S-Up>',
+        \   'GotoPrevLineAlpha': '<S-Down>',
+        \   'GotoNextMarkerAny': '<Right>',
+        \   'GotoPrevMarkerAny': '<Left>',
+        \}
         nnoremap <silent> m<Enter> :<C-u>SignatureRefresh<CR>
 
         Autocmd BufNewFile,BufRead * SignatureRefresh
@@ -500,17 +507,20 @@
         vmap ge <Plug>(smartword-ge)
     endif
 
-    if neobundle#is_installed('vim-easy-align')
-        let g:easy_align_ignore_groups = ['Comment', 'String']
-        let g:easy_align_delimiters = {
-        \   '>': {'pattern': '>>\|=>\|>' },
-        \   '/': {'pattern': '//\+\|/\*\|\*/', 'delimiter_align': 'l', 'ignore_groups': ['^\(.\(Comment\)\@!\)*$']},
-        \   ']': {'pattern': '[[\]]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-        \   ')': {'pattern': '[()]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-        \   'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
-        \   'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0}
-        \}
+    if neobundle#tap('vim-easy-align')
+        function! neobundle#hooks.on_source(bundle)
+            let g:easy_align_ignore_groups = ['Comment', 'String']
+            let g:easy_align_delimiters = {
+            \   '>': {'pattern': '>>\|=>\|>' },
+            \   '/': {'pattern': '//\+\|/\*\|\*/', 'delimiter_align': 'l', 'ignore_groups': ['^\(.\(Comment\)\@!\)*$']},
+            \   ']': {'pattern': '[[\]]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
+            \   ')': {'pattern': '[()]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
+            \   'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
+            \   'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0}
+            \}
+        endfunction
         vmap <Enter> <Plug>(EasyAlign)
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-brightest')
@@ -548,19 +558,23 @@
         \)
     endif
 
-    if neobundle#is_installed('wildfire.vim')
-        let g:wildfire_objects = {
-        \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
-        \   'html,twig,html.twig,xml': ["at"]
-        \}
+    if neobundle#tap('wildfire.vim')
+        function! neobundle#hooks.on_source(bundle)
+            let g:wildfire_objects = {
+            \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
+            \   'html,twig,html.twig,xml': ["at"]
+            \}
+        endfunction
         nmap vv    <Plug>(wildfire-fuel)
         xmap vv    <Plug>(wildfire-fuel)
         xmap <C-v> <Plug>(wildfire-water)
+        call neobundle#untap()
     endif
 
     if neobundle#tap('vim-commentary')
-        let g:commentary_map_backslash = 0
         function! neobundle#hooks.on_source(bundle)
+            let g:commentary_map_backslash = 0
+            unmap \
             unmap cgc
         endfunction
         nmap q <Plug>CommentaryLine
@@ -580,8 +594,7 @@
         nnoremap <silent> S :<C-u>call <SID>trySplitJoin('SplitjoinSplit', "r\015")<CR><CR>
         function! s:trySplitJoin(cmd, default)
             if exists(':' . a:cmd) && !v:count
-                let tick = b:changedtick
-                exe a:cmd
+                let tick = b:changedtick | exe a:cmd
                 if tick == b:changedtick
                     exe join(['normal!', a:default])
                 endif
@@ -591,42 +604,48 @@
         endfunction
     endif
 
-    if neobundle#is_installed('vim-smalls')
-        let g:smalls_highlight = {
-        \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
-        \   'SmallsCurrent'    : [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
-        \   'SmallsJumpTarget' : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-        \   'SmallsPos'        : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-        \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
-        \}
-        call smalls#keyboard#cli#extend_table({
-        \   "\<C-o>" : 'do_excursion',
-        \   "\<C-i>" : 'do_excursion',
-        \   "\<C-j>" : 'do_excursion',
-        \   "\<C-k>" : 'do_excursion',
-        \   "\<C-c>" : 'do_cancel',
-        \   "\q"     : 'do_cancel',
-        \   "\`"     : 'do_cancel'
-        \})
-        call smalls#keyboard#excursion#extend_table({
-        \   "\Q" : 'do_cancel',
-        \   "\o" : 'do_set',
-        \   "\`" : 'do_set',
-        \   "\p" : 'do_jump'
-        \})
+    if neobundle#tap('vim-smalls')
+        function! neobundle#hooks.on_source(bundle)
+            let g:smalls_highlight = {
+            \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
+            \   'SmallsCurrent'    : [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
+            \   'SmallsJumpTarget' : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+            \   'SmallsPos'        : [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+            \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
+            \}
+            call smalls#keyboard#cli#extend_table({
+            \   "\<C-o>" : 'do_excursion',
+            \   "\<C-i>" : 'do_excursion',
+            \   "\<C-j>" : 'do_excursion',
+            \   "\<C-k>" : 'do_excursion',
+            \   "\<C-c>" : 'do_cancel',
+            \   "\q"     : 'do_cancel',
+            \   "\`"     : 'do_cancel'
+            \})
+            call smalls#keyboard#excursion#extend_table({
+            \   "\Q" : 'do_cancel',
+            \   "\o" : 'do_set',
+            \   "\`" : 'do_set',
+            \   "\p" : 'do_jump'
+            \})
+        endfunction           
         nmap s <Plug>(smalls)
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('glowshi-ft.vim')
-        let g:glowshi_ft_fix_key = '[\<NL>\o]'
-        let g:glowshi_ft_cancel_key = '\`'
-        let g:glowshi_ft_selected_hl_guibg = '#9DBAD7'
-        let g:glowshi_ft_candidates_hl_guibg = '#DDEECC'
-        let g:glowshi_ft_no_default_key_mappings = 1
+    if neobundle#tap('glowshi-ft.vim')
+        function! neobundle#hooks.on_source(bundle)
+            let g:glowshi_ft_fix_key = '[\<NL>\o]'
+            let g:glowshi_ft_cancel_key = '\`'
+            let g:glowshi_ft_selected_hl_guibg = '#9DBAD7'
+            let g:glowshi_ft_candidates_hl_guibg = '#DDEECC'
+            let g:glowshi_ft_no_default_key_mappings = 1
+        endfunction
         map f <Plug>(glowshi-ft-f)
         map F <Plug>(glowshi-ft-F)
         map t <Plug>(glowshi-ft-t)
         map T <Plug>(glowshi-ft-T)
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('switch.vim')
@@ -696,11 +715,10 @@
         \   ['top', 'bottom'],
         \   ['em', 'px', '%']
         \]
-        nnoremap <silent> <Tab> :Switch<CR>
-        xnoremap <silent> <Tab> :Switch<CR>
+        nnoremap <silent> <Tab> :<C-u>Switch<CR>
+        xnoremap <silent> <Tab> :<C-u>Switch<CR>
         nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switch_def_camelcase)<CR>
         nnoremap <silent> @ :<C-u>silent! call switch#Switch(g:switch_def_quotes)<CR>
-
     endif
 
     if neobundle#is_installed('vim-smartchr')
@@ -709,10 +727,8 @@
             \  ImapBufExpr \ smartchr#loop('\ ', '\')
             \| ImapBufExpr - smartchr#loop('-', ' -> ', ' <- ')
         AutocmdFT php
-            \  ImapBufExpr - smartchr#loop('-', '->')
-            \| ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
+            \  ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
             \| ImapBufExpr > smartchr#loop('>', '=>')
-            \| ImapBufExpr ; smartchr#loop(';', '::')
         AutocmdFT javascript
             \| ImapBufExpr - smartchr#loop('-', '--', '_')
             \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
@@ -730,13 +746,17 @@
             let g:lexima_no_map_to_escape = 1
             let g:lexima_enable_endwise_rules = 0
 
+            let g:lexima_oper_space_ft = ['php'] 
+            let g:lexima_pair_space_ft = ['javascript']
+
+            call lexima#set_default_rules()
             " Deleting the rule "`" (30-36)
             silent! call remove(g:lexima#default_rules, 30, -1)
 
             let indents = "^\(\t\|  \)\+"
             let opx     = "\(" . join(['[+-\*/%?]', '[&|<>]\{1,2}', '>>>'], '\|') . "\)"
 
-            "  Disable lexima inside string literal
+            " Disable lexima inside string literal
             function! s:disable_lexima_inside_string(char)
                 call lexima#add_rule({
                 \   'char':  a:char,
@@ -751,11 +771,11 @@
                 \   'mode':  'i',
                 \})
                 call lexima#add_rule({
-                \   'char':  a:char,
-                \   'at':    '\%#',
-                \   'input': a:char,
-                \   'mode':  'i',
-                \   'syntax': ['String']
+                \   'char':   a:char,
+                \   'at':     '\%#',
+                \   'input':  a:char,
+                \   'mode':   'i',
+                \   'syntax': ['String'],
                 \})
             endfunction
 
@@ -768,145 +788,138 @@
                 \})
             endfunction
 
-            "  Operators
+            " Operators
             "-----------------------------------------------
-            " looping with Smartchr
+            " Looping with Smartchr
             let rules = {
             \   '&':     "smartchr#loop('&', '&&')",
             \   '<Bar>': "smartchr#loop('|', '||')",
             \}
 
             for [char, rule] in items(rules)
-                let uchar = substitute(char, '<Bar>', '|', '')
+                let uchar = substitute(char, '<bar>', '|', '')
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '\S\%#',
-                \   'input': ' ' . char . ' ',
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '\S\%#',
+                \   'input':    ' ' . char . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '^\s*\%#',
-                \   'input': char . ' ',
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '^\s*\%#',
+                \   'input':    char . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '^\s*\%# ',
-                \   'input': char,
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '^\s*\%# ',
+                \   'input':    char,
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '\S \%#',
-                \   'input': char . ' ',
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '\S \%#',
+                \   'input':    char . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '\S \%# ',
-                \   'input': char,
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '\S \%# ',
+                \   'input':    char,
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '\(...\)\?' . uchar . ' \%#',
-                \   'input': '<BS><C-r>=' . rule . '<CR><Space>',
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '\(...\)\?' . uchar . ' \%#',
+                \   'input':    '<BS><C-r>=' . rule . '<CR><Space>',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  char,
-                \   'at':    '\(...\)\?' . uchar . ' \%# ',
-                \   'input': '<BS><C-r>=' . rule . '<CR>',
-                \   'mode':  'i',
+                \   'char':     char,
+                \   'at':       '\(...\)\?' . uchar . ' \%# ',
+                \   'input':    '<BS><C-r>=' . rule . '<CR>',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
 
                 call s:disable_lexima_inside_string(char)
                 call s:disable_lexima_inside_regexp(char)
             endfor
 
-            " space around
-            for op in ['+', '-', '/', '*', '=', '%']
+            " Space around
+            for op in ['/', '*', '=', '%']
                 let eop = escape(op, '*')
                 call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    '\w\%#',
-                \   'input': ' ' . op . ' ',
-                \   'mode':  'i',
+                \   'char':     op,
+                \   'at':       '\w\%#',
+                \   'input':    ' ' . op . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    '\(^\|\w\) ' . eop . '\%#',
-                \   'input': op . ' ',
-                \   'mode':  'i',
+                \   'char':     op,
+                \   'at':       '\(^\|\w\) ' . eop . '\%#',
+                \   'input':    op . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
                 call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    eop . ' \%#',
-                \   'input': '<BS>' . op . ' ',
-                \   'mode':  'i',
+                \   'char':     op,
+                \   'at':       eop . ' \%#',
+                \   'input':    '<BS>' . op . ' ',
+                \   'mode':     'i',
+                \   'filetype': g:lexima_oper_space_ft,
                 \})
 
                 call s:disable_lexima_inside_string(op)
                 call s:disable_lexima_inside_regexp(op)
             endfor
 
-            " compound assignment operator
+            " Compound assignment operator
             call lexima#add_rule({
-            \   'char':  '=',
-            \   'at':    '\s[&|?+-/<>]\%#',
-            \   'input': '= ',
-            \   'mode':  'i',
+            \   'char':     '=',
+            \   'at':       '\s[&|?+-/<>]\%#',
+            \   'input':    '= ',
+            \   'mode':     'i',
+            \   'filetype': g:lexima_oper_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':  '=',
-            \   'at':    '[&|?+-/<>] \%#',
-            \   'input': '<BS>= ',
-            \   'mode':  'i',
+            \   'char':     '=',
+            \   'at':       '[&|?+-/<>] \%#',
+            \   'input':    '<BS>= ',
+            \   'mode':     'i',
+            \   'filetype': g:lexima_oper_space_ft,
             \})
 
-            " slash as non arithmetic operators
+            " Slash as non arithmetic operators
             call lexima#add_rule({
-            \   'char':  '/',
-            \   'at':    '\S/\S[^/]*\%#',
-            \   'input': '/',
-            \   'mode':  'i',
+            \   'char':     '/',
+            \   'at':       '\S/\S[^/]*\%#',
+            \   'input':    '/',
+            \   'mode':     'i',
+            \   'filetype': g:lexima_oper_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':  '/',
-            \   'at':    '^\s*\%#',
-            \   'input': '/',
-            \   'mode':  'i',
+            \   'char':     '/',
+            \   'at':       '^\s*\%#',
+            \   'input':    '/',
+            \   'mode':     'i',
+            \   'filetype': g:lexima_oper_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':  '/',
-            \   'at':    '^\s*/.*\%#',
-            \   'input': '/',
-            \   'mode':  'i',
+            \   'char':     '/',
+            \   'at':       '^\s*/.*\%#',
+            \   'input':    '/',
+            \   'mode':     'i',
+            \   'filetype': g:lexima_oper_space_ft,
             \})
             call s:disable_lexima_inside_regexp('/')
-
-            " decrement/increment operators
-            for op in ['+', '-']
-                call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    ' ' . op . ' \%#',
-                \   'input': '<BS><BS><BS>' . op . op,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    indents . op . ' \%#',
-                \   'input': op,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  op,
-                \   'at':    '\w' . op . op . '\%#',
-                \   'input': '<BS><BS><Space>' . op . op . '<Space>',
-                \   'mode':  'i',
-                \})
-            endfor
 
             " Delete whole pair
             for pair in ['()', '[]', '{}', '<>']
@@ -941,14 +954,16 @@
             \   'at':          '(\%#)',
             \   'input':       '<Space>',
             \   'input_after': '<Space>',
-            \   'mode':        'i'
+            \   'mode':        'i',
+            \   'filetype':    g:lexima_pair_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':   '<BS>',
-            \   'at':     '( \%# )',
-            \   'input':  '<BS>',
-            \   'delete': 1,
-            \   'mode':   'i'
+            \   'char':     '<BS>',
+            \   'at':       '( \%# )',
+            \   'input':    '<BS>',
+            \   'delete':   1,
+            \   'mode':     'i',
+            \   'filetype': g:lexima_pair_space_ft,
             \})
 
             " {  }
@@ -957,14 +972,16 @@
             \   'at':          '{\%#}',
             \   'input':       '<Space>',
             \   'input_after': '<Space>',
-            \   'mode':        'i'
+            \   'mode':        'i',
+            \   'filetype':    g:lexima_pair_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':   '<BS>',
-            \   'at':     '{ \%# }',
-            \   'input':  '<BS>',
-            \   'delete': 1,
-            \   'mode':   'i'
+            \   'char':     '<BS>',
+            \   'at':       '{ \%# }',
+            \   'input':    '<BS>',
+            \   'delete':   1,
+            \   'mode':     'i',
+            \   'filetype': g:lexima_pair_space_ft,
             \})
 
             " [ ]
@@ -973,14 +990,16 @@
             \   'at':          '\[\%#\]',
             \   'input':       '<Space>',
             \   'input_after': '<Space>',
-            \   'mode':        'i'
+            \   'mode':        'i',
+            \   'filetype':    g:lexima_pair_space_ft,
             \})
             call lexima#add_rule({
-            \   'char':   '<BS>',
-            \   'at':     '\[ \%# \]',
-            \   'input':  '<BS>',
-            \   'delete': 1,
-            \   'mode':   'i'
+            \   'char':     '<BS>',
+            \   'at':       '\[ \%# \]',
+            \   'input':    '<BS>',
+            \   'delete':   1,
+            \   'mode':     'i',
+            \   'filetype': g:lexima_pair_space_ft,
             \})
 
             " Quotes
@@ -1082,15 +1101,40 @@
 
         " PHP
         "-----------------------------------------------
-        for at in ['if', 'while', 'function']
+        for at in ['if', 'elseif', 'while']
             call lexima#add_rule({
-            \   'char':     '<Space>',
-            \   'at':       '\<\%(' . at . '\)\>\%#',
-            \   'input':    '<Space>()<Left>',
-            \   'mode':     'i',
-            \   'filetype': 'php',
+            \   'char':        '<Space>',
+            \   'at':          '\<\%(' . at . '\)\>\%#',
+            \   'input':       '<Space>(',
+            \   'input_after': ') ',
+            \   'filetype':    'php',
             \})
         endfor
+
+        " ->
+        call lexima#add_rule({
+        \   'char':     '-',
+        \   'at':       '\$\w\+\(-\|->\)\%#',
+        \   'input':    "\<C-r>=smartchr#loop('-', '->')\<CR>",
+        \   'mode':     'i',
+        \   'filetype': 'php',
+        \})
+        " ::
+        call lexima#add_rule({
+        \   'char':     ';',
+        \   'at':       '\w\+\(;\|::\)\%#',
+        \   'input':    "\<C-r>=smartchr#loop(';', '::')\<CR>",
+        \   'mode':     'i',
+        \   'filetype': 'php',
+        \})
+        " use as
+        call lexima#add_rule({
+        \   'char':     '<Space>',
+        \   'at':       '^\<\%(use\)\s\w\+\%#',
+        \   'input':    '<Space>as<Space>;<Left>',
+        \   'mode':     'i',
+        \   'filetype': 'php',
+        \})
 
         function! neobundle#hooks.on_post_source(bundle)
             inoremap <silent> ` <C-R>=UltiSnips#ExpandSnippet()<CR>
@@ -1107,27 +1151,27 @@
             let s:context_ft_def = context_filetype#default_filetypes()
             let g:context_filetype#filetypes[a:filetype] = add(s:context_ft_def.html, a:rule)
         endfunction
-
+        
         " CSS
         let s:context_ft_css = {
-        \   'start': '<style>',
-        \   'end': '</style>',
+        \   'start':    '<style>',
+        \   'end':      '</style>',
         \   'filetype': 'css',
         \}
         call <SID>addContext(s:context_ft_css, 'html')
 
         " Coffee script
         let s:context_ft_coffee = {
-        \   'start': '<script\%( [^>]*\)\? type="text/coffee"\%( [^>]*\)\?>',
-        \   'end': '</script>', 
+        \   'start':    '<script\%( [^>]*\)\? type="text/coffee"\%( [^>]*\)\?>',
+        \   'end':      '</script>',
         \   'filetype': 'coffee',
         \}
         call <SID>addContext(s:context_ft_coffee, 'html')
 
         " ReactJS
         let s:context_ft_jsx = {
-        \   'start': '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
-        \   'end': '</script>',
+        \   'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
+        \   'end':      '</script>',
         \   'filetype': 'javascript',
         \}
         call <SID>addContext(s:context_ft_jsx, 'html')
@@ -1352,8 +1396,8 @@
         " Limit results for recently edited files
         call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
         " Search relative to Project Root if it exists
-        " call unite#custom#source('neomru/file,neomru/directory',
-        "     \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
+        call unite#custom#source('neomru/file,neomru/directory',
+            \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
         " [prefix]l: open recently-opened files
         nnoremap <silent> [prefix]l :<C-u>Unite neomru/file<CR>
         " [prefix]L: open recently-opened directories
@@ -1403,13 +1447,12 @@
 
     if neobundle#is_installed('vim-qfreplace')
         " qfreplace tuning
-        AutocmdFT qfreplace call feedkeys("\<CR>\<CR>")
-        Autocmd BufNewFile,BufRead \[qfreplace\] call feedkeys("\<CR>\<CR>")
-        AutocmdFT qfreplace setl nornu nonu colorcolumn= laststatus=0
-        AutocmdFT qfreplace Autocmd InsertEnter,InsertLeave <buffer> setl nornu nonu colorcolumn=
-        AutocmdFT qfreplace Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
-        AutocmdFT qfreplace Autocmd BufLeave,BufDelete <buffer> set laststatus=2
-        AutocmdFT qfreplace nnoremap <silent> <buffer> ` :<C-u>bdelete!<CR>
+        AutocmdFT qfreplace
+            \  call feedkeys("\<CR>\<CR>")
+            \| setl nonu nornu colorcolumn= laststatus=0 
+            \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0 
+            \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2 
+            \| Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
     endif
 
 " Languages
@@ -1425,8 +1468,8 @@
         function! neobundle#hooks.on_source(bundle)
             let g:necoghc_enable_detailed_browse = 1
         endfunction
-        call neobundle#untap()
         AutocmdFT haskell,lhaskell,chaskell setl omnifunc=necoghc#omnifunc
+        call neobundle#untap()
     endif
     " Misc
     if neobundle#is_installed('ghcmod-vim')
@@ -1439,7 +1482,12 @@
 " PHP
     AutocmdFT php Indent 4
     " Syntax
-    let g:php_highlight_html = 1
+    let g:php_sql_query = 1
+    let g:php_highlight_html = 1 
+    " Misc
+    AutocmdFT php 
+        \  inoremap <buffer> <A--> -
+        \| inoremap <buffer> <A-=> +
     " Fold
     if neobundle#is_installed('php-foldexpr.vim')
         AutocmdFT php setl foldenable
@@ -1472,6 +1520,23 @@
             \]
         endfunction
         AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
+        call neobundle#untap()
+    endif
+    " Refactoring tool
+    if neobundle#tap('vim-php-refactoring-toolbox')
+        function! neobundle#hooks.on_source(bundle)
+            let g:vim_php_refactoring_use_default_mapping = 0
+        endfunction
+        AutocmdFT php
+            \  nmap <silent> <buffer> mm  :<C-u>call PhpRenameMethod()<CR>
+            \| nmap <silent> <buffer> mv  :<C-u>call PhpRenameLocalVariable()<CR>
+            \| nmap <silent> <buffer> mc  :<C-u>call PhpRenameClassVariable()<CR>
+            \| nmap <silent> <buffer> ms  :<C-u>call PhpCreateSettersAndGetters()<CR>
+            \| nmap <silent> <buffer> mu  :<C-u>call PhpDetectUnusedUseStatements()<CR>
+            \| nmap <silent> <buffer> meu :<C-u>call PhpExtractUse()<CR>
+            \| vmap <silent> <buffer> mec :<C-u>call PhpExtractConst()<CR>
+            \| nmap <silent> <buffer> mep :<C-u>call PhpExtractClassProperty()<CR>
+            \| vmap <silent> <buffer> mem :<C-u>call PhpExtractMethod()<CR>
         call neobundle#untap()
     endif
     " PHP Documentor
@@ -1542,10 +1607,19 @@
     AutocmdFT css setl nowrap | Indent 2
     " Syntax
     AutocmdFT css setl iskeyword+=-,%
+    " hex colors
     if neobundle#is_installed('colorizer')
-        Autocmd BufEnter,WinEnter *
+        let g:color_codes_ft = 'css,html,twig,html.twig'
+        Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
             \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
-            \ ? ':ColorClear' : ':ColorHighlight'
+            \ ? 'call <SID>clearColor()' : 'ColorHighlight'
+
+        function! s:clearColor()
+            augroup Colorizer
+                au!
+            augroup END
+            augroup! Colorizer
+        endfunction
     endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
@@ -1580,6 +1654,11 @@
     AutocmdFT xml setl nowrap | Indent 4
     " Autocomplete
     AutocmdFT xml setl omnifunc=xmlcomplete#CompleteTags
+
+" SQL
+    Autocmd VimEnter,Colorscheme *
+        \  hi link sqlStatement phpStatement
+        \| hi link sqlKeyword   phpOperator
 
 " Nginx
     Autocmd BufNewFile,BufRead */nginx/** setl filetype=nginx commentstring=#%s
@@ -1739,12 +1818,7 @@
     set shiftwidth=4     " number of spaces per tab in insert mode
     set softtabstop=4    " number of spaces when indenting
     set nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
-
-    " Backspacing settings
-    " indent  allow backspacing over autoindent
-    " eol     allow backspacing over line breaks (join lines)
-    " start   allow backspacing over the start of insert;
-    "         CTRL-W and CTRL-U stop once at the start of insert
+    " Backspacing setting
     set backspace=indent,eol,start
 
     " Search
@@ -1815,8 +1889,8 @@
     " nnoremap X "_dd
     
     " [n]+Enter: jump to a line number
-    nnoremap <silent> <expr> <Enter> v:count ?
-        \ ':<C-u>call cursor(v:count, 0)<CR>zz' : '<CR>'
+    nmap <silent> <expr> <Enter> v:count ?
+        \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
 
     " <Space>e: reopen file
     nnoremap <silent> <Space>e :<C-u>edit!<CR>
@@ -2015,12 +2089,6 @@
     nnoremap <silent> <expr> N v:count ?
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
 
-    " [-=]: Input vertical serial number
-    nnoremap <silent> <expr> - v:count ?
-        \ ":\<C-u>for i in reverse(range(1, v:count)) \| call append(line('.'), i) \| endfor\<CR>" : '='
-    nnoremap <silent> <expr> = v:count ?
-        \ ":\<C-u>for i in range(1, v:count) \| call append(line('.'), i) \| endfor\<CR>" : '+'
-
     " zz: move to top/center/bottom
     nnoremap <expr> zz (winline() == (winheight(0)+1)/ 2) ?
       \ 'zt' : (winline() == 1) ? 'zb' : 'zz'
@@ -2050,3 +2118,6 @@
     endfunction
     " xnoremap R "_dP
     xnoremap R :<C-U>call <SID>replace()<CR>
+
+    " test private plugin
+    nmap <leader>tt <Plug>(buffer-to-new-tab)
