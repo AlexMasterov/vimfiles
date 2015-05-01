@@ -22,7 +22,7 @@ hi Visual                               guibg=#CCE5FF   gui=NONE
 hi VisualNOS            guifg=#2B2B2B   guibg=#CCE5FF   gui=NONE
 hi LineNr               guifg=#B6B6B6   guibg=#F6F7F7   gui=NONE
 hi VertSplit            guifg=#EEEEEE   guibg=#F6F7F7   gui=NONE
-hi StatusLine           guifg=#2B2B2B   guibg=#E6E6E6   gui=NONE
+hi StatusLine           guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
 hi StatusLineNC         guifg=#888888   guibg=#EEEEEE   gui=NONE
 hi TabLine              guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi TabLineFill          guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
@@ -102,8 +102,8 @@ hi PmenuThumb           guifg=#E0E5EE   guibg=#C0C5DD   gui=bold
 
 " User
 "---------------------------------------------------------------------------
-hi User1                guifg=#0000FF   guibg=#E6E6E6  gui=NONE
-hi User2                guifg=#D14000   guibg=#E6E6E6  gui=NONE
+hi User1                guifg=#0000FF   guibg=#EEEEEE  gui=NONE
+hi User2                guifg=#D14000   guibg=#EEEEEE  gui=NONE
 
 " Syntax: https://github.com/mageekguy/php.vim
 hi phpDelimiter               guifg=#999999                   gui=NONE
@@ -112,12 +112,12 @@ hi phpIdentifier              guifg=#006C91                   gui=NONE
 hi phpInteger                 guifg=#0050B0                   gui=NONE
 hi phpAnnotation              guifg=#5B5C5B                   gui=NONE
 hi phpInclude                 guifg=#E24500                   gui=bold
-hi phpString                  guifg=#B16F2C                   gui=NONE
 hi phpNull                    guifg=#AF4141                   gui=NONE
 hi phpBoolean                 guifg=#AF4141                   gui=NONE
 hi phpVariable                guifg=#4D4D4D                   gui=NONE
 hi phpVariableSelector        guifg=#4D4D4D                   gui=NONE
 hi phpStatement               guifg=#2B2B2B                   gui=bold
+hi phpFunctions               guifg=#2B2B2B                   gui=NONE
 hi phpEncapsulation           guifg=#0079A2                   gui=NONE
 hi phpTryKeyword              guifg=#64AA03                   gui=bold
 hi phpCatchKeyword            guifg=#64AA03                   gui=NONE
@@ -126,10 +126,8 @@ hi phpNamespaceKeyword        guifg=#2B2B2B                   gui=bold
 hi phpNamespace               guifg=#2B2B2B                   gui=NONE
 hi phpIf                      guifg=#0050B0                   gui=bold
 hi phpClassKeywords           guifg=#0050B0                   gui=bold
-" hi phpFunctionKeyword         guifg=#0050B0                   gui=NONE
 
 " Syntax: vim off.
-hi phpSpecialFunction         guifg=#bf40bf                   gui=none
 hi def link phpParent           phpDelimiter
 hi def link phpFunctions        phpIdentifier
 hi def link phpDefine           phpOperator
@@ -144,7 +142,8 @@ hi def link phpException        phpThrowKeyword
 hi def link phpClasses          phpIdentifier
 hi def link phpLabel            Conditional
 hi def link phpComparison       Operator
-
+hi def link phpString           Constant
+hi def link phpSpecialFunction  phpFunctions
 
 " Haskell
 "---------------------------------------------------------------------------
