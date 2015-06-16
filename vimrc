@@ -1,4 +1,4 @@
-" .vimrc / 2015 May
+" .vimrc / 2015 June
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/dotvim
 
@@ -7,11 +7,14 @@
     let $VIMFILES = $VIM.'/vimfiles'
     let $VIMCACHE = $VIMFILES.'/cache'
 
+" Environment
+"---------------------------------------------------------------------------
     " Basic remapping
-    let g:mapleader = ','
+    noremap <Leader> <Nop>
+    noremap <LocalLeader> <Nop>
     " The prefix keys
     nmap ; [prefix]
-    nnoremap [prefix] <Nop>
+    noremap [prefix] <Nop>
 
     let &suffixes = ''
     " Ignore pattern
@@ -23,8 +26,6 @@
     \.  ',lock,bak,tmp,dist,doc,docx,md'
     \.  ',otf,ttf,svg,svgz'
 
-" Environment
-"---------------------------------------------------------------------------
     let s:is_windows = has('win32') || has('win64')
 
     if &compatible
@@ -50,9 +51,9 @@
 
 " Functions
 "---------------------------------------------------------------------------
-    function! s:makeDir(dir, ...)
+    function! MakeDir(dir, ...)
         let dir = expand(a:dir, 1)
-        if !isdirectory(dir) 
+        if !isdirectory(dir)
             \ && (a:0 || input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
             silent! call mkdir(iconv(dir, &encoding, &termencoding), 'p')
         endif
@@ -63,7 +64,7 @@
     " Vimrc augroup sugar
     command! -nargs=* Autocmd   au MyVimrc <args>
     command! -nargs=* AutocmdFT au MyVimrc FileType <args>
-    command! -nargs=* Mkdir call <SID>makeDir(<f-args>)
+    command! -nargs=* Mkdir call MakeDir(<f-args>)
     command! -bar -nargs=* Indent
         \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
     command! -nargs=* FontSize
@@ -74,25 +75,21 @@
 " Events
 "---------------------------------------------------------------------------
     " Reload vimrc
-    Autocmd BufWritePost,FileWritePost $MYVIMRC
-        \ if exists(':NeoBundleClearCache')| NeoBundleClearCache |endif | source $MYVIMRC | redraw
-    " Resize splits then the window is resized
-    Autocmd VimResized * wincmd =
-    " Leave Insert mode and save when Vim lost focus
-    Autocmd FocusLost * if &filetype !=# 'unite'| call feedkeys("\<Esc>`^") | silent! wall |endif
-    " Disable paste mode when leaving Insert mode
-    Autocmd InsertLeave * if &paste| set nopaste |endif
+    Autocmd BufWritePost,FileWritePost $MYVIMRC source $MYVIMRC | redraw
+    " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
+    Autocmd BufEnter,WinEnter,InsertEnter * setl formatoptions-=ro
     " Toggle settings between modes
     Autocmd InsertEnter * setl list colorcolumn=120
-    Autocmd InsertLeave * setl nolist colorcolumn&
-    " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-    Autocmd BufEnter,WinEnter * setl formatoptions-=ro
+    Autocmd InsertLeave * setl nolist colorcolumn=
+    " Disable paste mode when leaving Insert mode
+    Autocmd InsertLeave * if &paste| set nopaste |endif
+    " Resize splits then the window is resized
+    Autocmd VimResized * wincmd =
     " Automake directory
-    Autocmd BufWritePre * call <SID>makeDir('<afile>:p:h', v:cmdbang)
-    " Converts all remaining tabs to spaces on save
-    " Autocmd BufReadPost,BufWrite * if &modifiable| FixWhitespace | retab |endif
-    " q: close help buffer
+    Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
+    " q: close some buffer
     AutocmdFT help nnoremap <buffer> <expr> q winnr('$') == 1 ? ":\<C-u>bdelete\<CR>" : "\<C-w>c"
+    AutocmdFT qf   nnoremap <buffer> <silent> q :<C-u>cclose<CR>
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -120,10 +117,10 @@
     if has('vim_starting')
         set viminfo+=n$VIMFILES/viminfo
         " Cache
-        call <SID>makeDir($VIMCACHE, 1)
+        call MakeDir($VIMCACHE, 1)
         set noswapfile
         " Undo
-        call <SID>makeDir($VIMFILES.'/undo', 1)
+        call MakeDir($VIMFILES.'/undo', 1)
         set undofile
         set undolevels=500 undoreload=1000
         set undodir=$VIMFILES/undo
@@ -163,7 +160,7 @@
     if has('vim_starting')
         let s:neobundle_path = $VIMFILES.'/bundle/neobundle.vim'
         if !isdirectory(s:neobundle_path)
-            call <SID>makeDir($VIMFILES.'/bundle', 1)
+            call MakeDir($VIMFILES.'/bundle', 1)
             if executable('git')
                 let s:neobundle_uri  = 'https://github.com/Shougo/neobundle.vim'
                 call system(printf('git clone --depth 1 %s %s',
@@ -187,122 +184,57 @@
         NeoBundleLazy 'Shougo/vimproc.vim', {
         \   'build': {
         \       'mac':     'make -f make_mac.mak',
+        \       'unix':    'make -f make_unix.mak',
         \       'windows': 'tools\\update-dll-mingw'
         \}}
 
         " Util
         NeoBundle 'kopischke/vim-stay'
         NeoBundle 'kshenoy/vim-signature'
-        NeoBundleLazy 'lilydjwg/colorizer', {
-        \   'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
-        \}
-        NeoBundleLazy 'mbbill/undotree', {
-        \   'commands': 'UndotreeToggle'
-        \}
-        NeoBundleLazy 'tpope/vim-repeat', {
-        \   'functions': ['repeat#set', 'repeat#setreg'],
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'thinca/vim-quickrun', {
-        \   'commands': 'QuickRun',
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'tpope/vim-characterize', {
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'kana/vim-smartword', {
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'maksimr/vim-jsbeautify', {
-        \   'filetypes': ['javascript', 'html', 'css']
-        \}
-        NeoBundleLazy 'tpope/vim-dispatch'
-        NeoBundle 'tpope/vim-projectionist', {
-        \   'depends': 'tpope/vim-dispatch',
-        \}
-        NeoBundleLazy 'arecarn/crunch.vim', {
-        \   'commands': 'Crunch',
-        \   'mappings': ['<Plug>CrunchOperator', '<Plug>VisualCrunchOperator']
+        NeoBundleLazy 'mbbill/undotree'
+        NeoBundleLazy 'arecarn/crunch.vim'
+        NeoBundleLazy 'Shougo/vimfiler.vim'
+        NeoBundleLazy 'tpope/vim-projectionist'
+        NeoBundleLazy 'lilydjwg/colorizer'
+        NeoBundleLazy 'maksimr/vim-jsbeautify'
+        NeoBundle 'xolox/vim-misc'
+        NeoBundle 'xolox/vim-session', {
+        \   'depends': 'xolox/vim-misc'
         \}
 
         " UI
         NeoBundle 'Shougo/unite.vim'
         NeoBundle 'Shougo/neomru.vim'
-        NeoBundleLazy 'osyo-manga/unite-vimpatches', {
-        \   'unite_sources': 'vimpatches'
-        \}
-        NeoBundleLazy 'osyo-manga/unite-quickfix', {
-        \   'unite_sources': 'quickfix'
-        \}
-        NeoBundleLazy 'Shougo/unite-outline', {
-        \   'unite_sources': 'outline'
-        \}
-        NeoBundleLazy 'tsukkee/unite-tag', {
-        \   'unite_sources': ['tag', 'tag/include', 'tag/file']
-        \}
-        NeoBundleLazy 'thinca/vim-qfreplace', {
-        \   'commands': 'Qfreplace',
-        \   'filetypes': ['unite', 'quickfix']
-        \}
-        NeoBundleLazy 'osyo-manga/unite-filetype', {
-        \   'unite_sources': ['filetype', 'filetype/new']
-        \}
-        NeoBundleLazy 'mattn/httpstatus-vim', {
-        \   'unite_sources': 'httpstatus'
-        \}
-        NeoBundle 'xolox/vim-misc'
-        NeoBundle 'xolox/vim-session', { 
-        \   'depends': 'xolox/vim-misc',
-        \}
+        NeoBundleLazy 'Shougo/unite-outline'
+        NeoBundleLazy 'osyo-manga/unite-vimpatches'
+        NeoBundleLazy 'osyo-manga/unite-quickfix'
+        NeoBundleLazy 'osyo-manga/unite-filetype'
+        NeoBundleLazy 'thinca/vim-qfreplace'
+        NeoBundleLazy 'mattn/httpstatus-vim'
+        NeoBundleLazy 'tsukkee/unite-tag'
 
-        NeoBundle 'luochen1990/rainbow'
-        NeoBundle 'osyo-manga/vim-brightest'
+        " NeoBundle 'luochen1990/rainbow'
+        NeoBundleLazy 'osyo-manga/vim-brightest'
+        NeoBundleLazy 'cohama/lexima.vim'
 
         " Edit
         NeoBundle 'tpope/vim-commentary'
-        NeoBundleLazy 'jakobwesthoff/argumentrewrap', {
-        \   'functions': 'argumentrewrap#RewrapArguments'
-        \}
-        NeoBundleLazy 'AndrewRadev/sideways.vim', {
-        \   'commands': 'Sideways',
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'splitjoin.vim', {
-        \   'commands': ['SplitjoinJoin', 'SplitjoinSplit'],
-        \}
-        NeoBundleLazy 'junegunn/vim-easy-align', {
-        \   'mappings': '<Plug>(EasyAlign)'
-        \}
-        NeoBundleLazy 'gcmt/wildfire.vim', {
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 't9md/vim-smalls', {
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'saihoooooooo/glowshi-ft.vim', {
-        \   'mappings': '<Plug>'
-        \}
-        NeoBundleLazy 'triglav/vim-visual-increment', {
-        \   'mappings': ['<Plug>VisualIncrement', '<Plug>VisualDecrement']
-        \}
-        NeoBundleLazy 'AndrewRadev/switch.vim', {
-        \   'commands': 'Switch',
-        \}
-        NeoBundle 'kana/vim-smartchr'
-        NeoBundleLazy 'cohama/lexima.vim', {
-        \   'depends': 'vim-smartchr',
-        \   'insert': 1
-        \}
-        NeoBundleLazy 'SirVer/ultisnips', {
-        \   'functions': 'UltiSnips#FileTypeChanged',
-        \   'insert': 1
-        \}
+        NeoBundleLazy 'kana/vim-smartword'
+        NeoBundleLazy 't9md/vim-smalls'
+        NeoBundleLazy 'gcmt/wildfire.vim'
+        NeoBundleLazy 'saihoooooooo/glowshi-ft.vim'
+        NeoBundleLazy 'junegunn/vim-easy-align'
+        NeoBundleLazy 'AndrewRadev/sideways.vim'
+        NeoBundleLazy 'AndrewRadev/splitjoin.vim'
+        NeoBundleLazy 'jakobwesthoff/argumentrewrap'
+        NeoBundleLazy 'triglav/vim-visual-increment'
+        NeoBundleLazy 'AndrewRadev/switch.vim'
+        NeoBundleLazy 'kana/vim-smartchr'
         NeoBundle 'Shougo/context_filetype.vim'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
-        \   'depends': 'Shougo/context_filetype.vim',
-        \   'commands': ['NeoCompleteLock', 'NeoCompleteUnlock'],
-        \   'insert': 1,
+        \   'depends': 'Shougo/context_filetype.vim'
         \}
+        NeoBundleLazy 'SirVer/ultisnips'
 
         " Text objects
         NeoBundle 'junegunn/vim-after-object'
@@ -312,81 +244,54 @@
         \   'mappings': ['vid', 'viD', 'vad', 'vaD']
         \}
 
-        " Haskell
-        NeoBundleLazy 'eagletmt/ghcmod-vim', {
-        \   'disabled': !executable('ghc-mod'),
-        \   'filetypes': 'haskell'
-        \}
-        NeoBundleLazy 'eagletmt/neco-ghc', {
-        \   'disabled': !executable('ghc-mod'),
-        \   'filetypes': 'haskell',
-        \}
-        NeoBundleLazy 'ujihisa/unite-haskellimport', {
-        \   'disabled': !executable('hoogle'),
-        \   'filetypes': 'haskell',
-        \}
-        NeoBundleLazy 'philopon/haskell-indent.vim', {
-        \   'filetypes': 'haskell',
-        \}
-        NeoBundleLazy 'philopon/hassistant.vim', {
-        \   'filetypes': 'haskell',
-        \}
-
         " PHP
-        " NeoBundleLazy 'swekaj/php-foldexpr.vim',    {'filetypes': 'php'}
-        NeoBundleLazy '2072/PHP-Indenting-for-VIm', {'filetypes': 'php'}
-        NeoBundleLazy 'shawncplus/phpcomplete.vim', {'filetypes': 'php',
-        \   'insert': 1
-        \}
-        NeoBundleLazy 'adoy/vim-php-refactoring-toolbox', {'filetypes': 'php'}
-        NeoBundleLazy 'joonty/vdebug', {'filetypes': 'php'}
+        " NeoBundleLazy 'swekaj/php-foldexpr.vim'
+        NeoBundleLazy '2072/PHP-Indenting-for-VIm'
+        NeoBundleLazy 'shawncplus/phpcomplete.vim'
         NeoBundleLazy 'tobyS/vmustache'
         NeoBundleLazy 'tobyS/pdv', {
         \   'depends': 'tobyS/vmustache',
-        \   'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine'],
-        \   'filetypes': 'php',
         \}
+        " NeoBundleLazy 'joonty/vdebug'
         " JavaScript
-        NeoBundleLazy 'othree/yajs.vim',                        {'filetypes': 'javascript'}
-        NeoBundleLazy 'othree/javascript-libraries-syntax.vim', {'filetypes': 'javascript'}
-        NeoBundleLazy 'jiangmiao/simple-javascript-indenter',   {'filetypes': 'javascript'}
-        NeoBundleLazy 'hujo/jscomplete-html5API',               {'filetypes': 'javascript'}
-        NeoBundleLazy  'https://bitbucket.org/teramako/jscomplete-vim.git', {'filetypes': 'javascript'}
+        NeoBundleLazy 'othree/yajs.vim'
+        NeoBundleLazy 'othree/javascript-libraries-syntax.vim'
+        NeoBundleLazy 'jiangmiao/simple-javascript-indenter'
+        NeoBundleLazy 'hujo/jscomplete-html5API'
+        NeoBundleLazy  'https://bitbucket.org/teramako/jscomplete-vim.git'
+
+        " HTML 
+        NeoBundleLazy 'gregsexton/MatchTag'
+        NeoBundleLazy 'othree/html5.vim'
+        " Twig
+        NeoBundleLazy 'evidens/vim-twig'
+        NeoBundleLazy 'tokutake/twig-indent'
         " CSS
-        NeoBundleLazy 'JulesWang/css.vim',                   {'filetypes': 'css'}
-        NeoBundleLazy 'hail2u/vim-css3-syntax',              {'filetypes': 'css'}
-        NeoBundleLazy '1995eaton/vim-better-css-completion', {'filetypes': 'css'}
+        NeoBundleLazy 'JulesWang/css.vim'
+        NeoBundleLazy 'hail2u/vim-css3-syntax'
+        NeoBundleLazy '1995eaton/vim-better-css-completion'
+        NeoBundleLazy 'rstacruz/vim-hyperstyle'
+        " LESS
+        NeoBundleLazy 'groenewege/vim-less'
         " JSON
-        NeoBundleLazy 'elzr/vim-json', {'filetypes': 'json'}
-        " HTML / Twig
-        NeoBundleLazy 'gregsexton/MatchTag' ,  {'filetypes': ['html', 'twig', 'html.twig']}
-        NeoBundleLazy 'othree/html5.vim',      {'filetypes': ['html', 'twig', 'html.twig']}
-        NeoBundleLazy 'evidens/vim-twig',      {'filetypes': ['twig', 'html.twig']}
-        NeoBundleLazy 'tokutake/twig-indent',  {'filetypes': ['twig', 'html.twig']}
-        " CSV
-        NeoBundleLazy 'chrisbra/csv.vim', {'filetypes': 'csv'}
+        NeoBundleLazy 'elzr/vim-json'
+        " JSX
+        NeoBundleLazy 'mxw/vim-jsx'
         " SQL
-        NeoBundleLazy 'shmup/vim-sql-syntax', {'filetypes': ['sql', 'php']}
+        NeoBundleLazy 'shmup/vim-sql-syntax'
         " Nginx
-        NeoBundleLazy 'yaroot/vim-nginx', {'filetypes': 'nginx'}
+        NeoBundleLazy 'yaroot/vim-nginx'
+        " CSV
+        NeoBundleLazy 'chrisbra/csv.vim'
         " Docker
-        NeoBundle 'ekalinin/Dockerfile.vim'
-        " Log
-        NeoBundle 'dzeban/vim-log-syntax'
-        " VCS
-        NeoBundle 'itchyny/vim-gitbranch'
-        NeoBundleLazy 'cohama/agit.vim', {
-        \   'commands': 'Agit'
-        \}
+        NeoBundleLazy 'ekalinin/Dockerfile.vim'
 
         " NeoBundleCheck
         NeoBundleSaveCache
     endfunction
 
     call neobundle#begin($VIMFILES.'/bundle')
-    if neobundle#has_cache()
-        NeoBundleLoadCache
-    else
+    if neobundle#load_cache()
         call CacheBundles()
     endif
     call neobundle#end()
@@ -396,32 +301,51 @@
 
 " Bundle settings
 "---------------------------------------------------------------------------
-    if neobundle#is_installed('crunch.vim')
-        let g:crunch_result_type_append = 0
-        nmap <silent> <leader>x <Plug>CrunchOperator_
-        xmap <silent> <leader>x <Plug>VisualCrunchOperator
-        " <leader>z: toggle crunch append
-        nmap <silent> <leader>z :<C-r>={
+    if neobundle#tap('crunch.vim')
+        call neobundle#config({
+        \   'commands': 'Crunch',
+        \   'mappings': ['<Plug>CrunchOperator', '<Plug>VisualCrunchOperator']
+        \})
+
+        nnoremap <silent> ,x <Plug>CrunchOperator_
+        xnoremap <silent> ,x <Plug>VisualCrunchOperator
+        " ,z: toggle crunch append
+        nnoremap <silent> ,z :<C-r>={
             \ '0': 'let g:crunch_result_type_append = 1',
             \ '1': 'let g:crunch_result_type_append = 0'}[g:crunch_result_type_append]<CR><CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:crunch_result_type_append = 0
+        endfunction
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('undotree')
-        let g:undotree_WindowLayout = 4
-        let g:undotree_SplitWidth = 36
-        let g:undotree_SetFocusWhenToggle = 1
-        nnoremap <silent> <leader>u :call <SID>undotreeMyToggle()<CR>
+    if neobundle#tap('undotree')
+        call neobundle#config({'commands': 'UndotreeToggle'})
+
+        nnoremap <silent> ,u :call <SID>undotreeMyToggle()<CR>
+        AutocmdFT diff,undotree setl nornu nonu colorcolumn=
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:undotree_WindowLayout = 4
+            let g:undotree_SplitWidth = 36
+            let g:undotree_SetFocusWhenToggle = 1
+        endfunction
+
         function! s:undotreeMyToggle()
             if &filetype != 'php'
                 let s:undotree_lastft = &filetype
                 AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
-                    \ exe 'setl syntax='.s:undotree_lastft
+                    \ exe 'setl syntax='. s:undotree_lastft
             endif
             AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
                 \  nmap <silent> <buffer> q :<C-u>UndotreeHide<CR>
                 \| nmap <silent> <buffer> ` :<C-u>UndotreeHide<CR>
+
             UndotreeToggle
         endfunction
+
         function! g:Undotree_CustomMap()
             nmap <buffer> o <CR>
             nmap <buffer> u <Plug>UndotreeUndo
@@ -432,7 +356,8 @@
             nmap <buffer> t <Plug>UndotreeTimestampToggle
             nmap <buffer> C <Plug>UndotreeClearHistory
         endfunction
-        AutocmdFT diff,undotree setl nornu nonu colorcolumn=
+
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-session')
@@ -443,13 +368,13 @@
         let g:session_directory = $VIMFILES.'/session'
         set sessionoptions-=blank,help,options
 
-        nmap <F9>       :<C-u>RestartVim!<CR>
-        nmap <leader>sl :<C-u>SessionOpen!<Space>
-        nmap <leader>ss :<C-u>SessionSave!<CR>
-        nmap <leader>sc :<C-u>SessionClose!<CR>
-        nmap <leader>sd :<C-u>SessionDelete!<Space>
-        nmap <leader>sa :<C-u>call <SID>inputSessionName()<CR>
-        nmap <leader>ss :<C-u>SessionSaveWithTimeStamp<CR>
+        nmap <F9> :<C-u>RestartVim!<CR>
+        nmap ,sl  :<C-u>SessionOpen!<Space>
+        nmap ,ss  :<C-u>SessionSave!<CR>
+        nmap ,sc  :<C-u>SessionClose!<CR>
+        nmap ,sd  :<C-u>SessionDelete!<Space>
+        nmap ,sa  :<C-u>call <SID>inputSessionName()<CR>
+        nmap ,ss  :<C-u>SessionSaveWithTimeStamp<CR>
 
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
@@ -475,6 +400,7 @@
         \   'Leader':            '\',
         \   'ToggleMarkAtLine':  '=',
         \   'PlaceNextMark':     '',
+        \   'DeleteMark':        '-',
         \   'GotoNextSpotAlpha': '<Up>',
         \   'GotoPrevSpotAlpha': '<Down>',
         \   'GotoNextLineAlpha': '<S-Up>',
@@ -489,14 +415,80 @@
             \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
     endif
 
-    if neobundle#is_installed('vim-visual-increment')
+    if neobundle#tap('vimfiler.vim')
+        call neobundle#config({'commands': ['VimFiler', 'VimFilerCurrentDir']})
+
+        nnoremap <silent> [prefix]d :<C-u>VimFilerCurrentDir -split -toggle -no-quit -invisible<CR>
+
+        let g:vimfiler_force_overwrite_statusline = 0
+        let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
+        let g:unite_kind_file_use_trashbox = s:is_windows
+
+        let g:vimfiler_ignore_pattern = 
+            \ '^\%(\..*\|.git\|bin\|node_modules\)$'
+
+        " Icons
+        let g:vimfiler_file_icon = ' '
+        let g:vimfiler_tree_leaf_icon = ' '
+        let g:vimfiler_tree_opened_icon = '▾'
+        let g:vimfiler_tree_closed_icon = '▸'
+
+        " Default profile
+        let s:vimfilter_default = {
+        \   'safe': 0,
+        \   'parent': 0,
+        \   'explorer': 1,
+        \   'winwidth': 20,
+        \}
+
+        " Custom profiles
+        call vimfiler#custom#profile('default', 'context', s:vimfilter_default)
+
+        " Vimfilter tuning
+        AutocmdFT vimfiler
+            \ setl nonu nornu nolist cursorline colorcolumn= statusline=%(\ %)
+
+        AutocmdFT vimfiler call s:setVimfilerMappings()
+        function! s:setVimfilerMappings()
+            call clearmatches()
+
+            " Normal mode
+            nmap <buffer> l <Plug>(vimfiler_expand_tree)
+            nmap <buffer> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
+            nmap <buffer> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)
+            nmap <buffer> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)
+            nmap <buffer> n <Plug>(vimfiler_new_file)
+            nmap <buffer> N <Plug>(vimfiler_make_directory)
+            nmap <buffer> <expr> v vimfiler#do_switch_action('vsplit')
+            nmap <buffer> <expr> s vimfiler#do_switch_action('split')
+            nmap <buffer> <expr> t vimfiler#do_action('tabopen')
+
+            " Unbinds
+            nmap <buffer> K <Nop>
+        endfunction
+
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('vim-projectionist')
+        call neobundle#config({'functions': 'ProjectionistDetect'})
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('vim-visual-increment')
+        call neobundle#config({'mappings': ['<Plug>VisualIncrement', '<Plug>VisualDecrement']})
+
         " CTRL+A and CTRL+X works also for letters
         set nrformats+=alpha
         xmap <C-a> <Plug>VisualIncrement
         xmap <C-x> <Plug>VisualDecrement
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-smartword')
+    if neobundle#tap('vim-smartword')
+        call neobundle#config({'mappings': '<Plug>'})
+
         nmap w  <Plug>(smartword-w)
         nmap e  <Plug>(smartword-e)
         nmap b  <Plug>(smartword-b)
@@ -505,9 +497,15 @@
         vmap e  <Plug>(smartword-e)
         vmap b  <Plug>(smartword-b)
         vmap ge <Plug>(smartword-ge)
+
+        call neobundle#untap()
     endif
 
     if neobundle#tap('vim-easy-align')
+        call neobundle#config({'mappings': '<Plug>(EasyAlign)'})
+
+        vmap <Enter> <Plug>(EasyAlign)
+
         function! neobundle#hooks.on_source(bundle)
             let g:easy_align_ignore_groups = ['Comment', 'String']
             let g:easy_align_delimiters = {
@@ -519,37 +517,68 @@
             \   'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0}
             \}
         endfunction
-        vmap <Enter> <Plug>(EasyAlign)
+
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-brightest')
-        let g:brightest#enable_filetypes = {
-        \   '_': 0,
-        \   'php': 1,
-        \   'javascript': 1
-        \}
-        let g:brightest#highlight = {'group': 'BrightestCursorLine'}
-        let g:brightest#ignore_syntax_list = ['Comment']
-        Autocmd VimEnter,Colorscheme *
-            \ hi BrightestCursorLine guifg=#2B2B2B guibg=#FBF8EA gui=NONE
+    if neobundle#tap('vim-brightest')
+        call neobundle#config({'filetypes': ['php', 'javascript']})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:brightest#enable_filetypes = {
+            \   '_': 0,
+            \   'php': 1,
+            \   'javascript': 1
+            \}
+            let g:brightest#highlight = {'group': 'BrightestCursorLine'}
+            let g:brightest#ignore_syntax_list = ['Comment']
+
+            hi BrightestCursorLine guifg=#2B2B2B guibg=#FBF8EA gui=NONE
+        endfunction
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('sideways.vim')
-       nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>
-       nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>
-       nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>
-       nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>
+    if neobundle#tap('sideways.vim')
+        call neobundle#config({'commands': 'Sideways'})
+
+        nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>
+        nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>
+        nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>
+        nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-jsbeautify')
-        AutocmdFT javascript nmap <silent> <buffer> <leader>b :<C-u>call JsBeautify()<CR>
-        AutocmdFT html       nmap <silent> <buffer> <leader>b :<C-u>call HtmlBeautify()<CR>
-        AutocmdFT css        nmap <silent> <buffer> <leader>b :<C-u>call CSSBeautify()<CR>
-    endif
+    if neobundle#tap('vim-jsbeautify')
+        call neobundle#config({'filetypes': ['javascript', 'html', 'css']})
 
-    if neobundle#is_installed('agit.vim')
-        nnoremap <silent> <leader>g :<C-u>Agit<CR>
+        AutocmdFT javascript nmap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
+        AutocmdFT html       nmap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
+        AutocmdFT css        nmap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:config_Beautifier = {
+            \   'js': {
+            \       'indent_size':            2,
+            \       'indent_style':           'space',
+            \       'max_preserve_newlines':  2,
+            \       'keep_array_indentation': 'true'
+            \   },
+            \   'html': {
+            \       'indent_size':  2,
+            \       'indent_style': 'space',
+            \       'brace_style':  'expand',
+            \       'max_char':     120
+            \   },
+            \   'css': {
+            \       'indent_size':  2,
+            \       'indent_style': 'space'
+            \   }
+            \}
+        endfunction
+
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-after-object')
@@ -559,39 +588,54 @@
     endif
 
     if neobundle#tap('wildfire.vim')
+        call neobundle#config({'mappings': '<Plug>'})
+
+        nmap vv    <Plug>(wildfire-fuel)
+        xmap vv    <Plug>(wildfire-fuel)
+        xmap <C-v> <Plug>(wildfire-water)
+
         function! neobundle#hooks.on_source(bundle)
             let g:wildfire_objects = {
             \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
             \   'html,twig,html.twig,xml': ["at"]
             \}
         endfunction
-        nmap vv    <Plug>(wildfire-fuel)
-        xmap vv    <Plug>(wildfire-fuel)
-        xmap <C-v> <Plug>(wildfire-water)
+
         call neobundle#untap()
     endif
 
     if neobundle#tap('vim-commentary')
+        call neobundle#config({'mappings': ['<Plug>Commentary', '<Plug>CommentaryLine']})
+
+        nmap q <Plug>CommentaryLine
+        vmap q <Plug>Commentary
+        nmap ,q gccyypgcc
+        xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
+
         function! neobundle#hooks.on_source(bundle)
             let g:commentary_map_backslash = 0
             unmap \
             unmap cgc
         endfunction
-        nmap q <Plug>CommentaryLine
-        vmap q <Plug>Commentary
-        nmap <leader>q gccyypgcc
-        xmap <silent> <expr> <leader>q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
+
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('argumentrewrap')
-        nnoremap <silent> <S-k> :<C-u>call argumentrewrap#RewrapArguments()<CR>
+    if neobundle#tap('argumentrewrap')
+        call neobundle#config({'functions': 'argumentrewrap#RewrapArguments'})
+
+        map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('splitjoin.vim')
+    if neobundle#tap('splitjoin.vim')
+        call neobundle#config({'commands': ['SplitjoinJoin', 'SplitjoinSplit']})
+
         " Join line in Insert mode using <C-J>
         nnoremap <silent> J :<C-u>call <SID>trySplitJoin('SplitjoinJoin',  'J')<CR>
         nnoremap <silent> S :<C-u>call <SID>trySplitJoin('SplitjoinSplit', "r\015")<CR><CR>
+
         function! s:trySplitJoin(cmd, default)
             if exists(':' . a:cmd) && !v:count
                 let tick = b:changedtick | exe a:cmd
@@ -602,9 +646,16 @@
                 exe join(['normal! ', v:count, a:default], '')
             endif
         endfunction
+
+        call neobundle#untap()
     endif
 
     if neobundle#tap('vim-smalls')
+        call neobundle#config({'mappings': '<Plug>'})
+
+        nmap s <Plug>(smalls)
+        " nmap f <Plug>(smalls-excursion)
+
         function! neobundle#hooks.on_source(bundle)
             let g:smalls_highlight = {
             \   'SmallsCandidate'  : [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
@@ -614,13 +665,14 @@
             \   'SmallsCli'        : [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
             \}
             call smalls#keyboard#cli#extend_table({
-            \   "\<C-o>" : 'do_excursion',
-            \   "\<C-i>" : 'do_excursion',
-            \   "\<C-j>" : 'do_excursion',
-            \   "\<C-k>" : 'do_excursion',
-            \   "\<C-c>" : 'do_cancel',
-            \   "\q"     : 'do_cancel',
-            \   "\`"     : 'do_cancel'
+            \   "\<S-Space>" : 'do_excursion',
+            \   "\<C-o>"     : 'do_excursion',
+            \   "\<C-i>"     : 'do_excursion',
+            \   "\<C-j>"     : 'do_excursion',
+            \   "\<C-k>"     : 'do_excursion',
+            \   "\<C-c>"     : 'do_cancel',
+            \   "\q"         : 'do_cancel',
+            \   "\`"         : 'do_cancel'
             \})
             call smalls#keyboard#excursion#extend_table({
             \   "\Q" : 'do_cancel',
@@ -628,12 +680,17 @@
             \   "\`" : 'do_set',
             \   "\p" : 'do_jump'
             \})
-        endfunction           
-        nmap s <Plug>(smalls)
+        endfunction
+
         call neobundle#untap()
     endif
 
     if neobundle#tap('glowshi-ft.vim')
+        call neobundle#config({'mappings': '<Plug>'})
+
+        map f <Plug>(glowshi-ft-f)
+        map F <Plug>(glowshi-ft-F)
+
         function! neobundle#hooks.on_source(bundle)
             let g:glowshi_ft_fix_key = '[\<NL>\o]'
             let g:glowshi_ft_cancel_key = '\`'
@@ -641,14 +698,43 @@
             let g:glowshi_ft_candidates_hl_guibg = '#DDEECC'
             let g:glowshi_ft_no_default_key_mappings = 1
         endfunction
-        map f <Plug>(glowshi-ft-f)
-        map F <Plug>(glowshi-ft-F)
-        map t <Plug>(glowshi-ft-t)
-        map T <Plug>(glowshi-ft-T)
+
+        call neobundle#untap()
+    endif
+    
+    if neobundle#tap('lexima.vim')
+        call neobundle#config({'insert': 1})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:lexima_no_default_rules = 1
+            let g:lexima_no_map_to_escape = 1
+            let g:lexima_enable_newline_rules = 1
+            let g:lexima_enable_endwise_rules = 0
+
+            silent! call remove(g:lexima#default_rules, 11, -1)
+            for rule in g:lexima#default_rules
+                call lexima#add_rule(rule)
+            endfor
+
+            " { <CR> }
+            call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
+            call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}'})
+        endfunction
+
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('switch.vim')
+    if neobundle#tap('switch.vim')
+        call neobundle#config({
+        \   'commands': 'Switch',
+        \   'functions': 'switch#Switch'
+        \})
+
+        nnoremap <silent> <Tab> :<C-u>Switch<CR>
+        xnoremap <silent> <Tab> :<C-u>Switch<CR>
+        nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switch_def_camelcase)<CR>
+        nnoremap <silent> @ :<C-u>silent! call switch#Switch(g:switch_def_quotes)<CR>
+
         let g:switch_mapping = ''
         let g:switch_def_quotes = [{
         \   '''\(.\{-}\)''': '"\1"',
@@ -662,7 +748,9 @@
         \   '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
         \   '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
         \}]
-        AutocmdFT php let b:switch_custom_definitions = [
+
+        AutocmdFT php
+        \ let b:switch_custom_definitions = [
         \   ['==', '!='],
         \   ['&&', '||'],
         \   ['and', 'or'],
@@ -678,9 +766,10 @@
         \       '\([^=]\)==\([^=]\)': '\1===\2'
         \   }
         \]
-        AutocmdFT html,twig,html.twig let b:switch_custom_definitions = [
+        AutocmdFT html,twig,html.twig
+        \ let b:switch_custom_definitions = [
         \   ['h1', 'h2', 'h3'],
-        \   ['png', 'jpg', 'gif'], 
+        \   ['png', 'jpg', 'gif'],
         \   ['id=', 'class=', 'style='],
         \   {
         \     '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
@@ -691,7 +780,8 @@
         \     '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
         \   }
         \]
-        AutocmdFT css let b:switch_custom_definitions = [
+        AutocmdFT css
+        \ let b:switch_custom_definitions = [
         \   ['border-top', 'border-bottom'],
         \   ['border-left', 'border-right'],
         \   ['border-left-width', 'border-right-width'],
@@ -715,13 +805,16 @@
         \   ['top', 'bottom'],
         \   ['em', 'px', '%']
         \]
-        nnoremap <silent> <Tab> :<C-u>Switch<CR>
-        xnoremap <silent> <Tab> :<C-u>Switch<CR>
-        nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switch_def_camelcase)<CR>
-        nnoremap <silent> @ :<C-u>silent! call switch#Switch(g:switch_def_quotes)<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-smartchr')
+    if neobundle#tap('vim-smartchr')
+        call neobundle#config({
+        \   'functions': 'smartchr#loop',
+        \   'insert': 1
+        \})
+
         command! -nargs=* ImapBufExpr inoremap <buffer> <expr> <args>
         AutocmdFT haskell
             \  ImapBufExpr \ smartchr#loop('\ ', '\')
@@ -739,407 +832,6 @@
         AutocmdFT yaml
             \  ImapBufExpr > smartchr#loop('>', '%>')
             \| ImapBufExpr < smartchr#loop('<', '<%', '<%=')
-    endif
-
-    if neobundle#tap('lexima.vim')
-        function! neobundle#hooks.on_source(bundle)
-            let g:lexima_no_map_to_escape = 1
-            let g:lexima_enable_endwise_rules = 0
-
-            let g:lexima_oper_space_ft = ['php'] 
-            let g:lexima_pair_space_ft = ['javascript']
-
-            call lexima#set_default_rules()
-            " Deleting the rule "`" (30-36)
-            silent! call remove(g:lexima#default_rules, 30, -1)
-
-            let indents = "^\(\t\|  \)\+"
-            let opx     = "\(" . join(['[+-\*/%?]', '[&|<>]\{1,2}', '>>>'], '\|') . "\)"
-
-            " Disable lexima inside string literal
-            function! s:disable_lexima_inside_string(char)
-                call lexima#add_rule({
-                \   'char':  a:char,
-                \   'at':    '^\([^"]*"[^"]*"\)*[^"]*"[^"]*\%#',
-                \   'input': a:char,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  a:char,
-                \   'at':    '^\([^'']*''[^'']*''\)*[^'']*''[^'']*\%#',
-                \   'input': a:char,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':   a:char,
-                \   'at':     '\%#',
-                \   'input':  a:char,
-                \   'mode':   'i',
-                \   'syntax': ['String'],
-                \})
-            endfunction
-
-            function! s:disable_lexima_inside_regexp(char)
-                call lexima#add_rule({
-                \   'char':  a:char,
-                \   'at':    '\(...........\)\?/\S.*\%#.*\S/',
-                \   'input': a:char,
-                \   'mode':  'i',
-                \})
-            endfunction
-
-            " Operators
-            "-----------------------------------------------
-            " Looping with Smartchr
-            let rules = {
-            \   '&':     "smartchr#loop('&', '&&')",
-            \   '<Bar>': "smartchr#loop('|', '||')",
-            \}
-
-            for [char, rule] in items(rules)
-                let uchar = substitute(char, '<bar>', '|', '')
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '\S\%#',
-                \   'input':    ' ' . char . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '^\s*\%#',
-                \   'input':    char . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '^\s*\%# ',
-                \   'input':    char,
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '\S \%#',
-                \   'input':    char . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '\S \%# ',
-                \   'input':    char,
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '\(...\)\?' . uchar . ' \%#',
-                \   'input':    '<BS><C-r>=' . rule . '<CR><Space>',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     char,
-                \   'at':       '\(...\)\?' . uchar . ' \%# ',
-                \   'input':    '<BS><C-r>=' . rule . '<CR>',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-
-                call s:disable_lexima_inside_string(char)
-                call s:disable_lexima_inside_regexp(char)
-            endfor
-
-            " Space around
-            for op in ['/', '*', '=', '%']
-                let eop = escape(op, '*')
-                call lexima#add_rule({
-                \   'char':     op,
-                \   'at':       '\w\%#',
-                \   'input':    ' ' . op . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     op,
-                \   'at':       '\(^\|\w\) ' . eop . '\%#',
-                \   'input':    op . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-                call lexima#add_rule({
-                \   'char':     op,
-                \   'at':       eop . ' \%#',
-                \   'input':    '<BS>' . op . ' ',
-                \   'mode':     'i',
-                \   'filetype': g:lexima_oper_space_ft,
-                \})
-
-                call s:disable_lexima_inside_string(op)
-                call s:disable_lexima_inside_regexp(op)
-            endfor
-
-            " Compound assignment operator
-            call lexima#add_rule({
-            \   'char':     '=',
-            \   'at':       '\s[&|?+-/<>]\%#',
-            \   'input':    '= ',
-            \   'mode':     'i',
-            \   'filetype': g:lexima_oper_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '=',
-            \   'at':       '[&|?+-/<>] \%#',
-            \   'input':    '<BS>= ',
-            \   'mode':     'i',
-            \   'filetype': g:lexima_oper_space_ft,
-            \})
-
-            " Slash as non arithmetic operators
-            call lexima#add_rule({
-            \   'char':     '/',
-            \   'at':       '\S/\S[^/]*\%#',
-            \   'input':    '/',
-            \   'mode':     'i',
-            \   'filetype': g:lexima_oper_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '/',
-            \   'at':       '^\s*\%#',
-            \   'input':    '/',
-            \   'mode':     'i',
-            \   'filetype': g:lexima_oper_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '/',
-            \   'at':       '^\s*/.*\%#',
-            \   'input':    '/',
-            \   'mode':     'i',
-            \   'filetype': g:lexima_oper_space_ft,
-            \})
-            call s:disable_lexima_inside_regexp('/')
-
-            " Delete whole pair
-            for pair in ['()', '[]', '{}', '<>']
-                let epair = escape(pair, '[]')
-                call lexima#add_rule({
-                \   'char':  '<BS>',
-                \   'at':    epair[0] . '\s\+' . epair[1] . '\%#',
-                \   'input': '<C-o>di' . pair[0],
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  '<BS>',
-                \   'at':    epair . '\%#',
-                \   'input': '<BS><BS>',
-                \   'mode':  'i',
-                \})
-            endfor
-
-            " Fix pair completion
-            for pair in ['()', '[]', '{}']
-                call lexima#add_rule({
-                \   'char':  pair[0],
-                \   'at':    '\(........\)\?\%#[^\s' . escape(pair[1], ']') . ']',
-                \   'input': pair[0],
-                \   'mode':  'i',
-                \})
-            endfor
-
-            " ( )
-            call lexima#add_rule({
-            \   'char':        '<Space>',
-            \   'at':          '(\%#)',
-            \   'input':       '<Space>',
-            \   'input_after': '<Space>',
-            \   'mode':        'i',
-            \   'filetype':    g:lexima_pair_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '<BS>',
-            \   'at':       '( \%# )',
-            \   'input':    '<BS>',
-            \   'delete':   1,
-            \   'mode':     'i',
-            \   'filetype': g:lexima_pair_space_ft,
-            \})
-
-            " {  }
-            call lexima#add_rule({
-            \   'char':        '<Space>',
-            \   'at':          '{\%#}',
-            \   'input':       '<Space>',
-            \   'input_after': '<Space>',
-            \   'mode':        'i',
-            \   'filetype':    g:lexima_pair_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '<BS>',
-            \   'at':       '{ \%# }',
-            \   'input':    '<BS>',
-            \   'delete':   1,
-            \   'mode':     'i',
-            \   'filetype': g:lexima_pair_space_ft,
-            \})
-
-            " [ ]
-            call lexima#add_rule({
-            \   'char':        '<Space>',
-            \   'at':          '\[\%#\]',
-            \   'input':       '<Space>',
-            \   'input_after': '<Space>',
-            \   'mode':        'i',
-            \   'filetype':    g:lexima_pair_space_ft,
-            \})
-            call lexima#add_rule({
-            \   'char':     '<BS>',
-            \   'at':       '\[ \%# \]',
-            \   'input':    '<BS>',
-            \   'delete':   1,
-            \   'mode':     'i',
-            \   'filetype': g:lexima_pair_space_ft,
-            \})
-
-            " Quotes
-            for quote in ['"', "'"]
-                call lexima#add_rule({
-                \   'char':  quote,
-                \   'at':    '\(.......\)\?\%#\w',
-                \   'input': quote,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  quote,
-                \   'at':    '\(.......\)\?' . quote . '\%#',
-                \   'input': quote,
-                \   'mode':  'i',
-                \})
-                call lexima#add_rule({
-                \   'char':  quote,
-                \   'at':    '\(...........\)\?\%#' . quote,
-                \   'input': '<Right>',
-                \   'mode':  'i',
-                \})
-                call s:disable_lexima_inside_regexp(quote)
-            endfor
-
-            " HTML
-            "-----------------------------------------------
-            " Tag
-            call lexima#add_rule({
-            \   'char':     '>',
-            \   'at':       '\(.....\)\?<\%#',
-            \   'input':    '>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-            call lexima#add_rule({
-            \   'char':     '>',
-            \   'at':       '\(........\)\?< \%#',
-            \   'input':    '<BS>><Left>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-            call lexima#add_rule({
-            \   'char':     '>',
-            \   'at':       '\(........\)\?<\%#>',
-            \   'input':    '<Right>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-            call lexima#add_rule({
-            \   'char':     '<',
-            \   'at':       '\(........\)\?\%#',
-            \   'input':    '<><Left>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-            call lexima#add_rule({
-            \   'char':     '>',
-            \   'at':       '\(........\)\?\%#',
-            \   'input':    '>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-            call lexima#add_rule({
-            \   'char':     '>',
-            \   'at':       '\(........\)\?\%#>',
-            \   'input':    '<Right>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-
-            " Attributes
-            call lexima#add_rule({
-            \   'char':     '=',
-            \   'at':       '\(........\)\?<.\+\%#',
-            \   'input':    '=""<Left>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-
-            " Closing tag
-            call lexima#add_rule({
-            \   'char':     '/',
-            \   'at':       '\(........\)\?<\%#>',
-            \   'input':    '/<C-x><C-o><BS><ESC>a',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-
-            " Comment
-            call lexima#add_rule({
-            \   'char':     '-',
-            \   'at':       '\(........\)\?<\%#>',
-            \   'input':    '!--  --<Left><Left><Left>',
-            \   'mode':     'i',
-            \   'filetype': 'html',
-            \})
-        endfunction
-
-        " PHP
-        "-----------------------------------------------
-        for at in ['if', 'elseif', 'while']
-            call lexima#add_rule({
-            \   'char':        '<Space>',
-            \   'at':          '\<\%(' . at . '\)\>\%#',
-            \   'input':       '<Space>(',
-            \   'input_after': ') ',
-            \   'filetype':    'php',
-            \})
-        endfor
-
-        " ->
-        call lexima#add_rule({
-        \   'char':     '-',
-        \   'at':       '\$\w\+\(-\|->\)\%#',
-        \   'input':    "\<C-r>=smartchr#loop('-', '->')\<CR>",
-        \   'mode':     'i',
-        \   'filetype': 'php',
-        \})
-        " ::
-        call lexima#add_rule({
-        \   'char':     ';',
-        \   'at':       '\w\+\(;\|::\)\%#',
-        \   'input':    "\<C-r>=smartchr#loop(';', '::')\<CR>",
-        \   'mode':     'i',
-        \   'filetype': 'php',
-        \})
-        " use as
-        call lexima#add_rule({
-        \   'char':     '<Space>',
-        \   'at':       '^\<\%(use\)\s\w\+\%#',
-        \   'input':    '<Space>as<Space>;<Left>',
-        \   'mode':     'i',
-        \   'filetype': 'php',
-        \})
-
-        function! neobundle#hooks.on_post_source(bundle)
-            inoremap <silent> ` <C-R>=UltiSnips#ExpandSnippet()<CR>
-            snoremap <silent> ` <Esc> :call UltiSnips#ExpandSnippet()<CR>
-        endfunction           
 
         call neobundle#untap()
     endif
@@ -1151,7 +843,7 @@
             let s:context_ft_def = context_filetype#default_filetypes()
             let g:context_filetype#filetypes[a:filetype] = add(s:context_ft_def.html, a:rule)
         endfunction
-        
+
         " CSS
         let s:context_ft_css = {
         \   'start':    '<style>',
@@ -1177,7 +869,12 @@
         call <SID>addContext(s:context_ft_jsx, 'html')
     endif
 
-    if neobundle#is_installed('neocomplete.vim')
+    if neobundle#tap('neocomplete.vim') && has('lua')
+        call neobundle#config({
+        \   'commands': ['NeoCompleteLock', 'NeoCompleteUnlock'],
+        \   'insert': 1
+        \})
+
         let g:neocomplete#enable_at_startup = 1
         let g:neocomplete#enable_smart_case = 1
         let g:neocomplete#enable_camel_case = 1
@@ -1203,7 +900,7 @@
         let g:neocomplete#sources._ = ['buffer']
         let g:neocomplete#sources.php = ['buffer', 'member', 'omni', 'tag', 'file', 'ultisnips']
         let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'ultisnips']
-        let g:neocomplete#sources.html = ['buffer', 'omni', 'file', 'ultisnips']
+        let g:neocomplete#sources.html = ['omni', 'ultisnips']
         let g:neocomplete#sources.css = ['omni', 'ultisnips']
         " Custom settings
         call neocomplete#custom#source('omni', 'rank', 10)
@@ -1218,6 +915,7 @@
         let g:neocomplete#sources#omni#input_patterns.javascript = '\h\w*\|\h\w*\.\%(\h\w*\)\?\[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
         let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
+        let g:neocomplete#sources#omni#input_patterns.json = '"[^"]*'
 
         " Tab: completion
         imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
@@ -1229,18 +927,27 @@
 
         function! s:checkBackSpace()
             let col = col('.') - 1
-            return !col || getline('.')[col-1] =~ '\s'
+            return !col || getline('.')[col - 1] =~ '\s'
         endfunction
+
+        call neobundle#untap()
     endif
 
-    if neobundle#tap('ultisnips')
+    if neobundle#tap('ultisnips') && has('python')
+        call neobundle#config({
+        \   'functions': 'UltiSnips#FileTypeChanged',
+        \   'insert': 1
+        \})
+
+        snoremap <C-c> <Esc>
+        Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
+
         function! neobundle#hooks.on_source(bundle)
             let g:UltiSnipsExpandTrigger = '`'
             let g:UltiSnipsListSnippets = '<S-F12>'
             let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
-            snoremap <C-c> <Esc>
         endfunction
-        Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
+
         call neobundle#untap()
     endif
 
@@ -1249,15 +956,16 @@
         let g:unite_source_rec_min_cache_files = 50
         let g:unite_source_buffer_time_format = '%H:%M '
         let g:unite_data_directory = $VIMCACHE.'/unite'
-        " Search tool
-        let g:unite_source_grep_command = executable('pt') ? 'pt' : executable('ag') ? 'ag' : ''
-        let g:unite_source_grep_recursive_opt = ''
-        let g:unite_source_grep_encoding = 'utf-8'
-        let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+
         if executable('ag')
+            let g:unite_source_grep_command = 'ag'
+            let g:unite_source_grep_recursive_opt = ''
+            let g:unite_source_grep_encoding = 'utf-8'
+            let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+
             let g:unite_source_rec_async_command = 'ag'
                 \.  ' '. join(map(split(g:ignore_pattern, ','), '"\--ignore \"*.".v:val."\""'), ' ')
-                \.  (&smartcase ? ' -S' : ''). ' --nogroup --nocolor -C4 -l .'
+                \.  (&smartcase ? ' -S' : ''). ' --nogroup --nocolor --hidden -l .'
         endif
 
         " Default profile
@@ -1294,16 +1002,17 @@
         call unite#filters#matcher_default#use(['matcher_fuzzy'])
         call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
         call unite#custom#source('file_rec/async', 'max_candidates', 0)
-        call unite#custom#source('file_rec/async',
-            \ 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
-        call unite#custom#source('source/grep,',
-            \ 'ignore_globs', map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
+        call unite#custom#source('file_rec/async', 'matchers', 
+            \ ['converter_relative_word', 'matcher_fuzzy'])
+        call unite#custom#source('source/grep,', 'ignore_globs', 
+            \ map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
 
         " Unite tuning
         AutocmdFT unite
             \ setl nolist guicursor=a:blinkon0
             \| Autocmd InsertEnter,InsertLeave <buffer>
                 \ setl nonu nornu nolist colorcolumn=
+
         Autocmd VimEnter,Colorscheme *
             \  hi link uniteStatusHead             StatusLine
             \| hi link uniteStatusNormal           StatusLine
@@ -1312,9 +1021,10 @@
             \| hi link uniteStatusSourceCandidates User1
             \| hi link uniteStatusLineNR           User2
 
-        AutocmdFT unite call <SID>uniteSettings()
+        AutocmdFT unite call <SID>setUniteMappings()
             \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
-        function! s:uniteSettings()
+
+        function! s:setUniteMappings()
             call clearmatches()
 
             " Normal mode
@@ -1363,6 +1073,7 @@
         " [prefix]t: open tab pages
         nnoremap <silent> [prefix]t
             \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
+
         " [prefix]f: open files
         nnoremap <silent> [prefix]f
             \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -start-insert<CR>
@@ -1371,7 +1082,7 @@
         nnoremap <silent> [prefix]g
             \ :<C-u>Unite grep:. -no-split -auto-preview<CR>
         " /: search
-        nnoremap <silent> /
+        nnoremap <silent> [prefix]s
             \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert<CR>
         " *: search keyword under the cursor
         nnoremap <silent> *
@@ -1399,97 +1110,113 @@
         call unite#custom#source('neomru/file,neomru/directory',
             \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
         " [prefix]l: open recently-opened files
-        nnoremap <silent> [prefix]l :<C-u>Unite neomru/file<CR>
+        nnoremap <silent> [prefix]w :<C-u>Unite neomru/file<CR>
         " [prefix]L: open recently-opened directories
-        nnoremap <silent> [prefix]L :<C-u>Unite neomru/directory<CR>
+        nnoremap <silent> [prefix]W :<C-u>Unite neomru/directory<CR>
     endif
 
-    if neobundle#is_installed('unite-vimpatches')
+
+    if neobundle#tap('unite-vimpatches')
+        call neobundle#config({'unite_sources': 'vimpatches'})
+
         " [prefix]p: open vimpatches log
         nnoremap <silent> [prefix]U :<C-u>Unite vimpatches -buffer-name=neobundle<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('unite-outline')
+    if neobundle#tap('unite-quickfix')
+        call neobundle#config({'unite_sources': 'quickfix'})
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('unite-outline')
+        call neobundle#config({'unite_sources': 'outline'})
+
         " [prefix]o: outline
         nnoremap <silent> [prefix]o :<C-u>Unite outline -winheight=16 -silent<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('unite-filetype')
+    if neobundle#tap('unite-filetype')
+        call neobundle#config({'unite_sources': ['filetype', 'filetype/new']})
+
         call unite#custom#source('filetype', 'sorters', 'sorter_length')
         " [prefix]r: filetype change
         nnoremap <silent> [prefix]z :<C-u>Unite filetype filetype/new -start-insert<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('httpstatus-vim')
+    if neobundle#tap('httpstatus-vim')
+        call neobundle#config({'unite_sources': 'httpstatus'})
+
         " F12: http codes
         nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('unite-tag')
+    if neobundle#tap('unite-tag')
+        call neobundle#config({'unite_sources': ['tag', 'tag/include', 'tag/file']})
+
         Autocmd BufEnter,WinEnter * call <SID>UniteTagSettings()
+
         function! s:UniteTagSettings()
             if empty(&buftype)
                 " Ctrl-]: open tag under cursor
                 nnoremap <silent> <buffer> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
                 " m+t: open tag
-                nmap <silent> <buffer> mt :<C-u>UniteWithCursorWord tag tag/include<CR>
+                nnoremap <silent> <buffer> mt :<C-u>UniteWithCursorWord tag tag/include<CR>
                 " m+T: search tag by name
-                nmap <silent> <buffer> mT :<C-u>call <SID>inputSearchTag()<CR>
+                nnoremap <silent> <buffer> mT :<C-u>call <SID>inputSearchTag()<CR>
             endif
         endfu
+
         function! s:inputSearchTag()
             let search_word = input(' Tag name: ')
             if search_word != ''
                 exe ':Unite tag:'. escape(search_word, '"')
             endif
         endfunction
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-qfreplace')
+    if neobundle#tap('vim-qfreplace')
+        call neobundle#config({
+        \   'filetypes': ['unite', 'quickfix'],
+        \   'commands': 'Qfreplace'
+        \})
+
         " qfreplace tuning
         AutocmdFT qfreplace
             \  call feedkeys("\<CR>\<CR>")
-            \| setl nonu nornu colorcolumn= laststatus=0 
-            \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0 
-            \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2 
+            \| setl nonu nornu colorcolumn= laststatus=0
+            \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
+            \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2
             \| Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
+
+        call neobundle#untap()
     endif
 
 " Languages
 "---------------------------------------------------------------------------
-" Haskell
-    AutocmdFT haskell,lhaskell,chaskell Indent 4
-    AutocmdFT cabal   Indent 2
-    " Syntax
-    AutocmdFT haskell,lhaskell,chaskell setl iskeyword+='
-    AutocmdFT haskell,lhaskell,chaskell setl commentstring=--\ %s
-    " Autocomplete
-    if neobundle#tap('neco-ghc')
-        function! neobundle#hooks.on_source(bundle)
-            let g:necoghc_enable_detailed_browse = 1
-        endfunction
-        AutocmdFT haskell,lhaskell,chaskell setl omnifunc=necoghc#omnifunc
+" PHP
+    " Indent
+    AutocmdFT php Indent 4
+    if neobundle#tap('PHP-Indenting-for-VIm')
+        call neobundle#config({'filetypes': 'php'})
         call neobundle#untap()
     endif
-    " Misc
-    if neobundle#is_installed('ghcmod-vim')
-        AutocmdFT haskell,lhaskell,chaskell
-            \  nnoremap <silent> <buffer> <leader>t :<C-u>GhcModType<CR>
-            \| nnoremap <silent> <buffer> <leader>l :<C-u>GhcModLint<CR>
-            \| Autocmd BufWritePost,FileWritePost <buffer> GhcModCheckAsync
-    endif
-
-" PHP
-    AutocmdFT php Indent 4
     " Syntax
     let g:php_sql_query = 1
-    let g:php_highlight_html = 1 
-    " Misc
-    AutocmdFT php 
-        \  inoremap <buffer> <A--> -
-        \| inoremap <buffer> <A-=> +
+    let g:php_highlight_html = 1
     " Fold
-    if neobundle#is_installed('php-foldexpr.vim')
+    if neobundle#tap('php-foldexpr.vim')
+        call neobundle#config({'filetypes': 'php'})
+
         AutocmdFT php setl foldenable
             \| let b:phpfold_use = 1
             \| let b:phpfold_group_args = 0
@@ -1501,9 +1228,18 @@
             \| let b:phpfold_heredocs = 1
             \| let b:phpfold_docblocks = 0
             \| let b:phpfold_doc_with_funcs = 0
+
+        call neobundle#untap()
     endif
     " Autocomplete
     if neobundle#tap('phpcomplete.vim')
+        call neobundle#config({
+        \   'filetypes': 'php',
+        \   'insert': 1
+        \})
+
+        AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
+
         function! neobundle#hooks.on_source(bundle)
             let g:phpcomplete_relax_static_constraint = 0
             let g:phpcomplete_parse_docblock_comments = 0
@@ -1519,37 +1255,29 @@
             \   'apc', 'ms_sql_server_pdo', 'msql', 'mssql', 'mysql'
             \]
         endfunction
-        AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
-        call neobundle#untap()
-    endif
-    " Refactoring tool
-    if neobundle#tap('vim-php-refactoring-toolbox')
-        function! neobundle#hooks.on_source(bundle)
-            let g:vim_php_refactoring_use_default_mapping = 0
-        endfunction
-        AutocmdFT php
-            \  nmap <silent> <buffer> mm  :<C-u>call PhpRenameMethod()<CR>
-            \| nmap <silent> <buffer> mv  :<C-u>call PhpRenameLocalVariable()<CR>
-            \| nmap <silent> <buffer> mc  :<C-u>call PhpRenameClassVariable()<CR>
-            \| nmap <silent> <buffer> ms  :<C-u>call PhpCreateSettersAndGetters()<CR>
-            \| nmap <silent> <buffer> mu  :<C-u>call PhpDetectUnusedUseStatements()<CR>
-            \| nmap <silent> <buffer> meu :<C-u>call PhpExtractUse()<CR>
-            \| vmap <silent> <buffer> mec :<C-u>call PhpExtractConst()<CR>
-            \| nmap <silent> <buffer> mep :<C-u>call PhpExtractClassProperty()<CR>
-            \| vmap <silent> <buffer> mem :<C-u>call PhpExtractMethod()<CR>
+
         call neobundle#untap()
     endif
     " PHP Documentor
     if neobundle#tap('pdv')
+        call neobundle#config({
+        \ 'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine'],
+        \ 'filetypes': 'php'
+        \})
+
+        AutocmdFT php
+            \ nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>
+
         function! neobundle#hooks.on_source(bundle)
             let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'
         endfunction
-        AutocmdFT php
-            \ nmap <silent> <buffer> <leader>c :<C-u>silent! call pdv#DocumentWithSnip()<CR>
+
         call neobundle#untap()
     endif
     " vDebug (for xDebug)
     if neobundle#tap('vdebug')
+        call neobundle#config({'filetypes': 'php'})
+
         function! neobundle#hooks.on_source(bundle)
             let g:vdebug_options = {
             \   'port': 9001,
@@ -1563,87 +1291,180 @@
             let g:vdebug_features = {
             \   'max_depth': 2048
             \}
+
+            hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
+            hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+            hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
+            hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
         endfunction
-        Autocmd VimEnter,Colorscheme *
-            \  hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
-            \| hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
-            \| hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
-            \| hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+
         call neobundle#untap()
     endif
 
 " JavaScript
     AutocmdFT javascript Indent 4
-    " Syntax
-    if neobundle#tap('javascript-libraries-syntax')
-        function! neobundle#hooks.on_source(bundle)
-            let g:used_javascript_libs = 'react,angularjs,underscore,jquery'
-        endfunction
-        call neobundle#untap()
-    endif
+
+    " Indent
     if neobundle#tap('simple-javascript-indenter')
+        call neobundle#config({'filetypes': 'javascript'})
+
         function! neobundle#hooks.on_source(bundle)
             let g:SimpleJsIndenter_BriefMode = 1
             let g:SimpleJsIndenter_CaseIndentLevel = -1
         endfunction
+
         call neobundle#untap()
     endif
+
+    " Syntax
+    if neobundle#tap('yajs.vim')
+        call neobundle#config({'filetypes': 'javascript'})
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('javascript-libraries-syntax')
+        call neobundle#config({'filetypes': 'javascript'})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:used_javascript_libs = 'react,angularjs,underscore,jquery'
+        endfunction
+
+        call neobundle#untap()
+    endif
+
     " Autocomplete
     if neobundle#tap('jscomplete-vim')
+        call neobundle#config({'filetypes': 'javascript'})
+
+        Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
+
         function! neobundle#hooks.on_source(bundle)
             let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API']
         endfunction
-        Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
+
+        call neobundle#untap()
+    endif
+
+" JSX
+    if neobundle#tap('vim-jsx')
+        call neobundle#config({'filename_patterns': '\.jsx$'})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:jsx_ext_required = 0
+        endfunction
+
         call neobundle#untap()
     endif
 
 " HTML
     AutocmdFT html Indent 2
     AutocmdFT html iabbrev <buffer> & &amp;
+    " Syntax
+    if neobundle#tap('html5.vim')
+        call neobundle#config({'filetypes': ['html', 'twig', 'html.twig']})
+        call neobundle#untap()
+    endif
+    if neobundle#tap('MatchTag')
+        call neobundle#config({'filetypes': ['html', 'twig', 'html.twig']})
+
+        AutocmdFT twig,html.twig silent! runtime! ftplugin/html.vim
+
+        call neobundle#untap()
+    endif
     " Autocomplete
     AutocmdFT html setl omnifunc=htmlcomplete#CompleteTags
+
+" Twig
+    AutocmdFT twig,html.twig Indent 2
+    AutocmdFT twig,html.twig setl commentstring={#<!--%s-->#}
+    " Syntax
+    if neobundle#tap('vim-twig')
+        call neobundle#config({'filetypes': ['twig', 'html.twig']})
+        call neobundle#untap()
+    endif
+    " Indent
+    if neobundle#tap('twig-indent')
+        call neobundle#config({'filetypes': ['twig', 'html.twig']})
+        call neobundle#untap()
+    endif
 
 " CSS
     AutocmdFT css setl nowrap | Indent 2
     " Syntax
     AutocmdFT css setl iskeyword+=-,%
     " hex colors
-    if neobundle#is_installed('colorizer')
-        let g:color_codes_ft = 'css,html,twig,html.twig'
-        Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
-            \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
-            \ ? 'call <SID>clearColor()' : 'ColorHighlight'
+    if neobundle#tap('colorizer')
+        let g:color_codes_ft = 'css,less,html,twig,html.twig'
+        call neobundle#config({
+        \   'filetypes': split(g:color_codes_ft, ','),
+        \   'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
+        \})
 
-        function! s:clearColor()
-            augroup Colorizer
-                au!
-            augroup END
-            augroup! Colorizer
+        function! neobundle#hooks.on_source(bundle)
+            Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
+                \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
+                \   ? 'call <SID>clearColor()'
+                \   : 'ColorHighlight'
+
+            function! s:clearColor()
+                augroup Colorizer
+                    au!
+                augroup END
+                augroup! Colorizer
+            endfunction
         endfunction
+
+        call neobundle#untap()
     endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
+    if neobundle#tap('vim-hyperstyle')
+        call neobundle#config({'filetypes': ['css', 'less']})
 
-" Twig
-    AutocmdFT twig,html.twig Indent 2
+        AutocmdFT css,less 
+            \ Autocmd InsertEnter,BufLeave <buffer> call <SID>setHyperstyleMappings() 
+
+        function! s:setHyperstyleMappings()
+            imap <Tab> <Nop>  
+            imap <silent> <expr> <Tab> pumvisible() ?
+                \ "\<C-n>" : <SID>checkBackSpace() ?
+                \ "\<Tab>" : neocomplete#start_manual_complete()
+        endfunction
+
+        call neobundle#untap()
+    endif
+
+" LESS
+    AutocmdFT less setl nowrap | Indent 2
     " Syntax
-    if neobundle#is_installed('MatchTag')
-        AutocmdFT twig,html.twig runtime! ftplugin/html.vim
+    AutocmdFT less setl iskeyword+=-,%
+    if neobundle#tap('vim-less')
+        call neobundle#config({'filename_patterns': '\.less$'})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:jsx_ext_required = 0
+        endfunction
+
+        call neobundle#untap()
     endif
 
 " JSON
     " Syntax
     if neobundle#tap('vim-json')
-        function! neobundle#hooks.on_source(bundle)
-            let g:vim_json_syntax_concealcursor = 'inc'
-        endfunction
-        AutocmdFT json 
+        call neobundle#config({'filetypes': 'json'})
+
+        AutocmdFT json
             \  Autocmd InsertEnter <buffer> setl concealcursor=
             \| Autocmd InsertLeave <buffer> setl concealcursor=inc
         AutocmdFT json
-            \ nmap <buffer> <silent> <leader>c :<C-r>={
+            \ nmap <buffer> <silent> ,c :<C-r>={
             \   '0': 'setl conceallevel=2',
             \   '2': 'setl conceallevel=0'}[&conceallevel]<CR><CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:vim_json_syntax_concealcursor = 'inc'
+        endfunction
+
         call neobundle#untap()
     endif
 
@@ -1655,16 +1476,35 @@
     " Autocomplete
     AutocmdFT xml setl omnifunc=xmlcomplete#CompleteTags
 
+" CSV
+    if neobundle#tap('csv.vim')
+        call neobundle#config({'filename_patterns': '\.csv$'})
+        call neobundle#untap()
+    endif
+
 " SQL
-    Autocmd VimEnter,Colorscheme *
-        \  hi link sqlStatement phpStatement
-        \| hi link sqlKeyword   phpOperator
+    if neobundle#tap('vim-sql-syntax')
+        call neobundle#config({'filetypes': 'php', 'filename_patterns': '\.sql$'})
+
+        function! neobundle#hooks.on_source(bundle)
+            hi link sqlStatement phpStatement
+            hi link sqlKeyword   phpOperator
+        endfunction
+
+        call neobundle#untap()
+    endif
 
 " Nginx
     Autocmd BufNewFile,BufRead */nginx/** setl filetype=nginx commentstring=#%s
 
 " Vagrant
     Autocmd BufNewFile,BufRead Vagrantfile setl filetype=ruby
+
+" Docker
+    if neobundle#tap('Dockerfile.vim')
+        call neobundle#config({'filename_patterns': 'Dockerfile$'})
+        call neobundle#untap()
+    endif
 
 " Vim
     AutocmdFT vim setl iskeyword+=:
@@ -1756,7 +1596,6 @@
 
     " Command-line
     set cmdheight=1
-    set noshowcmd    " don't show command on statusline
     set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
     set wildmenu wildmode=longest,full
 
@@ -1765,7 +1604,6 @@
     " Format the statusline
     let &statusline =
     \ "%1* %L %*"
-    \. "%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)"
     \. "%(%{exists('*SessionName()') ? SessionName() : ''}\ %)"
     \. "%-0.50f "
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
@@ -1778,12 +1616,7 @@
 
     " Status-line functions
     function! BufModified()
-        return &ft =~ 'help' ? '' : (&modified ? '+' : '')
-    endfunction
-
-    function! SessionName()
-        let session = fnamemodify(v:this_session, ':t:r')
-        return session != '' ? session : ''
+        return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
     endfunction
 
     function! FileSize()
@@ -1792,9 +1625,9 @@
             \ bytes < 1024 ? bytes.'B' : (bytes / 1024).'K'
     endfunction
 
-    function! GitStatus()
-        return exists('*gitbranch#name()') && gitbranch#name() !=# '' ?
-            \ printf('[%s]', gitbranch#name()) : ''
+    function! SessionName()
+        let session = fnamemodify(v:this_session, ':t:r')
+        return session != '' ? session : ''
     endfunction
 
 " Edit
@@ -1807,7 +1640,6 @@
 
     " Keymapping timeout (mapping / keycode)
     set notimeout ttimeoutlen=100
-    " set timeoutlen=2000 ttimeoutlen=100
 
     " Indent
     set cindent          " smart indenting for c-like code
@@ -1828,7 +1660,7 @@
     set smartcase
     set magic            " change the way backslashes are used in search patterns
     " set gdefault         " flag 'g' by default for replacing
-        
+
     " Autocomplete
     set complete=.
     set completeopt=longest
@@ -1854,8 +1686,8 @@
     ab ##l <C-r>=localtime()<CR>
     ca ##l <C-r>=localtime()<CR>
     " Shebang
-    ab <expr> #!! "#!/usr/bin/env" . (empty(&filetype) ? '' : ' '.&filetype)
-    
+    ab <expr> #!! '#!/usr/bin/env' . (empty(&filetype) ? '' : ' '.&filetype)
+
 " Normal mode
 "---------------------------------------------------------------------------
     " jk: don't skip wrap lines
@@ -1866,10 +1698,6 @@
     nnoremap <silent> <A-k> :move-2<CR>
     nnoremap <A-h> <<<Esc>
     nnoremap <A-l> >>><Esc>
-    " H: move to start of line
-    nnoremap H ^
-    " L: move to end of line
-    nnoremap L $
     " Q: auto indent text
     nnoremap Q ==
     " Y: yank line
@@ -1887,55 +1715,6 @@
     nnoremap dd dd
     " nnoremap x "_x
     " nnoremap X "_dd
-    
-    " [n]+Enter: jump to a line number
-    nmap <silent> <expr> <Enter> v:count ?
-        \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
-
-    " <Space>e: reopen file
-    nnoremap <silent> <Space>e :<C-u>edit!<CR>
-    " Ctrl-Enter: save file
-    nnoremap <silent> <C-Enter> :<C-u>write!<CR>
-    " Shift-Enter: force save file
-    nnoremap <silent> <S-Enter> :<C-u>update!<CR>
-    " <leader>ev: open .vimrc in a new tab
-    nnoremap <leader>ev :<C-u>tabnew $MYVIMRC<CR>
-
-    " <Space>d: delete buffer
-    nnoremap <silent> <Space>d :<C-u>bdelete!<CR>
-    " <Space>b: next buffer
-    nnoremap <silent> <Space>b :<C-u>bnext<CR>
-    " <Space>B: previous buffer
-    nnoremap <silent> <Space>B :<C-u>bprev<CR>
-
-    " <Space>n: create tab
-    nnoremap <silent> <Space>n :<C-u>tabnew<CR>
-    " <Space>q: close tab
-    nnoremap <silent> <Space>q :<C-u>quit!<CR>
-    " <Space>t: next tab
-    nnoremap <silent> <Space>t :<C-u>tabnext<CR>
-    " <Space>T: previous tab
-    nnoremap <silent> <Space>T :<C-u>tabprev<CR>
-    " [n]+<Space>t: jump to a tab number
-    nnoremap <expr> <Space>t v:count ? 
-        \ ':<C-u>tabnext'. v:count .'<CR>' : 'gt'
-
-    " <Space>w: next window
-    nnoremap <Space>w <C-w>w
-    " <Space>W: previous window
-    nnoremap <Space>W <C-w>W
-    " <Space>h: split window horizontaly
-    nnoremap <silent> <Space>h :<C-u>split<CR>
-    " <Space>v: split window verticaly
-    nnoremap <silent> <Space>v :<C-u>vertical split<CR>
-
-    " Alt-a: select all
-    nnoremap <silent> <A-a> :<C-u>keepjumps normal ggVG<CR>
-
-    " <Space>c: clear highlight after search
-    nnoremap <silent> <Space>c :<C-u>nohl<CR>:let @/=""<CR>
-    " Ctrl-c: old clear highlight after search
-    nnoremap <silent> <C-c> :<C-u>nohl<CR>:let @/=""<CR>
 
     " gr: replace word under the cursor
     nnoremap gr :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
@@ -1948,9 +1727,100 @@
     " gv: last selected text operator
     onoremap gv :<C-u>normal! gv<CR>
 
+    " Ctrl-c: old clear highlight after search
+    nnoremap <silent> <C-c> :<C-u>nohl<CR>:let @/=""<CR>
+
+    " [N]+Enter: jump to a line number or mark
+    nnoremap <silent> <expr> <Enter> v:count ?
+        \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
+
+    " Files
+    "-----------------------------------------------------------------------
+    " ,ev: open .vimrc in a new tab
+    nnoremap ,ev :<C-u>tabnew $MYVIMRC<CR>
+    " Ctrl-Enter: save file
+    nnoremap <silent> <C-Enter> :<C-u>write!<CR>
+    " Shift-Enter: force save file
+    nnoremap <silent> <S-Enter> :<C-u>update!<CR>
+    " <Space>e: reopen file
+    nnoremap <silent> <Space>o :<C-u>edit!<CR>
+
+    " Buffers
+    "-----------------------------------------------------------------------
+    " <Space>Q: previous buffer
+    nnoremap <silent> <Space>Q :<C-u>bnext<CR>
+    " <Space>E: next buffer
+    nnoremap <silent> <Space>E :<C-u>bprev<CR>
+    " <Space>d: delete buffer
+    nnoremap <silent> <Space>d :<C-u>bdelete<CR>
+    " <Space>D: force delete buffer
+    nnoremap <silent> <Space>D :<C-u>bdelete!<CR>
+
+    " Tabs
+    "-----------------------------------------------------------------------
+    " <Space>1-9: jumps to a tab number
+    for n in range(1, 9)
+        exe printf('nnoremap <silent> <Space>%d %dgt', n, n)
+    endfor | unlet n
+    " <Space>a: previous tab
+    nnoremap <silent> <Space>a :<C-u>tabprev<CR>
+    " <Space>e: next tab
+    nnoremap <silent> <Space>e :<C-u>tabnext<CR>
+    " [N]+<Space>q: close tab
+    nnoremap <silent> <expr> <Space>q v:count
+        \? ':<C-u>'.v:count.'tabclose<CR>'
+        \: ':<C-u>tabclose<CR>'
+    " <Space>Q: force close tab
+    nnoremap <silent> <Space>Q :<C-u>tabclose!<CR>
+    " <Space>o: tab only
+    nnoremap <silent> <Space>o :<C-u>tabonly<CR>
+    " <Space>m: tab move
+    nnoremap <silent> <Space>m :<C-u>tabmove<CR>
+    " <Space>t: tab new
+    nnoremap <silent> <Space>t :<C-u>tabnew<CR>
+    " <Space>T: tab new and move
+    nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>
+    " <Space><: move tab to first spot
+    nnoremap <silent> <Space>< :<C-u>tabmove 0<CR>
+    " <Space>>: move tab to last spot
+    nnoremap <silent> <expr> <Space>> ':<C-u>tabmove '.tabpagenr('$').'<CR>'
+    " <Space>,: move tab to left
+    nnoremap <silent> <expr> <Space>,
+        \ ':<C-u>tabmove '.max([tabpagenr() - v:count1 - 1, 0]).'<CR>'
+    " <Space>.: move tab to right
+    nnoremap <silent> <expr> <Space>.
+        \ ':<C-u>tabmove '.min([tabpagenr() + v:count1, tabpagenr('$')]).'<CR>'
+
+    " Windows
+    "-----------------------------------------------------------------------
+    for s in ['h', 'j', 'k', 'l']
+        " <Space>[hjkl]: jump to a window
+        exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', s, s)
+        " <Space>[HJKL]: move the current window
+        exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', toupper(s), toupper(s))
+    endfor | unlet s
+    " <Space>w: next window
+    nnoremap <silent> <Space>w :<C-u>wincmd w<CR>
+    " <Space>W: previous window
+    nnoremap <silent> <Space>W :<C-u>wincmd W<CR>
+    " <Space>r: rotate windows downwards/rightwards
+    nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
+    " <Space>R: rotate windows upwards/leftwards
+    nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
+    " <Space>m: move window to a new tab page
+    nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
+    " <Space>c: close window
+    nnoremap <silent> <Space>c :<C-u>close<CR>
+    " <Space>C: force close window
+    nnoremap <silent> <Space>C :<C-u>close!<CR>
+    " <Space>s: split window horizontaly
+    nnoremap <silent> <Space>s :<C-u>split<CR>
+    " <Space>S: split window verticaly
+    nnoremap <silent> <Space>S :<C-u>vertical split<CR>
+
     " Unbinds
     map <F1> <Nop>
-    map <S-k> <Nop>
+    " map K <Nop>
     map ZZ <Nop>
     map ZQ <Nop>
 
@@ -2072,8 +1942,8 @@
 
 " Experimental
 "---------------------------------------------------------------------------
-    " <leader>p: toggle paste  mode
-    nnoremap <silent> <leader>p :<C-r>={
+    " ,p: toggle paste  mode
+    nnoremap <silent> ,p :<C-r>={
         \ '0': 'set paste',
         \ '1': 'set nopaste'}[&paste]<CR><CR>
 
@@ -2096,8 +1966,11 @@
     " #: keep search pattern at the center of the screen
     nnoremap <silent># #zz
 
-    " <leader>r: replace a word under cursor
-    nnoremap <leader>r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
+    " Remove spaces at the end of lines
+    nnoremap <silent> ,<Space> :<C-u>silent! keeppatterns %substitute/\s\+$//e<CR>
+
+    " ,r: replace a word under cursor
+    nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
     xnoremap re y:%s/<C-r>=substitute(@0, '/', '\\/', 'g')<CR>//gI<Left><Left><Left>
 
     " R: replace
@@ -2118,6 +1991,3 @@
     endfunction
     " xnoremap R "_dP
     xnoremap R :<C-U>call <SID>replace()<CR>
-
-    " test private plugin
-    nmap <leader>tt <Plug>(buffer-to-new-tab)

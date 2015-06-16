@@ -1,11 +1,12 @@
 " file: tabline.vim
 " fork: http://konishchevdmitry.blogspot.com/2008/07/vim.html
 
-" Exit quickly when this plugin was already loaded
 if exists('g:loaded_tabline_plugin')
     finish
 endif
 let g:loaded_tabline_plugin = 1
+
+set tabline=%!MyTabLine()
 
 function! MyTabLine()
     let line = ''
@@ -24,11 +25,6 @@ function! MyTabLine()
 
     " After the last tab fill with TabLineFill and reset tab page nr
     let line .= '%#TabLineFill#%T'
-
-    " Right-align the label to close the current tab page
-    " if tabpagenr('$') > 1
-    "     let line .= '%=%#TabLine#%999XX'
-    " endif
 
     return line
 endfunction
@@ -50,5 +46,3 @@ function! MyTabLabel(n)
     let label = a:n . ':' . label
     return label
 endfunction
-
-set tabline=%!MyTabLine()
