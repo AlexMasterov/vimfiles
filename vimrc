@@ -203,8 +203,8 @@
         \}
 
         " UI
-        NeoBundle 'Shougo/unite.vim'
-        NeoBundle 'Shougo/neomru.vim'
+        NeoBundleLazy 'Shougo/unite.vim'
+        NeoBundleLazy 'Shougo/neomru.vim'
         NeoBundleLazy 'Shougo/unite-outline'
         NeoBundleLazy 'osyo-manga/unite-vimpatches'
         NeoBundleLazy 'osyo-manga/unite-quickfix'
@@ -423,35 +423,11 @@
 
         nnoremap <silent> [prefix]d :<C-u>VimFilerCurrentDir -split -toggle -no-quit -invisible<CR>
 
-        let g:vimfiler_force_overwrite_statusline = 0
-        let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
-        let g:unite_kind_file_use_trashbox = s:is_windows
-
-        let g:vimfiler_ignore_pattern =
-            \ '^\%(\..*\|.git\|bin\|node_modules\)$'
-
-        " Icons
-        let g:vimfiler_file_icon = ' '
-        let g:vimfiler_tree_leaf_icon = ' '
-        let g:vimfiler_tree_opened_icon = '▾'
-        let g:vimfiler_tree_closed_icon = '▸'
-
-        " Default profile
-        let s:vimfilter_default = {
-        \   'safe': 0,
-        \   'parent': 0,
-        \   'explorer': 1,
-        \   'winwidth': 20,
-        \}
-
-        " Custom profiles
-        call vimfiler#custom#profile('default', 'context', s:vimfilter_default)
-
         " Vimfilter tuning
         AutocmdFT vimfiler
             \ setl nonu nornu nolist cursorline colorcolumn= statusline=%(\ %)
-
         AutocmdFT vimfiler call s:setVimfilerMappings()
+
         function! s:setVimfilerMappings()
             call clearmatches()
 
@@ -469,6 +445,32 @@
             " Unbinds
             nmap <buffer> J <Nop>
             nmap <buffer> K <Nop>
+        endfunction
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:vimfiler_force_overwrite_statusline = 0
+            let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
+            let g:unite_kind_file_use_trashbox = s:is_windows
+
+            let g:vimfiler_ignore_pattern =
+                \ '^\%(\..*\|.git\|bin\|node_modules\)$'
+
+            " Icons
+            let g:vimfiler_file_icon = ' '
+            let g:vimfiler_tree_leaf_icon = ' '
+            let g:vimfiler_tree_opened_icon = '▾'
+            let g:vimfiler_tree_closed_icon = '▸'
+
+            " Default profile
+            let s:vimfilter_default = {
+            \   'safe': 0,
+            \   'parent': 0,
+            \   'explorer': 1,
+            \   'winwidth': 20,
+            \}
+
+            " Custom profiles
+            call vimfiler#custom#profile('default', 'context', s:vimfilter_default)
         endfunction
 
         call neobundle#untap()
@@ -555,11 +557,26 @@
     endif
 
     if neobundle#tap('vim-jsbeautify')
-        call neobundle#config({'filetypes': ['javascript', 'html', 'css', 'twig', 'htmltwig']})
+        call neobundle#config({
+            \   'filetypes':
+            \       ['javascript', 'html', 'css', 'less', 'json', 'twig', 'htmltwig', 'jsx']
+            \})
 
-        AutocmdFT css                nmap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
-        AutocmdFT javascript         nmap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
-        AutocmdFT html,twig,htmltwig nmap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
+        AutocmdFT html,twig,htmltwig
+            \  nnoremap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,b :call RangeHtmlBeautify()<CR>
+        AutocmdFT javascript
+            \  nnoremap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,by :call RangeJsBeautify()<CR>
+        AutocmdFT css,less
+            \  nnoremap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,b :call RangeCSSBeautify()<CR>
+        AutocmdFT json
+            \  nnoremap <silent> <buffer> ,b :<C-u>call JsonBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
+        AutocmdFT jsx
+            \  nnoremap <silent> <buffer> ,b :<C-u>call JsxBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,by :call RangeJsxBeautify()<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:config_Beautifier = {
@@ -578,6 +595,16 @@
             \   'css': {
             \       'indent_size':  2,
             \       'indent_style': 'space'
+            \   },
+            \   'json': {
+            \       'indent_size':  4,
+            \       'indent_style': 'space'
+            \   },
+            \   'jsx': {
+            \       'indent_size':            2,
+            \       'indent_style':           'space',
+            \       'max_preserve_newlines':  2,
+            \       'keep_array_indentation': 'true'
             \   }
             \}
         endfunction
@@ -894,48 +921,6 @@
         \   'insert': 1
         \})
 
-        let g:neocomplete#enable_at_startup = 1
-        let g:neocomplete#enable_smart_case = 1
-        let g:neocomplete#enable_camel_case = 1
-        let g:neocomplete#enable_insert_char_pre = 1
-        let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
-        let g:neocomplete#min_keyword_length = 2
-        let g:neocomplete#auto_completion_start_length = 1
-        let g:neocomplete#manual_completion_start_length = 1
-        let g:neocomplete#sources#syntax#min_keyword_length = 3
-        let g:neocomplete#sources#buffer#disabled_pattern = '\.log$\|\.log\.\|\.csv$'
-
-        let g:neocomplete#enable_cursor_hold_i = 1
-        let g:neocomplete#cursor_hold_i_time = 4000
-        " Reset 'CursorHold' time
-        Autocmd InsertEnter * setl updatetime=260
-        Autocmd InsertLeave * set  updatetime=4000
-
-        " Alias filetypes
-        let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-        let g:neocomplete#same_filetypes.html  = 'twig,htmltwig'
-        let g:neocomplete#same_filetypes.css  = 'less'
-        " Sources
-        let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
-        let g:neocomplete#sources._ = ['buffer']
-        let g:neocomplete#sources.php = ['buffer', 'member', 'omni', 'tag', 'file', 'ultisnips']
-        let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'ultisnips']
-        let g:neocomplete#sources.html = ['omni', 'ultisnips']
-        let g:neocomplete#sources.css = ['omni', 'ultisnips']
-        " Custom settings
-        call neocomplete#custom#source('omni', 'rank', 10)
-        call neocomplete#custom#source('tag', 'rank', 20)
-        call neocomplete#custom#source('buffer', 'rank', 30)
-        call neocomplete#custom#source('ultisnips', 'rank', 100)
-        call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
-        " Completion patterns
-        let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
-        let g:neocomplete#sources#omni#input_patterns.php =
-            \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
-        let g:neocomplete#sources#omni#input_patterns.javascript = '\h\w*\|\h\w*\.\%(\h\w*\)\?\[^. \t]\.\%(\h\w*\)\?'
-        let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
-        let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
-
         " Tab: completion
         imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
         imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-j>"
@@ -947,6 +932,50 @@
         function! s:checkBackSpace()
             let col = col('.') - 1
             return !col || getline('.')[col - 1] =~ '\s'
+        endfunction
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:neocomplete#enable_at_startup = 1
+            let g:neocomplete#enable_smart_case = 1
+            let g:neocomplete#enable_camel_case = 1
+            let g:neocomplete#enable_insert_char_pre = 1
+            let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
+            let g:neocomplete#min_keyword_length = 2
+            let g:neocomplete#auto_completion_start_length = 1
+            let g:neocomplete#manual_completion_start_length = 1
+            let g:neocomplete#sources#syntax#min_keyword_length = 3
+            let g:neocomplete#sources#buffer#disabled_pattern = '\.log$\|\.log\.\|\.csv$'
+
+            let g:neocomplete#enable_cursor_hold_i = 1
+            let g:neocomplete#cursor_hold_i_time = 4000
+            " Reset 'CursorHold' time
+            Autocmd InsertEnter * setl updatetime=260
+            Autocmd InsertLeave * set  updatetime=4000
+
+            " Alias filetypes
+            let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
+            let g:neocomplete#same_filetypes.html  = 'twig,htmltwig'
+            let g:neocomplete#same_filetypes.css  = 'less'
+            " Sources
+            let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
+            let g:neocomplete#sources._ = ['buffer']
+            let g:neocomplete#sources.php = ['buffer', 'member', 'omni', 'tag', 'file', 'ultisnips']
+            let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'ultisnips']
+            let g:neocomplete#sources.html = ['omni', 'ultisnips']
+            let g:neocomplete#sources.css = ['omni', 'ultisnips']
+            " Custom settings
+            call neocomplete#custom#source('omni', 'rank', 10)
+            call neocomplete#custom#source('tag', 'rank', 20)
+            call neocomplete#custom#source('buffer', 'rank', 30)
+            call neocomplete#custom#source('ultisnips', 'rank', 100)
+            call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
+            " Completion patterns
+            let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
+            let g:neocomplete#sources#omni#input_patterns.php =
+                \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
+            let g:neocomplete#sources#omni#input_patterns.javascript = '\h\w*\|\h\w*\.\%(\h\w*\)\?\[^. \t]\.\%(\h\w*\)\?'
+            let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+            let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
         endfunction
 
         call neobundle#untap()
@@ -970,75 +999,48 @@
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('unite.vim')
-        let g:unite_source_history_yank_enable = 0
-        let g:unite_source_rec_min_cache_files = 50
-        let g:unite_source_buffer_time_format = '%H:%M '
-        let g:unite_data_directory = $VIMCACHE.'/unite'
+    if neobundle#tap('unite.vim')
+        call neobundle#config({
+        \   'commands': [
+        \       {'name': 'Unite', 'complete': 'customlist,vimfiler#complete'}
+        \]})
 
-        if executable('ag')
-            let g:unite_source_grep_command = 'ag'
-            let g:unite_source_grep_recursive_opt = ''
-            let g:unite_source_grep_encoding = 'utf-8'
-            let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+        " [prefix]b: open buffers
+        nnoremap <silent> [prefix]b :<C-u>Unite buffer -toggle<CR>
+        " [prefix]h: open windows
+        nnoremap <silent> [prefix]h :<C-u>Unite window -toggle<CR>
+        " [prefix]t: open tab pages
+        nnoremap <silent> [prefix]t
+            \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
 
-            let g:unite_source_rec_async_command = 'ag'
-                \.  ' '. join(map(split(g:ignore_pattern, ','), '"\--ignore \"*.".v:val."\""'), ' ')
-                \.  (&smartcase ? ' -S' : ''). ' --nogroup --nocolor --hidden -l .'
-        endif
+        " [prefix]f: open files
+        nnoremap <silent> [prefix]f
+            \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -start-insert<CR>
 
-        " Default profile
-        let s:unite_default = {
-        \   'winheight': 14,
-        \   'direction': 'below',
-        \   'prompt_direction': 'top',
-        \   'cursor_line_time': '0.0',
-        \   'short_source_names': 1,
-        \   'hide_source_names': 1,
-        \   'hide_icon': 0,
-        \   'marked_icon': '+',
-        \   'prompt': '>',
-        \   'wipe': 1
-        \}
-        " Quickfix profile
-        let s:unite_quickfix = {
-        \   'winheight': 16,
-        \   'no_quit': 1,
-        \   'keep_focus': 1
-        \}
-        " Line profile
-        let s:unite_line = {
-        \   'winheight': 20
-        \}
+        " [prefix]g: grep search
+        nnoremap <silent> [prefix]g
+            \ :<C-u>Unite grep:. -no-split -auto-preview<CR>
+        " /: search
+        nnoremap <silent> [prefix]s
+            \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert<CR>
+        " *: search keyword under the cursor
+        nnoremap <silent> *
+            \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe<CR>
+        " [prefix]r: resume search buffer
+        nnoremap <silent> [prefix]r
+            \ :<C-u>UniteResume search-`bufnr('%')` -no-start-insert -force-redraw<CR>
 
-        " Custom profiles
-        call unite#custom#profile('default', 'context', s:unite_default)
-        call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
-        call unite#custom#profile('source/line,source/grep', 'context', s:unite_line)
-
-        " Custom filters
-        call unite#filters#sorter_default#use(['sorter_rank'])
-        call unite#filters#matcher_default#use(['matcher_fuzzy'])
-        call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
-        call unite#custom#source('file_rec/async', 'max_candidates', 0)
-        call unite#custom#source('file_rec/async', 'matchers',
-            \ ['converter_relative_word', 'matcher_fuzzy'])
-        call unite#custom#source('source/grep,', 'ignore_globs',
-            \ map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
+        " [prefix]o: open message log
+        nnoremap <silent> [prefix]x :<C-u>Unite output:message<CR>
+        " [prefix]i: NeoBundle update
+        nnoremap <silent> [prefix]u :<C-u>Unite neobundle/update
+            \ -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
 
         " Unite tuning
         AutocmdFT unite
             \ setl nolist guicursor=a:blinkon0
             \| Autocmd InsertEnter,InsertLeave <buffer>
                 \ setl nonu nornu nolist colorcolumn=
-
-        Autocmd VimEnter,Colorscheme *
-            \  hi link uniteStatusHead             StatusLine
-            \| hi link uniteStatusNormal           StatusLine
-            \| hi link uniteStatusMessage          StatusLine
-            \| hi link uniteStatusSourceNames      StatusLine
-            \| hi link uniteStatusSourceCandidates User1
-            \| hi link uniteStatusLineNR           User2
 
         AutocmdFT unite call <SID>setUniteMappings()
             \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
@@ -1085,53 +1087,93 @@
             cmap <buffer> ` <Esc>
         endfunction
 
-        " [prefix]b: open buffers
-        nnoremap <silent> [prefix]b :<C-u>Unite buffer -toggle<CR>
-        " [prefix]h: open windows
-        nnoremap <silent> [prefix]h :<C-u>Unite window -toggle<CR>
-        " [prefix]t: open tab pages
-        nnoremap <silent> [prefix]t
-            \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
+        function! neobundle#hooks.on_source(bundle)
+            let g:unite_source_history_yank_enable = 0
+            let g:unite_source_rec_min_cache_files = 50
+            let g:unite_source_buffer_time_format = '%H:%M '
+            let g:unite_data_directory = $VIMCACHE.'/unite'
 
-        " [prefix]f: open files
-        nnoremap <silent> [prefix]f
-            \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -start-insert<CR>
+            if executable('ag')
+                let g:unite_source_grep_command = 'ag'
+                let g:unite_source_grep_recursive_opt = ''
+                let g:unite_source_grep_encoding = 'utf-8'
+                let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
 
-        " [prefix]g: grep search
-        nnoremap <silent> [prefix]g
-            \ :<C-u>Unite grep:. -no-split -auto-preview<CR>
-        " /: search
-        nnoremap <silent> [prefix]s
-            \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert<CR>
-        " *: search keyword under the cursor
-        nnoremap <silent> *
-            \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe<CR>
-        " [prefix]r: resume search buffer
-        nnoremap <silent> [prefix]r
-            \ :<C-u>UniteResume search-`bufnr('%')` -no-start-insert -force-redraw<CR>
+                let g:unite_source_rec_async_command = 'ag'
+                    \.  ' '. join(map(split(g:ignore_pattern, ','), '"\--ignore \"*.".v:val."\""'), ' ')
+                    \.  (&smartcase ? ' -S' : ''). ' --nogroup --nocolor --hidden -l .'
+            endif
 
-        " [prefix]o: open message log
-        nnoremap <silent> [prefix]x :<C-u>Unite output:message<CR>
-        " [prefix]i: NeoBundle update
-        nnoremap <silent> [prefix]u :<C-u>Unite neobundle/update
-            \ -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
+            " Default profile
+            let s:unite_default = {
+            \   'winheight': 14,
+            \   'direction': 'below',
+            \   'prompt_direction': 'top',
+            \   'cursor_line_time': '0.0',
+            \   'short_source_names': 1,
+            \   'hide_source_names': 1,
+            \   'hide_icon': 0,
+            \   'marked_icon': '+',
+            \   'prompt': '>',
+            \   'wipe': 1
+            \}
+            " Quickfix profile
+            let s:unite_quickfix = {
+            \   'winheight': 16,
+            \   'no_quit': 1,
+            \   'keep_focus': 1
+            \}
+            " Line profile
+            let s:unite_line = {
+            \   'winheight': 20
+            \}
+
+            " Custom profiles
+            call unite#custom#profile('default', 'context', s:unite_default)
+            call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
+            call unite#custom#profile('source/line,source/grep', 'context', s:unite_line)
+
+            " Custom filters
+            call unite#filters#sorter_default#use(['sorter_rank'])
+            call unite#filters#matcher_default#use(['matcher_fuzzy'])
+            call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
+            call unite#custom#source('file_rec/async', 'max_candidates', 0)
+            call unite#custom#source('file_rec/async', 'matchers',
+                \ ['converter_relative_word', 'matcher_fuzzy'])
+            call unite#custom#source('source/grep,', 'ignore_globs',
+                \ map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
+
+            hi link uniteStatusHead             StatusLine
+            hi link uniteStatusNormal           StatusLine
+            hi link uniteStatusMessage          StatusLine
+            hi link uniteStatusSourceNames      StatusLine
+            hi link uniteStatusSourceCandidates User1
+            hi link uniteStatusLineNR           User2
+        endfunction
+
+        call neobundle#untap()
     endif
 
-    if neobundle#is_installed('neomru.vim')
-        let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
-        let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$'
-        let g:neomru#filename_format = ':~:.'
-        let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
-        let g:neomru#time_format = '%d.%m %H:%M — '
-        " Limit results for recently edited files
-        call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
-        " Search relative to Project Root if it exists
-        call unite#custom#source('neomru/file,neomru/directory',
-            \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
+    if neobundle#tap('neomru.vim')
         " [prefix]l: open recently-opened files
         nnoremap <silent> [prefix]w :<C-u>Unite neomru/file<CR>
         " [prefix]L: open recently-opened directories
         nnoremap <silent> [prefix]W :<C-u>Unite neomru/directory<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
+            let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$'
+            let g:neomru#filename_format = ':~:.'
+            let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
+            let g:neomru#time_format = '%d.%m %H:%M — '
+            " Limit results for recently edited files
+            call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
+            " Search relative to Project Root if it exists
+            call unite#custom#source('neomru/file,neomru/directory',
+                \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
+        endfunction
+
+        call neobundle#untap()
     endif
 
 
@@ -1161,9 +1203,12 @@
     if neobundle#tap('unite-filetype')
         call neobundle#config({'unite_sources': ['filetype', 'filetype/new']})
 
-        call unite#custom#source('filetype', 'sorters', 'sorter_length')
         " [prefix]r: filetype change
         nnoremap <silent> [prefix]z :<C-u>Unite filetype filetype/new -start-insert<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            call unite#custom#source('filetype', 'sorters', 'sorter_length')
+        endfunction
 
         call neobundle#untap()
     endif
@@ -1396,10 +1441,10 @@
 
         function! neobundle#hooks.on_source(bundle)
             let g:user_emmet_mode = 'i'
-            let g:user_emmet_complete_tag = 1
+            let g:user_emmet_complete_tag = 0
 
-            imap <silent> <buffer> <C-n> <Plug>(emmet-expand-abbr)
-            imap <silent> <buffer> <C-m> <Plug>(emmet-expand-word)
+            imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
+            imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
         endfunction
 
         call neobundle#untap()
@@ -1894,10 +1939,10 @@
     inoremap <C-_> <C-o>u
     " Ctrl-p: paste
     inoremap <C-p> <S-Insert>
+    " Ctrl+s: force save file
+    inoremap <silent> <C-s> <Esc> :write!<CR>i
     " Alt+w: force save file
     inoremap <silent> <A-w> <Esc> :write!<CR>i
-    inoremap <silent> <C-s> <Esc> :write!<CR>i
-    inoremap <silent> <C-w> <Esc> :write!<CR>i
     " Alt-q: change language
     inoremap <A-q> <C-^>
 
