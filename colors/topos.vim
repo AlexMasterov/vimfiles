@@ -10,7 +10,7 @@ if exists('syntax_on')
 endif
 let g:colors_name = 'topos'
 
-" set background=light
+set background=light
 
 hi Normal               guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi NonText              guifg=#FAFAFA                   gui=NONE
@@ -223,7 +223,3 @@ hi jsonBraces                 guifg=#999999                   gui=NONE
 hi jsonBoolean                guifg=#CD7F32                   gui=bold
 hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=NONE
 hi jsonKeywordRegion          guifg=#0050B1                   gui=NONE
-
-" set background=dark
-" set background=light
-

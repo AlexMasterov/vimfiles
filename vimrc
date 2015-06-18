@@ -138,7 +138,7 @@
 
     " Regexp engine (0=auto, 1=old, 2=NFA)
     if exists('&regexpengine')
-        set regexpengine=2
+        set regexpengine=1
     endif
 
 " Plugins
@@ -237,12 +237,14 @@
         NeoBundleLazy 'SirVer/ultisnips'
 
         " Text objects
-        NeoBundle 'junegunn/vim-after-object'
         NeoBundleLazy 'kana/vim-textobj-user'
         NeoBundleLazy 'machakann/vim-textobj-delimited', {
         \   'depends': 'kana/vim-textobj-user',
-        \   'mappings': ['vid', 'viD', 'vad', 'vaD']
         \}
+        NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
+        \   'depends': 'kana/vim-textobj-user',
+        \}
+        NeoBundle 'junegunn/vim-after-object'
 
         " PHP
         " NeoBundleLazy 'swekaj/php-foldexpr.vim'
@@ -259,12 +261,13 @@
         NeoBundleLazy 'jiangmiao/simple-javascript-indenter'
         NeoBundleLazy 'hujo/jscomplete-html5API'
         NeoBundleLazy  'https://bitbucket.org/teramako/jscomplete-vim.git'
-
-        " HTML 
-        NeoBundleLazy 'gregsexton/MatchTag'
+        " HTML
         NeoBundleLazy 'othree/html5.vim'
+        NeoBundleLazy 'mattn/emmet-vim'
+        NeoBundleLazy 'gregsexton/MatchTag'
+        NeoBundle 'alvan/vim-closetag'
         " Twig
-        NeoBundleLazy 'evidens/vim-twig'
+        NeoBundleLazy 'qbbr/vim-twig'
         NeoBundleLazy 'tokutake/twig-indent'
         " CSS
         NeoBundleLazy 'JulesWang/css.vim'
@@ -424,7 +427,7 @@
         let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
         let g:unite_kind_file_use_trashbox = s:is_windows
 
-        let g:vimfiler_ignore_pattern = 
+        let g:vimfiler_ignore_pattern =
             \ '^\%(\..*\|.git\|bin\|node_modules\)$'
 
         " Icons
@@ -464,6 +467,7 @@
             nmap <buffer> <expr> t vimfiler#do_action('tabopen')
 
             " Unbinds
+            nmap <buffer> J <Nop>
             nmap <buffer> K <Nop>
         endfunction
 
@@ -551,11 +555,11 @@
     endif
 
     if neobundle#tap('vim-jsbeautify')
-        call neobundle#config({'filetypes': ['javascript', 'html', 'css']})
+        call neobundle#config({'filetypes': ['javascript', 'html', 'css', 'twig', 'htmltwig']})
 
-        AutocmdFT javascript nmap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
-        AutocmdFT html       nmap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
-        AutocmdFT css        nmap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
+        AutocmdFT css                nmap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
+        AutocmdFT javascript         nmap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
+        AutocmdFT html,twig,htmltwig nmap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:config_Beautifier = {
@@ -597,7 +601,7 @@
         function! neobundle#hooks.on_source(bundle)
             let g:wildfire_objects = {
             \   '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
-            \   'html,twig,html.twig,xml': ["at"]
+            \   'html,twig,htmltwig,xml': ["at"]
             \}
         endfunction
 
@@ -701,7 +705,7 @@
 
         call neobundle#untap()
     endif
-    
+
     if neobundle#tap('lexima.vim')
         call neobundle#config({'insert': 1})
 
@@ -766,7 +770,7 @@
         \       '\([^=]\)==\([^=]\)': '\1===\2'
         \   }
         \]
-        AutocmdFT html,twig,html.twig
+        AutocmdFT html,twig,htmltwig
         \ let b:switch_custom_definitions = [
         \   ['h1', 'h2', 'h3'],
         \   ['png', 'jpg', 'gif'],
@@ -836,6 +840,21 @@
         call neobundle#untap()
     endif
 
+    if neobundle#tap('vim-textobj-delimited')
+        call neobundle#config({
+        \   'mappings': ['vid', 'viD', 'vad', 'vaD']
+        \})
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('vim-textobj-xmlattr')
+        call neobundle#config({
+        \   'filetypes': ['html', 'xml', 'twig', 'htmltwig'],
+        \   'mappings': ['vix', 'vax']
+        \})
+        call neobundle#untap()
+    endif
+
     if neobundle#is_installed('context_filetype.vim')
         let g:context_filetype#search_offset = 500
 
@@ -894,7 +913,8 @@
 
         " Alias filetypes
         let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-        let g:neocomplete#same_filetypes.html  = 'twig,html.twig'
+        let g:neocomplete#same_filetypes.html  = 'twig,htmltwig'
+        let g:neocomplete#same_filetypes.css  = 'less'
         " Sources
         let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
         let g:neocomplete#sources._ = ['buffer']
@@ -915,7 +935,6 @@
         let g:neocomplete#sources#omni#input_patterns.javascript = '\h\w*\|\h\w*\.\%(\h\w*\)\?\[^. \t]\.\%(\h\w*\)\?'
         let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
         let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
-        let g:neocomplete#sources#omni#input_patterns.json = '"[^"]*'
 
         " Tab: completion
         imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
@@ -1002,9 +1021,9 @@
         call unite#filters#matcher_default#use(['matcher_fuzzy'])
         call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
         call unite#custom#source('file_rec/async', 'max_candidates', 0)
-        call unite#custom#source('file_rec/async', 'matchers', 
+        call unite#custom#source('file_rec/async', 'matchers',
             \ ['converter_relative_word', 'matcher_fuzzy'])
-        call unite#custom#source('source/grep,', 'ignore_globs', 
+        call unite#custom#source('source/grep,', 'ignore_globs',
             \ map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
 
         " Unite tuning
@@ -1261,8 +1280,8 @@
     " PHP Documentor
     if neobundle#tap('pdv')
         call neobundle#config({
-        \ 'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine'],
-        \ 'filetypes': 'php'
+        \ 'filetypes': 'php',
+        \ 'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine']
         \})
 
         AutocmdFT php
@@ -1303,7 +1322,6 @@
 
 " JavaScript
     AutocmdFT javascript Indent 4
-
     " Indent
     if neobundle#tap('simple-javascript-indenter')
         call neobundle#config({'filetypes': 'javascript'})
@@ -1315,13 +1333,11 @@
 
         call neobundle#untap()
     endif
-
     " Syntax
     if neobundle#tap('yajs.vim')
         call neobundle#config({'filetypes': 'javascript'})
         call neobundle#untap()
     endif
-
     if neobundle#tap('javascript-libraries-syntax')
         call neobundle#config({'filetypes': 'javascript'})
 
@@ -1331,7 +1347,6 @@
 
         call neobundle#untap()
     endif
-
     " Autocomplete
     if neobundle#tap('jscomplete-vim')
         call neobundle#config({'filetypes': 'javascript'})
@@ -1361,30 +1376,52 @@
     AutocmdFT html iabbrev <buffer> & &amp;
     " Syntax
     if neobundle#tap('html5.vim')
-        call neobundle#config({'filetypes': ['html', 'twig', 'html.twig']})
+        call neobundle#config({'filetypes': ['html', 'twig', 'htmltwig']})
         call neobundle#untap()
     endif
     if neobundle#tap('MatchTag')
-        call neobundle#config({'filetypes': ['html', 'twig', 'html.twig']})
+        call neobundle#config({'filetypes': ['html', 'twig', 'htmltwig']})
 
-        AutocmdFT twig,html.twig silent! runtime! ftplugin/html.vim
+        AutocmdFT twig,htmltwig runtime! ftplugin/html.vim
 
         call neobundle#untap()
     endif
     " Autocomplete
     AutocmdFT html setl omnifunc=htmlcomplete#CompleteTags
+    if neobundle#tap('emmet-vim')
+        call neobundle#config({
+        \   'filetypes': ['html', 'twig', 'htmltwig'],
+        \   'insert': 1
+        \})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:user_emmet_mode = 'i'
+            let g:user_emmet_complete_tag = 1
+
+            imap <silent> <buffer> <C-n> <Plug>(emmet-expand-abbr)
+            imap <silent> <buffer> <C-m> <Plug>(emmet-expand-word)
+        endfunction
+
+        call neobundle#untap()
+    endif
+    if neobundle#is_installed('vim-closetag')
+        let g:closetag_filenames = '*.{html,twig,htmltwig}'
+    endif
 
 " Twig
-    AutocmdFT twig,html.twig Indent 2
-    AutocmdFT twig,html.twig setl commentstring={#<!--%s-->#}
+    AutocmdFT twig,htmltwig Indent 2
+    AutocmdFT twig,htmltwig setl commentstring={#<!--%s-->#}
     " Syntax
     if neobundle#tap('vim-twig')
-        call neobundle#config({'filetypes': ['twig', 'html.twig']})
+        call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
+
+        Autocmd BufNewFile,BufRead *.html.twig set ft=htmltwig
+
         call neobundle#untap()
     endif
     " Indent
     if neobundle#tap('twig-indent')
-        call neobundle#config({'filetypes': ['twig', 'html.twig']})
+        call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
         call neobundle#untap()
     endif
 
@@ -1394,7 +1431,7 @@
     AutocmdFT css setl iskeyword+=-,%
     " hex colors
     if neobundle#tap('colorizer')
-        let g:color_codes_ft = 'css,less,html,twig,html.twig'
+        let g:color_codes_ft = 'css,less,html,twig,htmltwig'
         call neobundle#config({
         \   'filetypes': split(g:color_codes_ft, ','),
         \   'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
@@ -1421,11 +1458,11 @@
     if neobundle#tap('vim-hyperstyle')
         call neobundle#config({'filetypes': ['css', 'less']})
 
-        AutocmdFT css,less 
-            \ Autocmd InsertEnter,BufLeave <buffer> call <SID>setHyperstyleMappings() 
+        AutocmdFT css,less
+            \ Autocmd InsertEnter,BufLeave <buffer> call <SID>setHyperstyleMappings()
 
         function! s:setHyperstyleMappings()
-            imap <Tab> <Nop>  
+            imap <Tab> <Nop>
             imap <silent> <expr> <Tab> pumvisible() ?
                 \ "\<C-n>" : <SID>checkBackSpace() ?
                 \ "\<Tab>" : neocomplete#start_manual_complete()
@@ -1453,9 +1490,9 @@
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
 
-        AutocmdFT json
-            \  Autocmd InsertEnter <buffer> setl concealcursor=
-            \| Autocmd InsertLeave <buffer> setl concealcursor=inc
+        " AutocmdFT json
+        "     \  Autocmd InsertEnter <buffer> setl concealcursor=
+        "     \| Autocmd InsertLeave <buffer> setl concealcursor=inc
         AutocmdFT json
             \ nmap <buffer> <silent> ,c :<C-r>={
             \   '0': 'setl conceallevel=2',
@@ -1856,13 +1893,14 @@
     " Ctrl-_: undo
     inoremap <C-_> <C-o>u
     " Ctrl-p: paste
-    imap <C-p> <S-Insert>
+    inoremap <C-p> <S-Insert>
     " Alt+w: force save file
     inoremap <silent> <A-w> <Esc> :write!<CR>i
     inoremap <silent> <C-s> <Esc> :write!<CR>i
     inoremap <silent> <C-w> <Esc> :write!<CR>i
     " Alt-q: change language
     inoremap <A-q> <C-^>
+
     " qq: smart fast Esc
     imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
 
