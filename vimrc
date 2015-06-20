@@ -9,9 +9,6 @@
 
 " Environment
 "---------------------------------------------------------------------------
-    " Basic remapping
-    noremap <Leader> <Nop>
-    noremap <LocalLeader> <Nop>
     " The prefix keys
     nmap ; [prefix]
     noremap [prefix] <Nop>
@@ -197,8 +194,8 @@
         NeoBundleLazy 'tpope/vim-projectionist'
         NeoBundleLazy 'lilydjwg/colorizer'
         NeoBundleLazy 'maksimr/vim-jsbeautify'
-        NeoBundle 'xolox/vim-misc'
-        NeoBundle 'xolox/vim-session', {
+        NeoBundleLazy 'xolox/vim-misc'
+        NeoBundleLazy 'xolox/vim-session', {
         \   'depends': 'xolox/vim-misc'
         \}
 
@@ -218,7 +215,7 @@
         NeoBundleLazy 'cohama/lexima.vim'
 
         " Edit
-        NeoBundle 'tpope/vim-commentary'
+        NeoBundleLazy 'tyru/caw.vim'
         NeoBundleLazy 'kana/vim-smartword'
         NeoBundleLazy 't9md/vim-smalls'
         NeoBundleLazy 'gcmt/wildfire.vim'
@@ -230,7 +227,7 @@
         NeoBundleLazy 'triglav/vim-visual-increment'
         NeoBundleLazy 'AndrewRadev/switch.vim'
         NeoBundleLazy 'kana/vim-smartchr'
-        NeoBundle 'Shougo/context_filetype.vim'
+        NeoBundleLazy 'Shougo/context_filetype.vim'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
         \   'depends': 'Shougo/context_filetype.vim'
         \}
@@ -239,12 +236,17 @@
         " Text objects
         NeoBundleLazy 'kana/vim-textobj-user'
         NeoBundleLazy 'machakann/vim-textobj-delimited', {
-        \   'depends': 'kana/vim-textobj-user',
+        \   'depends': 'kana/vim-textobj-user'
         \}
         NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
-        \   'depends': 'kana/vim-textobj-user',
+        \   'depends': 'kana/vim-textobj-user'
         \}
-        NeoBundle 'junegunn/vim-after-object'
+        NeoBundleLazy 'justinj/vim-textobj-reactprop', {
+        \   'depends': 'kana/vim-textobj-user'
+        \}
+        NeoBundle 'junegunn/vim-after-object', {
+        \   'depends': 'kana/vim-textobj-user'
+        \}
 
         " PHP
         " NeoBundleLazy 'swekaj/php-foldexpr.vim'
@@ -350,7 +352,7 @@
         endfunction
 
         function! g:Undotree_CustomMap()
-            nmap <buffer> o <CR>
+            nmap <buffer> o <Enter>
             nmap <buffer> u <Plug>UndotreeUndo
             nmap <buffer> r <Plug>UndotreeRedo
             nmap <buffer> h <Plug>UndotreeGoNextState
@@ -363,24 +365,34 @@
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('vim-session')
-        let g:session_autosave = 0
-        let g:session_autoload = 0
-        let g:session_persist_colors = 0
-        let g:session_command_aliases = 1
-        let g:session_directory = $VIMFILES.'/session'
-        set sessionoptions-=blank,help,options
+    if neobundle#tap('vim-session')
+        call neobundle#config({
+        \   'functions': 
+        \       ['xolox#session#complete_names', 'xolox#session#complete_names_with_suggestions'],
+        \   'commands': [
+        \       {'name': ['OpenSession', 'DeleteSession'], 
+        \           'complete': 'customlist,xolox#session#complete_names'},
+        \       {'name': 'SaveSession',
+        \           'complete': 'xolox#session#complete_names_with_suggestions'},
+        \   'SaveSession', 'OpenSession', 'CloseSession', 'RestartVim'
+        \]})
 
         nmap <F9> :<C-u>RestartVim!<CR>
-        nmap ,sl  :<C-u>SessionOpen!<Space>
-        nmap ,ss  :<C-u>SessionSave!<CR>
-        nmap ,sc  :<C-u>SessionClose!<CR>
-        nmap ,sd  :<C-u>SessionDelete!<Space>
+        nmap ,sl  :<C-u>OpenSession!<Space>
+        nmap ,ss  :<C-u>SaveSession!<CR>
+        nmap ,sc  :<C-u>CloseSession!<CR>
+        nmap ,sd  :<C-u>DeleteSession!<Space>
         nmap ,sa  :<C-u>call <SID>inputSessionName()<CR>
         nmap ,ss  :<C-u>SessionSaveWithTimeStamp<CR>
 
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
+
+        Autocmd VimLeavePre * call <SID>autoSaveSession()
+        function! s:autoSaveSession()
+            let session = fnamemodify(v:this_session, ':t')
+            if !empty(session)| SaveSession |endif
+        endfunction
 
         function! s:inputSessionName()
             let session_name = input(" Session name: \n\r ")
@@ -389,11 +401,15 @@
             endif
         endfunction
 
-        Autocmd VimLeavePre * call <SID>autoSaveSession()
-        function! s:autoSaveSession()
-            let session = fnamemodify(v:this_session, ':t')
-            if !empty(session)| SaveSession |endif
+        function! neobundle#hooks.on_source(bundle)
+            let g:session_autosave = 0
+            let g:session_autoload = 0
+            let g:session_persist_colors = 0
+            let g:session_directory = $VIMFILES.'/session'
+            set sessionoptions-=blank,help,options
         endfunction
+
+        call neobundle#untap()
     endif
 
     if neobundle#is_installed('vim-signature')
@@ -413,7 +429,7 @@
         \}
         nnoremap <silent> m<Enter> :<C-u>SignatureRefresh<CR>
 
-        Autocmd BufNewFile,BufRead * SignatureRefresh
+        Autocmd BufRead * SignatureRefresh
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
     endif
@@ -421,26 +437,39 @@
     if neobundle#tap('vimfiler.vim')
         call neobundle#config({'commands': ['VimFiler', 'VimFilerCurrentDir']})
 
-        nnoremap <silent> [prefix]d :<C-u>VimFilerCurrentDir -split -toggle -no-quit -invisible<CR>
+        " [dD]: open vimfilter explorer
+        nnoremap <silent> [prefix]d 
+            \ :<C-u>VimFilerCurrentDir -split -toggle -invisible -no-quit<CR>
+        nnoremap <silent> [prefix]D 
+            \ :<C-u>VimFilerCurrentDir -split -toggle -invisible -force-quit<CR>
 
         " Vimfilter tuning
         AutocmdFT vimfiler
             \ setl nonu nornu nolist cursorline colorcolumn= statusline=%(\ %)
+        AutocmdFT vimfiler
+            \  Autocmd BufLeave,BufDelete,WinLeave <buffer> setl nocursorline 
+            \| Autocmd BufEnter,WinEnter <buffer> setl cursorline
+
         AutocmdFT vimfiler call s:setVimfilerMappings()
-
         function! s:setVimfilerMappings()
-            call clearmatches()
-
             " Normal mode
+            nmap <buffer> <expr> q winnr('$') == 1
+                \? "\<Plug>(vimfiler_hide)"
+                \: "\<Plug>(vimfiler_switch_to_other_window)"
+            nmap <buffer> Q <Plug>(vimfiler_close)
             nmap <buffer> l <Plug>(vimfiler_expand_tree)
             nmap <buffer> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
             nmap <buffer> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)
             nmap <buffer> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)
+            nmap <buffer> D <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_force_delete_file)
             nmap <buffer> n <Plug>(vimfiler_new_file)
             nmap <buffer> N <Plug>(vimfiler_make_directory)
+
             nmap <buffer> <expr> v vimfiler#do_switch_action('vsplit')
             nmap <buffer> <expr> s vimfiler#do_switch_action('split')
             nmap <buffer> <expr> t vimfiler#do_action('tabopen')
+            nmap <buffer> <expr> <Enter> 
+                \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
 
             " Unbinds
             nmap <buffer> J <Nop>
@@ -466,7 +495,8 @@
             \   'safe': 0,
             \   'parent': 0,
             \   'explorer': 1,
-            \   'winwidth': 20,
+            \   'winwidth': 22,
+            \   'direction': 'topleft'
             \}
 
             " Custom profiles
@@ -478,16 +508,23 @@
 
     if neobundle#tap('vim-projectionist')
         call neobundle#config({'functions': 'ProjectionistDetect'})
+
+        " [prefix]p: detect .projections.json
+        nnoremap <silent> [prefix]p :call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
+
         call neobundle#untap()
     endif
 
     if neobundle#tap('vim-visual-increment')
         call neobundle#config({'mappings': ['<Plug>VisualIncrement', '<Plug>VisualDecrement']})
 
-        " CTRL+A and CTRL+X works also for letters
-        set nrformats+=alpha
         xmap <C-a> <Plug>VisualIncrement
         xmap <C-x> <Plug>VisualDecrement
+
+        function! neobundle#hooks.on_source(bundle)
+            " CTRL+A and CTRL+X works also for letters
+            set nrformats+=alpha
+        endfunction
 
         call neobundle#untap()
     endif
@@ -567,7 +604,7 @@
             \| vnoremap <silent> <buffer> ,b :call RangeHtmlBeautify()<CR>
         AutocmdFT javascript
             \  nnoremap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,by :call RangeJsBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
         AutocmdFT css,less
             \  nnoremap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
             \| vnoremap <silent> <buffer> ,b :call RangeCSSBeautify()<CR>
@@ -576,7 +613,7 @@
             \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
         AutocmdFT jsx
             \  nnoremap <silent> <buffer> ,b :<C-u>call JsxBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,by :call RangeJsxBeautify()<CR>
+            \| vnoremap <silent> <buffer> ,b :call RangeJsxBeautify()<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:config_Beautifier = {
@@ -635,18 +672,17 @@
         call neobundle#untap()
     endif
 
-    if neobundle#tap('vim-commentary')
-        call neobundle#config({'mappings': ['<Plug>Commentary', '<Plug>CommentaryLine']})
-
-        nmap q <Plug>CommentaryLine
-        vmap q <Plug>Commentary
-        nmap ,q gccyypgcc
-        xmap <silent> <expr> ,q 'gcgvyp`['. strpart(getregtype(), 0, 1) .'`]gc'
+    if neobundle#tap('caw.vim')
+        call neobundle#config({'mappings': ['q', ',q', ',a', ',w']})
 
         function! neobundle#hooks.on_source(bundle)
-            let g:commentary_map_backslash = 0
-            unmap \
-            unmap cgc
+            let g:caw_no_default_keymappings = 1
+
+            nmap q  <Plug>(caw:wrap:toggle)
+            xmap q  <Plug>(caw:wrap:toggle)
+            nmap ,q <Plug>(caw:jump:comment-prev)
+            nmap ,w <Plug>(caw:jump:comment-next)
+            nmap ,a <Plug>(caw:a:toggle)
         endfunction
 
         call neobundle#untap()
@@ -699,6 +735,7 @@
             \   "\<S-Space>" : 'do_excursion',
             \   "\<C-o>"     : 'do_excursion',
             \   "\<C-i>"     : 'do_excursion',
+            \   "\<C-l>"     : 'do_excursion',
             \   "\<C-j>"     : 'do_excursion',
             \   "\<C-k>"     : 'do_excursion',
             \   "\<C-c>"     : 'do_cancel',
@@ -882,37 +919,49 @@
         call neobundle#untap()
     endif
 
-    if neobundle#is_installed('context_filetype.vim')
-        let g:context_filetype#search_offset = 500
+    if neobundle#tap('vim-textobj-reactprop')
+        call neobundle#config({
+        \   'filetypes': ['html', 'xml', 'twig', 'htmltwig', 'jsx'],
+        \   'mappings': ['var', 'cir']
+        \})
+        call neobundle#untap()
+    endif
 
-        function! s:addContext(rule, filetype)
-            let s:context_ft_def = context_filetype#default_filetypes()
-            let g:context_filetype#filetypes[a:filetype] = add(s:context_ft_def.html, a:rule)
+    if neobundle#tap('context_filetype.vim')
+        function! neobundle#hooks.on_source(bundle)
+            let g:context_filetype#search_offset = 500
+
+            function! s:addContext(rule, filetype)
+                let s:context_ft_def = context_filetype#default_filetypes()
+                let g:context_filetype#filetypes[a:filetype] = add(s:context_ft_def.html, a:rule)
+            endfunction
+
+            " CSS
+            let s:context_ft_css = {
+            \   'start':    '<style>',
+            \   'end':      '</style>',
+            \   'filetype': 'css',
+            \}
+            call <SID>addContext(s:context_ft_css, 'html')
+
+            " Coffee script
+            let s:context_ft_coffee = {
+            \   'start':    '<script\%( [^>]*\)\? type="text/coffee"\%( [^>]*\)\?>',
+            \   'end':      '</script>',
+            \   'filetype': 'coffee',
+            \}
+            call <SID>addContext(s:context_ft_coffee, 'html')
+
+            " ReactJS
+            let s:context_ft_jsx = {
+            \   'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
+            \   'end':      '</script>',
+            \   'filetype': 'javascript',
+            \}
+            call <SID>addContext(s:context_ft_jsx, 'html')
         endfunction
 
-        " CSS
-        let s:context_ft_css = {
-        \   'start':    '<style>',
-        \   'end':      '</style>',
-        \   'filetype': 'css',
-        \}
-        call <SID>addContext(s:context_ft_css, 'html')
-
-        " Coffee script
-        let s:context_ft_coffee = {
-        \   'start':    '<script\%( [^>]*\)\? type="text/coffee"\%( [^>]*\)\?>',
-        \   'end':      '</script>',
-        \   'filetype': 'coffee',
-        \}
-        call <SID>addContext(s:context_ft_coffee, 'html')
-
-        " ReactJS
-        let s:context_ft_jsx = {
-        \   'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
-        \   'end':      '</script>',
-        \   'filetype': 'javascript',
-        \}
-        call <SID>addContext(s:context_ft_jsx, 'html')
+        call neobundle#untap()
     endif
 
     if neobundle#tap('neocomplete.vim') && has('lua')
@@ -1046,8 +1095,6 @@
             \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
 
         function! s:setUniteMappings()
-            call clearmatches()
-
             " Normal mode
             nmap <buffer> `       <Plug>(unite_exit)
             nmap <buffer> q       <Plug>(unite_exit)
@@ -1155,6 +1202,8 @@
     endif
 
     if neobundle#tap('neomru.vim')
+        call neobundle#config({'unite_sources': ['neomru/file', 'neomru/directory']})
+
         " [prefix]l: open recently-opened files
         nnoremap <silent> [prefix]w :<C-u>Unite neomru/file<CR>
         " [prefix]L: open recently-opened directories
@@ -1503,11 +1552,9 @@
     if neobundle#tap('vim-hyperstyle')
         call neobundle#config({'filetypes': ['css', 'less']})
 
-        AutocmdFT css,less
-            \ Autocmd InsertEnter,BufLeave <buffer> call <SID>setHyperstyleMappings()
+        Autocmd BufRead *.{css,less} call <SID>resetTabKey() 
 
-        function! s:setHyperstyleMappings()
-            imap <Tab> <Nop>
+        function! s:resetTabKey()
             imap <silent> <expr> <Tab> pumvisible() ?
                 \ "\<C-n>" : <SID>checkBackSpace() ?
                 \ "\<Tab>" : neocomplete#start_manual_complete()
@@ -1577,7 +1624,13 @@
     endif
 
 " Nginx
-    Autocmd BufNewFile,BufRead */nginx/** setl filetype=nginx commentstring=#%s
+    if neobundle#tap('vim-nginx')
+        call neobundle#config({'filename_patterns': '\.conf$'})
+
+        Autocmd BufNewFile,BufRead */nginx/** setl filetype=nginx commentstring=#%s
+
+        call neobundle#untap()
+    endif
 
 " Vagrant
     Autocmd BufNewFile,BufRead Vagrantfile setl filetype=ruby
@@ -1687,7 +1740,7 @@
     let &statusline =
     \ "%1* %L %*"
     \. "%(%{exists('*SessionName()') ? SessionName() : ''}\ %)"
-    \. "%-0.50f "
+    \. "%-0.60f "
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
@@ -1830,7 +1883,7 @@
     " Buffers
     "-----------------------------------------------------------------------
     " <Space>Q: previous buffer
-    nnoremap <silent> <Space>Q :<C-u>bnext<CR>
+    nnoremap <silent> <Space>A :<C-u>bnext<CR>
     " <Space>E: next buffer
     nnoremap <silent> <Space>E :<C-u>bprev<CR>
     " <Space>d: delete buffer
@@ -1945,7 +1998,6 @@
     inoremap <silent> <A-w> <Esc> :write!<CR>i
     " Alt-q: change language
     inoremap <A-q> <C-^>
-
     " qq: smart fast Esc
     imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
 
@@ -2030,11 +2082,17 @@
         \ '0': 'set paste',
         \ '1': 'set nopaste'}[&paste]<CR><CR>
 
-    " [prefix]p: indent paste
-    nnoremap <silent> [prefix]p o<Esc>pm``[=`]``^
-    xnoremap <silent> [prefix]p s<Esc>pm``[=`]``^
-    nnoremap <silent> [prefix]P U<Esc>Pm``[=`]``^
-    xnoremap <silent> [prefix]P W<Esc>Pm``[=`]``^
+    " Auto set paste on copy from system
+    let &t_SI .= "\<Esc>[?2004h"
+    let &t_EI .= "\<Esc>[?2004l"
+
+    inoremap <special> <expr> <Esc>[200~ XTermPasteBegin()
+
+    function! XTermPasteBegin()
+        set pastetoggle=<Esc>[201~
+        set paste
+        return ""
+    endfunction
 
     " [nN]: append blank line and space
     nnoremap <silent> <expr> n v:count ?
@@ -2073,4 +2131,4 @@
         endif
     endfunction
     " xnoremap R "_dP
-    xnoremap R :<C-U>call <SID>replace()<CR>
+    xnoremap <silent> R :<C-U>call <SID>replace()<CR>
