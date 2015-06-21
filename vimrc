@@ -84,9 +84,6 @@
     Autocmd VimResized * wincmd =
     " Automake directory
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
-    " q: close some buffer
-    AutocmdFT help nnoremap <buffer> <expr> q winnr('$') == 1 ? ":\<C-u>bdelete\<CR>" : "\<C-w>c"
-    AutocmdFT qf   nnoremap <buffer> <silent> q :<C-u>cclose<CR>
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -241,9 +238,9 @@
         NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
         \   'depends': 'kana/vim-textobj-user'
         \}
-        NeoBundleLazy 'justinj/vim-textobj-reactprop', {
-        \   'depends': 'kana/vim-textobj-user'
-        \}
+        " NeoBundleLazy 'justinj/vim-textobj-reactprop', {
+        " \   'depends': 'kana/vim-textobj-user'
+        " \}
         NeoBundle 'junegunn/vim-after-object', {
         \   'depends': 'kana/vim-textobj-user'
         \}
@@ -367,10 +364,10 @@
 
     if neobundle#tap('vim-session')
         call neobundle#config({
-        \   'functions': 
+        \   'functions':
         \       ['xolox#session#complete_names', 'xolox#session#complete_names_with_suggestions'],
         \   'commands': [
-        \       {'name': ['OpenSession', 'DeleteSession'], 
+        \       {'name': ['OpenSession', 'DeleteSession'],
         \           'complete': 'customlist,xolox#session#complete_names'},
         \       {'name': 'SaveSession',
         \           'complete': 'xolox#session#complete_names_with_suggestions'},
@@ -437,17 +434,17 @@
     if neobundle#tap('vimfiler.vim')
         call neobundle#config({'commands': ['VimFiler', 'VimFilerCurrentDir']})
 
-        " [dD]: open vimfilter explorer
-        nnoremap <silent> [prefix]d 
-            \ :<C-u>VimFilerCurrentDir -split -toggle -invisible -no-quit<CR>
-        nnoremap <silent> [prefix]D 
-            \ :<C-u>VimFilerCurrentDir -split -toggle -invisible -force-quit<CR>
+        " [dD]: open vimfiler explorer
+        nnoremap <silent> [prefix]d
+            \ :<C-u>VimFiler -split -toggle -invisible -project -no-quit<CR>
+        nnoremap <silent> [prefix]D
+            \ :<C-u>VimFiler -split -toggle -invisible -project -force-quit<CR>
 
-        " Vimfilter tuning
+        " Vimfiler tuning
         AutocmdFT vimfiler
-            \ setl nonu nornu nolist cursorline colorcolumn= statusline=%(\ %)
+            \ setl nonu nornu nolist cursorline colorcolumn=
         AutocmdFT vimfiler
-            \  Autocmd BufLeave,BufDelete,WinLeave <buffer> setl nocursorline 
+            \  Autocmd BufLeave,BufDelete,WinLeave <buffer> setl nocursorline
             \| Autocmd BufEnter,WinEnter <buffer> setl cursorline
 
         AutocmdFT vimfiler call s:setVimfilerMappings()
@@ -457,23 +454,36 @@
                 \? "\<Plug>(vimfiler_hide)"
                 \: "\<Plug>(vimfiler_switch_to_other_window)"
             nmap <buffer> Q <Plug>(vimfiler_close)
+            nmap <buffer> ` <Plug>(vimfiler_hide)
             nmap <buffer> l <Plug>(vimfiler_expand_tree)
-            nmap <buffer> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
-            nmap <buffer> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)
-            nmap <buffer> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)
+            nmap <buffer> o <Plug>(vimfiler_expand_or_edit)
+            nmap <buffer> O <Plug>(vimfiler_open_file_in_another_vimfiler)
+            nmap <buffer> <nowait> n <Plug>(vimfiler_new_file)
+            nmap <buffer> <nowait> N <Plug>(vimfiler_make_directory)
+            nmap <buffer> <nowait> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
+            nmap <buffer> <nowait> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)yes
+            nmap <buffer> <nowait> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)yes
             nmap <buffer> D <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_force_delete_file)
-            nmap <buffer> n <Plug>(vimfiler_new_file)
-            nmap <buffer> N <Plug>(vimfiler_make_directory)
-
-            nmap <buffer> <expr> v vimfiler#do_switch_action('vsplit')
-            nmap <buffer> <expr> s vimfiler#do_switch_action('split')
-            nmap <buffer> <expr> t vimfiler#do_action('tabopen')
-            nmap <buffer> <expr> <Enter> 
+            nmap <buffer> e <Plug>(vimfiler_toggle_mark_current_line)
+            nmap <buffer> E <Plug>(vimfiler_clear_mark_all_lines)
+            nmap <buffer> R <Plug>(vimfiler_redraw_screen)
+            nmap <buffer> <expr> <nowait> v vimfiler#do_switch_action('vsplit')
+            nmap <buffer> <expr> <nowait> s vimfiler#do_switch_action('split')
+            nmap <buffer> <expr> S <Plug>(vimfiler_split_edit_file)
+            nmap <buffer> <expr> t vimfiler#do_switch_action('open')
+            nmap <buffer> <expr> T vimfiler#do_switch_action('tabopen')
+            nmap <buffer> <expr> <Enter>
                 \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+
+            for s in ['h', 'j', 'k', 'l']
+                " <Space>[hjkl]: jump to a window
+                exe printf('nnoremap <silent> <buffer> <Space>%s :<C-u>wincmd %s<CR>', s, s)
+            endfor | unlet s
 
             " Unbinds
             nmap <buffer> J <Nop>
             nmap <buffer> K <Nop>
+            nmap <buffer> L <Nop>
         endfunction
 
         function! neobundle#hooks.on_source(bundle)
@@ -489,18 +499,18 @@
             let g:vimfiler_tree_leaf_icon = ' '
             let g:vimfiler_tree_opened_icon = '▾'
             let g:vimfiler_tree_closed_icon = '▸'
+            let g:vimfiler_marked_file_icon = '+'
 
             " Default profile
-            let s:vimfilter_default = {
+            let s:vimfiler_default = {
             \   'safe': 0,
             \   'parent': 0,
             \   'explorer': 1,
             \   'winwidth': 22,
-            \   'direction': 'topleft'
             \}
 
             " Custom profiles
-            call vimfiler#custom#profile('default', 'context', s:vimfilter_default)
+            call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
         endfunction
 
         call neobundle#untap()
@@ -510,7 +520,7 @@
         call neobundle#config({'functions': 'ProjectionistDetect'})
 
         " [prefix]p: detect .projections.json
-        nnoremap <silent> [prefix]p :call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
+        nnoremap <silent> [prefix]p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
         call neobundle#untap()
     endif
@@ -617,12 +627,6 @@
 
         function! neobundle#hooks.on_source(bundle)
             let g:config_Beautifier = {
-            \   'js': {
-            \       'indent_size':            2,
-            \       'indent_style':           'space',
-            \       'max_preserve_newlines':  2,
-            \       'keep_array_indentation': 'true'
-            \   },
             \   'html': {
             \       'indent_size':  2,
             \       'indent_style': 'space',
@@ -632,6 +636,12 @@
             \   'css': {
             \       'indent_size':  2,
             \       'indent_style': 'space'
+            \   },
+            \   'js': {
+            \       'indent_size':            2,
+            \       'indent_style':           'space',
+            \       'max_preserve_newlines':  2,
+            \       'keep_array_indentation': 'true'
             \   },
             \   'json': {
             \       'indent_size':  4,
@@ -700,7 +710,7 @@
         call neobundle#config({'commands': ['SplitjoinJoin', 'SplitjoinSplit']})
 
         " Join line in Insert mode using <C-J>
-        nnoremap <silent> J :<C-u>call <SID>trySplitJoin('SplitjoinJoin',  'J')<CR>
+        nnoremap <silent> J :<C-u>call <SID>trySplitJoin('SplitjoinJoin',  'J')<CR><CR>
         nnoremap <silent> S :<C-u>call <SID>trySplitJoin('SplitjoinSplit', "r\015")<CR><CR>
 
         function! s:trySplitJoin(cmd, default)
@@ -787,6 +797,13 @@
             " { <CR> }
             call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
             call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}'})
+
+            " { <Space> }
+            let s:lexima_pair_space_ft = ['javascript']
+            call lexima#add_rule({
+            \   'char': '<Space>', 'at': '{\%#}', 'input': '<Space>', 'input_after': '<Space>',
+            \   'filetype': s:lexima_pair_space_ft,
+            \})
         endfunction
 
         call neobundle#untap()
@@ -905,25 +922,17 @@
     endif
 
     if neobundle#tap('vim-textobj-delimited')
-        call neobundle#config({
-        \   'mappings': ['vid', 'viD', 'vad', 'vaD']
-        \})
+        call neobundle#config({'mappings': ['vid', 'viD', 'vad', 'vaD']})
         call neobundle#untap()
     endif
 
     if neobundle#tap('vim-textobj-xmlattr')
-        call neobundle#config({
-        \   'filetypes': ['html', 'xml', 'twig', 'htmltwig'],
-        \   'mappings': ['vix', 'vax']
-        \})
+        call neobundle#config({'mappings': ['vix', 'vax']})
         call neobundle#untap()
     endif
 
     if neobundle#tap('vim-textobj-reactprop')
-        call neobundle#config({
-        \   'filetypes': ['html', 'xml', 'twig', 'htmltwig', 'jsx'],
-        \   'mappings': ['var', 'cir']
-        \})
+        call neobundle#config({'mappings': ['var', 'cir']})
         call neobundle#untap()
     endif
 
@@ -1153,9 +1162,9 @@
 
             " Default profile
             let s:unite_default = {
-            \   'winheight': 14,
-            \   'direction': 'below',
-            \   'prompt_direction': 'top',
+            \   'winheight': 20,
+            \   'direction': 'botright',
+            \   'prompt_direction': 'below',
             \   'cursor_line_time': '0.0',
             \   'short_source_names': 1,
             \   'hide_source_names': 1,
@@ -1202,7 +1211,10 @@
     endif
 
     if neobundle#tap('neomru.vim')
-        call neobundle#config({'unite_sources': ['neomru/file', 'neomru/directory']})
+        call neobundle#config({
+        \   'unite_sources': ['neomru/file', 'neomru/directory'],
+        \   'augroup': 'neomru'
+        \})
 
         " [prefix]l: open recently-opened files
         nnoremap <silent> [prefix]w :<C-u>Unite neomru/file<CR>
@@ -1274,8 +1286,7 @@
     if neobundle#tap('unite-tag')
         call neobundle#config({'unite_sources': ['tag', 'tag/include', 'tag/file']})
 
-        Autocmd BufEnter,WinEnter * call <SID>UniteTagSettings()
-
+        Autocmd BufEnter,BufWinEnter * call <SID>UniteTagSettings()
         function! s:UniteTagSettings()
             if empty(&buftype)
                 " Ctrl-]: open tag under cursor
@@ -1532,7 +1543,7 @@
         \})
 
         function! neobundle#hooks.on_source(bundle)
-            Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
+            Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
                 \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
                 \   ? 'call <SID>clearColor()'
                 \   : 'ColorHighlight'
@@ -1552,7 +1563,7 @@
     if neobundle#tap('vim-hyperstyle')
         call neobundle#config({'filetypes': ['css', 'less']})
 
-        Autocmd BufRead *.{css,less} call <SID>resetTabKey() 
+        Autocmd BufNew,BufEnter,BufWinEnter *.{css,less} call <SID>resetTabKey()
 
         function! s:resetTabKey()
             imap <silent> <expr> <Tab> pumvisible() ?
@@ -1739,7 +1750,6 @@
     " Format the statusline
     let &statusline =
     \ "%1* %L %*"
-    \. "%(%{exists('*SessionName()') ? SessionName() : ''}\ %)"
     \. "%-0.60f "
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
@@ -1758,11 +1768,6 @@
         let bytes = getfsize(expand('%:p'))
         return bytes <= 0 ? '' :
             \ bytes < 1024 ? bytes.'B' : (bytes / 1024).'K'
-    endfunction
-
-    function! SessionName()
-        let session = fnamemodify(v:this_session, ':t:r')
-        return session != '' ? session : ''
     endfunction
 
 " Edit
@@ -1882,7 +1887,7 @@
 
     " Buffers
     "-----------------------------------------------------------------------
-    " <Space>Q: previous buffer
+    " <Space>A: previous buffer
     nnoremap <silent> <Space>A :<C-u>bnext<CR>
     " <Space>E: next buffer
     nnoremap <silent> <Space>E :<C-u>bprev<CR>
@@ -1901,12 +1906,15 @@
     nnoremap <silent> <Space>a :<C-u>tabprev<CR>
     " <Space>e: next tab
     nnoremap <silent> <Space>e :<C-u>tabnext<CR>
-    " [N]+<Space>q: close tab
-    nnoremap <silent> <expr> <Space>q v:count
+    " [N]+<Space>c: close tab
+    nnoremap <silent> <expr> <Space>c v:count
         \? ':<C-u>'.v:count.'tabclose<CR>'
         \: ':<C-u>tabclose<CR>'
-    " <Space>Q: force close tab
-    nnoremap <silent> <Space>Q :<C-u>tabclose!<CR>
+    " [N]+<Space>C: force close tab
+    nnoremap <silent> <expr> <Space>c v:count
+        \? ':<C-u>'.v:count.'tabclose!<CR>'
+        \: ':<C-u>tabclose!<CR>'
+    nnoremap <silent> <Space>C :<C-u>tabclose!<CR>
     " <Space>o: tab only
     nnoremap <silent> <Space>o :<C-u>tabonly<CR>
     " <Space>m: tab move
@@ -1944,10 +1952,14 @@
     nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
     " <Space>m: move window to a new tab page
     nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
-    " <Space>c: close window
-    nnoremap <silent> <Space>c :<C-u>close<CR>
-    " <Space>C: force close window
-    nnoremap <silent> <Space>C :<C-u>close!<CR>
+    " <Space>q: smart close window -> tab -> buffer
+    nnoremap <silent> <expr> <Space>q winnr('$') == 1
+        \? tabpagenr('$') == 1 ? ':<C-u>bdelete<CR>' : ':<C-u>tabclose<CR>'
+        \: ':<C-u>close<CR>'
+    " <Space>Q: force smart close window -> tab -> buffer
+    nnoremap <silent> <expr> <Space>Q winnr('$') == 1
+        \? tabpagenr('$') == 1 ? ':<C-u>bdelete!<CR>' : ':<C-u>tabclose!<CR>'
+        \: ':<C-u>close!<CR>'
     " <Space>s: split window horizontaly
     nnoremap <silent> <Space>s :<C-u>split<CR>
     " <Space>S: split window verticaly
