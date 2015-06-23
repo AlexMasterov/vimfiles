@@ -42,8 +42,8 @@
         " Shell: vim --startuptime filename -q; vim filename
         " vim --cmd 'profile start profile.txt' --cmd 'profile file $HOME/.vimrc' +q && vim profile.txt
         let s:startuptime = reltime()
-        au MyVimrc VimEnter * let s:startuptime = reltime(s:startuptime) | redraw
-                    \| echomsg ' startuptime:'. reltimestr(s:startuptime)
+        autocmd MyVimrc VimEnter * let s:startuptime = reltime(s:startuptime) | redraw
+                        \| echomsg ' startuptime:'. reltimestr(s:startuptime)
     endif
 
 " Functions
@@ -59,8 +59,8 @@
 " Commands
 "---------------------------------------------------------------------------
     " Vimrc augroup sugar
-    command! -nargs=* Autocmd   au MyVimrc <args>
-    command! -nargs=* AutocmdFT au MyVimrc FileType <args>
+    command! -nargs=* Autocmd   autocmd MyVimrc <args>
+    command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
     command! -nargs=* Mkdir call MakeDir(<f-args>)
     command! -bar -nargs=* Indent
         \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
@@ -190,12 +190,6 @@
         NeoBundleLazy 'tpope/vim-projectionist'
         NeoBundleLazy 'lilydjwg/colorizer'
         NeoBundleLazy 'maksimr/vim-jsbeautify'
-        NeoBundleLazy 'xolox/vim-misc'
-        NeoBundleLazy 'xolox/vim-session', {
-        \ 'depends': 'xolox/vim-misc'
-        \}
-
-        " UI
         NeoBundleLazy 'Shougo/unite.vim'
         NeoBundleLazy 'Shougo/neomru.vim'
         NeoBundleLazy 'Shougo/unite-outline'
@@ -205,16 +199,18 @@
         NeoBundleLazy 'thinca/vim-qfreplace'
         NeoBundleLazy 'mattn/httpstatus-vim'
         NeoBundleLazy 'tsukkee/unite-tag'
-
-        " NeoBundle 'luochen1990/rainbow'
         NeoBundleLazy 'jaxbot/semantic-highlight.vim'
         NeoBundleLazy 'osyo-manga/vim-brightest'
-        NeoBundleLazy 'cohama/lexima.vim'
+        NeoBundleLazy 'xolox/vim-misc'
+        NeoBundleLazy 'xolox/vim-session', {
+        \ 'depends': 'xolox/vim-misc'
+        \}
 
         " Edit
         NeoBundleLazy 'tyru/caw.vim'
         NeoBundleLazy 'kana/vim-smartword'
         NeoBundleLazy 't9md/vim-smalls'
+        NeoBundleLazy 'cohama/lexima.vim'
         NeoBundleLazy 'habamax/vim-skipit'
         NeoBundleLazy 'gcmt/wildfire.vim'
         NeoBundleLazy 'saihoooooooo/glowshi-ft.vim'
@@ -247,6 +243,7 @@
         " \}
 
         " PHP
+        " NeoBundleLazy 'joonty/vdebug'
         " NeoBundleLazy 'swekaj/php-foldexpr.vim'
         NeoBundleLazy '2072/PHP-Indenting-for-VIm'
         NeoBundleLazy 'shawncplus/phpcomplete.vim'
@@ -254,7 +251,6 @@
         NeoBundleLazy 'tobyS/pdv', {
         \ 'depends': 'tobyS/vmustache',
         \}
-        " NeoBundleLazy 'joonty/vdebug'
         " JavaScript
         NeoBundleLazy 'othree/yajs.vim'
         NeoBundleLazy 'othree/javascript-libraries-syntax.vim'
@@ -263,10 +259,10 @@
         NeoBundleLazy  'https://bitbucket.org/teramako/jscomplete-vim.git'
         NeoBundleLazy 'heavenshell/vim-jsdoc'
         " HTML
+        NeoBundle 'alvan/vim-closetag'
         NeoBundleLazy 'othree/html5.vim'
         NeoBundleLazy 'mattn/emmet-vim'
         NeoBundleLazy 'gregsexton/MatchTag'
-        NeoBundle 'alvan/vim-closetag'
         " Twig
         NeoBundleLazy 'qbbr/vim-twig'
         NeoBundleLazy 'tokutake/twig-indent'
@@ -608,8 +604,13 @@
 
     if neobundle#tap('vim-jsbeautify')
         call neobundle#config({
-            \ 'filetypes':
-            \   ['javascript', 'html', 'css', 'less', 'json', 'twig', 'htmltwig', 'jsx']
+            \ 'commands': [
+            \   'HtmlBeautify', 'RangeHtmlBeautify',
+            \   'JsBeautify', 'RangeJsBeautify',
+            \   'CSSBeautify', 'RangeCSSBeautify',
+            \   'JsonBeautify', 'RangeJsBeautify',
+            \   'JsxBeautify', 'RangeJsxBeautify'
+            \ ]
             \})
 
         AutocmdFT html,twig,htmltwig
@@ -641,7 +642,7 @@
             \   'indent_style': 'space'
             \ },
             \ 'js': {
-            \   'indent_size':            4,
+            \   'indent_size':            2,
             \   'indent_style':           'space',
             \   'keep_array_indentation': 'true'
             \ },
@@ -650,7 +651,7 @@
             \   'indent_style': 'space'
             \ },
             \ 'jsx': {
-            \   'indent_size':            4,
+            \   'indent_size':            2,
             \   'indent_style':           'space',
             \   'keep_array_indentation': 'true'
             \ }
@@ -691,7 +692,7 @@
 
         function! neobundle#hooks.on_source(bundle)
             let g:wildfire_objects = {
-            \ '*': split("iw iW i' i\" i) a) a] a} it i> a> vV ip"),
+            \ '*': split("iw iW i' i\" i) a) a] a}"),
             \ 'html,twig,htmltwig,xml': ["at"]
             \}
         endfunction
@@ -804,7 +805,7 @@
         call neobundle#config({'mappings': [['i', '<C-n>']]})
 
         function! neobundle#hooks.on_source(bundle)
-            imap <C-n> <Plug>SkipIt
+            imap  <C-n> <Plug>SkipIt
         endfunction
 
         call neobundle#untap()
@@ -826,7 +827,7 @@
 
             " { <CR> }
             call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
-            call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}'})
+            call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
 
             " { <Space> }
             let s:lexima_pair_space_ft = ['javascript']
@@ -924,10 +925,7 @@
     endif
 
     if neobundle#tap('vim-smartchr')
-        call neobundle#config({
-        \ 'functions': 'smartchr#loop',
-        \ 'insert': 1
-        \})
+        call neobundle#config({'functions': 'smartchr#loop'})
 
         command! -nargs=* ImapBufExpr inoremap <buffer> <expr> <args>
         AutocmdFT haskell
@@ -990,11 +988,11 @@
             \}
             call <SID>addContext(s:context_ft_coffee, 'html')
 
-            " ReactJS
+            " JSX (ReactJS)
             let s:context_ft_jsx = {
             \ 'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
             \ 'end':      '</script>',
-            \ 'filetype': 'javascript',
+            \ 'filetype': 'javascript.jsx',
             \}
             call <SID>addContext(s:context_ft_jsx, 'html')
         endfunction
@@ -1012,6 +1010,7 @@
         inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
         inoremap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-j>"
         inoremap <expr> <C-k>   pumvisible() ? "\<C-p>" : "\<C-k>"
+        inoremap <expr> <C-y>   pumvisible() ? neocomplete#close_popup() : "\<C-y>"
         inoremap <silent> <expr> <Tab> pumvisible()
             \ ? "\<C-n>" : <SID>checkBackSpace()
             \ ? "\<Tab>" : neocomplete#start_manual_complete()
@@ -1036,24 +1035,28 @@
             let g:neocomplete#enable_cursor_hold_i = 1
             let g:neocomplete#cursor_hold_i_time = 4000
             " Reset 'CursorHold' time
-            Autocmd InsertEnter * setl updatetime=260
-            Autocmd InsertLeave * set  updatetime=4000
+            Autocmd InsertEnter * set updatetime=260
+            Autocmd InsertLeave * set updatetime=4000
 
             " Alias filetypes
             let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-            let g:neocomplete#same_filetypes.html  = 'twig,htmltwig'
-            let g:neocomplete#same_filetypes.css  = 'less'
+            let g:neocomplete#same_filetypes.twig = 'html'
+            let g:neocomplete#same_filetypes.htmltwig = 'html'
+            let g:neocomplete#same_filetypes.less = 'css'
+            let g:neocomplete#same_filetypes.jsx = 'javascript'
+
             " Sources
             let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
             let g:neocomplete#sources._ = ['buffer']
-            let g:neocomplete#sources.php = ['buffer', 'member', 'omni', 'tag', 'file', 'ultisnips']
-            let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'ultisnips']
-            let g:neocomplete#sources.html = ['omni', 'ultisnips']
+            let g:neocomplete#sources.php = ['buffer', 'omni', 'tag', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.html = ['omni', 'file/include', 'ultisnips']
             let g:neocomplete#sources.css = ['omni', 'ultisnips']
             " Custom settings
             call neocomplete#custom#source('omni', 'rank', 10)
             call neocomplete#custom#source('tag', 'rank', 20)
             call neocomplete#custom#source('buffer', 'rank', 30)
+            call neocomplete#custom#source('file/include', 'rank', 40)
             call neocomplete#custom#source('ultisnips', 'rank', 100)
             call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
             " Completion patterns
@@ -1315,7 +1318,7 @@
     if neobundle#tap('unite-tag')
         call neobundle#config({'unite_sources': ['tag', 'tag/include', 'tag/file']})
 
-        Autocmd BufEnter,BufWinEnter * call <SID>UniteTagSettings()
+        Autocmd BufEnter,WinEnter * call <SID>UniteTagSettings()
         function! s:UniteTagSettings()
             if empty(&buftype)
                 " Ctrl-]: open tag under cursor
@@ -1385,13 +1388,9 @@
         call neobundle#untap()
     endif
     " Autocomplete
+    AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
     if neobundle#tap('phpcomplete.vim')
-        call neobundle#config({
-        \ 'filetypes': 'php',
-        \ 'insert': 1
-        \})
-
-        AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
+        call neobundle#config({'insert': 1})
 
         function! neobundle#hooks.on_source(bundle)
             let g:phpcomplete_relax_static_constraint = 0
@@ -1414,7 +1413,6 @@
     " PHP Documentor
     if neobundle#tap('pdv')
         call neobundle#config({
-        \ 'filetypes': 'php',
         \ 'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine']
         \})
 
@@ -1455,7 +1453,7 @@
     endif
 
 " JavaScript
-    AutocmdFT javascript Indent 4
+    AutocmdFT javascript Indent 2
     " Indent
     if neobundle#tap('simple-javascript-indenter')
         call neobundle#config({'filetypes': 'javascript'})
@@ -1488,7 +1486,9 @@
         Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
 
         function! neobundle#hooks.on_source(bundle)
-            let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API']
+            let g:jscomplete_use = ['dom', 'es6th']
+            " let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API', 'webGL']
+            " let g:jscomplete_webgl_ns = 'webgl'
         endfunction
 
         call neobundle#untap()
@@ -1540,17 +1540,15 @@
     " Autocomplete
     AutocmdFT html setl omnifunc=htmlcomplete#CompleteTags
     if neobundle#tap('emmet-vim')
-        call neobundle#config({
-        \ 'filetypes': ['html', 'twig', 'htmltwig'],
-        \ 'insert': 1
-        \})
+        call neobundle#config({'mappings': [['i', '<Plug>']]})
+
+        AutocmdFT html,twig,htmltwig,css 
+            \  imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
+            \| imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
 
         function! neobundle#hooks.on_source(bundle)
             let g:user_emmet_mode = 'i'
             let g:user_emmet_complete_tag = 0
-
-            imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
-            imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
         endfunction
 
         call neobundle#untap()
@@ -1609,9 +1607,10 @@
     if neobundle#tap('vim-hyperstyle')
         call neobundle#config({'filetypes': ['css', 'less']})
 
-        Autocmd BufNew,BufEnter,BufWinEnter *.{css,less} call <SID>resetTabKey()
+        Autocmd BufNew,BufEnter,BufWinEnter,WinEnter *.{css,less} call <SID>resetTabKey()
 
         function! s:resetTabKey()
+            imap <Enter> <CR>
             imap <silent> <expr> <Tab> pumvisible()
                 \ ? "\<C-n>" : <SID>checkBackSpace()
                 \ ? "\<Tab>" : neocomplete#start_manual_complete()
@@ -1883,6 +1882,7 @@
     nnoremap <silent> <A-j> :move+<CR>
     nnoremap <silent> <A-k> :move-2<CR>
     nnoremap <A-h> <<<Esc>
+    nnoremap <A-h> <<<Esc>
     nnoremap <A-l> >>><Esc>
     " Q: auto indent text
     nnoremap Q ==
@@ -1892,7 +1892,7 @@
     nnoremap <C-j> <C-d>
     nnoremap <C-k> <C-u>
     " Ctrl-d: duplicate line
-    nnoremap <silent> <C-d> yyp
+    nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
     " [dDcC]: don't update register
     nnoremap d "_d
     nnoremap D "_D
@@ -1902,6 +1902,8 @@
     " nnoremap x "_x
     " nnoremap X "_dd
 
+    " gu: capitalize
+    nnoremap gu gUiw`]
     " gr: replace word under the cursor
     nnoremap gr :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
     " g.: smart replace word under the cursor
@@ -2049,7 +2051,7 @@
     " Ctrl-_: undo
     inoremap <C-_> <C-o>u
     " Ctrl-p: paste
-    inoremap <C-p> <S-Insert>
+    imap <C-p> <S-Insert>
     " Ctrl+s: force save file
     inoremap <silent> <C-s> <Esc> :write!<CR>i
     " Alt+w: force save file
