@@ -167,7 +167,7 @@ hi hs_DeclareFunction         guifg=#D14000                   gui=NONE
 "---------------------------------------------------------------------------
 hi javaScriptParens           guifg=#999999                   gui=NONE
 hi javaScriptBraces           guifg=#999999                   gui=NONE
-hi javaScriptBoolean          guifg=#CD7F32                   gui=bold
+hi javaScriptBoolean          guifg=#CD7F32                   gui=NONE
 hi javaScriptOpSymbols        guifg=#A67F59   guibg=#FFF9F9   gui=NONE
 hi javaScriptDOMObjects       guifg=#708090                   gui=NONE
 hi javaScriptGlobalObjects    guifg=#708090                   gui=NONE
