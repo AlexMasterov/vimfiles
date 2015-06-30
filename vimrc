@@ -1,6 +1,6 @@
 " .vimrc / 2015 June
 " Author: Alex Masterov <alex.masterow@gmail.com>
-" Source: https://github.com/AlexMasterov/dotvim
+" Source: https://github.com/AlexMasterov/vimfiles
 
 " My vimfiles
 "---------------------------------------------------------------------------
@@ -69,7 +69,7 @@
     " Rename current file name
     command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
     " Strip trailing whitespace at the end of non-blank lines
-    command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge |endif
+    command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge | :let @/="" |endif
 
 " Events
 "---------------------------------------------------------------------------
@@ -415,25 +415,28 @@
 
     if neobundle#is_installed('vim-signature')
         let g:SignatureMarkTextHL = "'BookmarkLine'"
-        let g:SignatureIncludeMarks = 'qwertasdfglcvbzxyi'
+        let g:SignatureIncludeMarks = 'weratsdfqglcvbzxyi'
         let g:SignatureErrorIfNoAvailableMarks = 0
         let g:SignatureMap = {
-        \ 'Leader':            '\|',
-        \ 'ToggleMarkAtLine':  '\',
-        \ 'PlaceNextMark':     '',
-        \ 'PurgeMarksAtLine':  '<BS>',
-        \ 'DeleteMark':        '<S-BS>',
-        \ 'PurgeMarks':        '<Del>',
-        \ 'PurgeMarkers':      '<S-Del>',
-        \ 'GotoNextSpotAlpha': '=',
-        \ 'GotoPrevSpotAlpha': '-',
-        \ 'GotoNextMarkerAny': '+',
-        \ 'GotoPrevMarkerAny': '_',
-        \ 'GotoNextLineAlpha': '<Up>',
-        \ 'GotoPrevLineAlpha': '<Down>',
+        \ 'Leader':           '\|',
+        \ 'ToggleMarkAtLine': '\',
+        \ 'PlaceNextMark':    '',
+        \ 'PurgeMarksAtLine': '<BS>',
+        \ 'DeleteMark':       '<S-BS>',
+        \ 'PurgeMarks':       '<Del>',
+        \ 'PurgeMarkers':     '<S-Del>',
         \}
 
-        Autocmd BufRead * SignatureRefresh
+        " jump to any marker
+        nnoremap <silent> + :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
+        nnoremap <silent> _ :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
+        " jump to spot alpha
+        nnoremap <silent> = :<C-u>call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
+        nnoremap <silent> - :<C-u>call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
+        " jump to line alpha
+        nnoremap <silent> <Up> :<C-u>call signature#mark#Goto('next', 'line', 'alpha')<CR>zz
+        nnoremap <silent> <Down> :<C-u>call signature#mark#Goto('prev', 'line', 'alpha')<CR>zz
+
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
     endif
@@ -476,8 +479,7 @@
             nmap <buffer> <expr> <nowait> v vimfiler#do_switch_action('vsplit')
             nmap <buffer> <expr> <nowait> s vimfiler#do_switch_action('split')
             nmap <buffer> <expr> S <Plug>(vimfiler_split_edit_file)
-            nmap <buffer> <expr> t vimfiler#do_action('open')
-            nmap <buffer> <expr> T vimfiler#do_action('tabopen')
+            nmap <buffer> <expr> t vimfiler#do_action('tabopen')
             nmap <buffer> <expr> <Enter>
                 \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
 
@@ -657,7 +659,7 @@
         AutocmdFT json
             \  nnoremap <silent> <buffer> ,b :<C-u>call JsonBeautify()<CR>
             \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
-        AutocmdFT jsx
+        AutocmdFT jsx,javascript.jsx
             \  nnoremap <silent> <buffer> ,b :<C-u>call JsxBeautify()<CR>
             \| vnoremap <silent> <buffer> ,b :call RangeJsxBeautify()<CR>
 
@@ -669,15 +671,14 @@
             \   'brace_style':  'expand',
             \   'max_char':     120
             \ },
+            \ 'js': {
+            \   'indent_size':  2,
+            \   'indent_style': 'space',
+            \ },
             \ 'css': {
             \   'indent_size':  2,
-            \   'indent_style': 'space'
-            \ },
-            \ 'js': {
-            \   'indent_size':       2,
-            \   'indent_style':      'space',
-            \   'jslint_happy':      'true',
-            \   'brace_style':       'none'
+            \   'indent_style': 'space',
+            \   'newline_between_rules': 'true'
             \ },
             \ 'json': {
             \   'indent_size':  4,
@@ -702,6 +703,7 @@
             \ nnoremap <silent> <buffer> ,v :<C-u>SemanticHighlightToggle<CR>
 
         function! neobundle#hooks.on_source(bundle)
+            let g:semanticPersistCacheLocation = $VIMCACHE.'/semantic-hl'
             let g:semanticGUIColors = [
             \ '#CD7F32', '#999999', '#0050B1', '#A67F59'
             \]
@@ -763,20 +765,8 @@
     if neobundle#tap('splitjoin.vim')
         call neobundle#config({'commands': ['SplitjoinJoin', 'SplitjoinSplit']})
 
-        " Join line in Insert mode using <C-J>
-        nnoremap <silent> J :<C-u>call <SID>trySplitJoin('SplitjoinJoin',  'J')<CR><CR>
-        nnoremap <silent> S :<C-u>call <SID>trySplitJoin('SplitjoinSplit', "r\015")<CR><CR>
-
-        function! s:trySplitJoin(cmd, default)
-            if exists(':' . a:cmd) && !v:count
-                let tick = b:changedtick | exe a:cmd
-                if tick == b:changedtick
-                    exe join(['normal!', a:default])
-                endif
-            else
-                exe join(['normal! ', v:count, a:default], '')
-            endif
-        endfunction
+        nmap <silent> J :<C-u>SplitjoinJoin<CR><CR>
+        nmap <silent> S :<C-u>SplitjoinSplit<CR>
 
         call neobundle#untap()
     endif
@@ -858,16 +848,28 @@
                 call lexima#add_rule(rule)
             endfor | unlet rule
 
-            " { <CR> }
-            call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
-            call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
+            function! s:disable_lexima_inside_regexp(char)
+                call lexima#add_rule({'char': a:char, 'at': '\(...........\)\?/\S.*\%#.*\S/', 'input': a:char})
+            endfunction
+
+            " Fix pair completion
+            for pair in ['()', '[]', '{}']
+                call lexima#add_rule({
+                \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'. escape(pair[1], ']') .']', 'input': pair[0]
+                \})
+            endfor | unlet pair
 
             " Quotes
             for quote in ['"', "'"]
                 call lexima#add_rule({'char': quote, 'at': '\(.......\)\?\%#\w', 'input': quote})
                 call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
                 call lexima#add_rule({'char': quote, 'at': '\(...........\)\?\%#'. quote, 'input': '<Right>'})
+                call s:disable_lexima_inside_regexp(quote)
             endfor | unlet quote
+
+            " { <CR> }
+            call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
+            call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
 
             " { <Space> }
             let s:lexima_pair_space_ft = ['javascript']
@@ -877,8 +879,9 @@
             \})
 
             " Attributes
-            let s:lexima_attr_close_ft = ['html', 'twig', 'htmltwig', 'xml']
-            call lexima#add_rule({'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>',
+            let s:lexima_attr_close_ft = ['html', 'twig', 'htmltwig', 'xml', 'javascript.jsx']
+            call lexima#add_rule({
+            \ 'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>',
             \ 'filetype': s:lexima_attr_close_ft
             \})
         endfunction
@@ -895,7 +898,7 @@
         nnoremap <silent> <Tab> :<C-u>Switch<CR>
         xnoremap <silent> <Tab> :Switch<CR>
         nnoremap <silent> ` :<C-u>silent! call switch#Switch(g:switch_def_camelcase)<CR>
-        nnoremap <silent> " :<C-u>silent! call switch#Switch(g:switch_def_quotes)<CR>
+        nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switch_def_quotes)<CR>
 
         let g:switch_mapping = ''
         let g:switch_def_quotes = [{
@@ -987,10 +990,6 @@
         AutocmdFT javascript
             \| ImapBufExpr - smartchr#loop('-', '--', '_')
             \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
-        AutocmdFT css
-            \  ImapBufExpr ; smartchr#loop(';', ': ')
-            \| ImapBufExpr % smartchr#loop('%', '% ')
-            \| ImapBufExpr p smartchr#loop('p', 'px', 'px ')
         AutocmdFT yaml
             \  ImapBufExpr > smartchr#loop('>', '%>')
             \| ImapBufExpr < smartchr#loop('<', '<%', '<%=')
@@ -1045,6 +1044,14 @@
             \ 'filetype': 'javascript.jsx',
             \}
             call <SID>addContext(s:context_ft_jsx, 'html')
+
+            " Bebel?
+            let s:context_ft_bebel = {
+            \ 'start':    '<script\%( [^>]*\)\? type="text/bebel"\%( [^>]*\)\?>',
+            \ 'end':      '</script>',
+            \ 'filetype': 'javascript',
+            \}
+            call <SID>addContext(s:context_ft_bebel, 'html')
         endfunction
 
         call neobundle#untap()
@@ -1081,7 +1088,7 @@
             let g:neocomplete#enable_cursor_hold_i = 1
             let g:neocomplete#cursor_hold_i_time = 4000
             " Reset 'CursorHold' time
-            Autocmd InsertEnter * set updatetime=260
+            Autocmd InsertEnter * setl updatetime=260
             Autocmd InsertLeave * set updatetime=4000
 
             " Alias filetypes
@@ -1089,7 +1096,7 @@
             let g:neocomplete#same_filetypes.twig = 'html'
             let g:neocomplete#same_filetypes.htmltwig = 'html'
             let g:neocomplete#same_filetypes.less = 'css'
-            let g:neocomplete#same_filetypes.jsx = 'javascript'
+            let g:neocomplete#same_filetypes = {'javascript.jsx': 'javascript'}
 
             " Sources
             let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
@@ -1522,7 +1529,7 @@
         call neobundle#untap()
     endif
     if neobundle#tap('javascript-libraries-syntax')
-        call neobundle#config({'filetypes': ['javascript', 'jsx']})
+        call neobundle#config({'filetypes': ['javascript', 'javascript.jsx']})
 
         function! neobundle#hooks.on_source(bundle)
             let g:used_javascript_libs = 'react,angularjs,underscore,jquery'
@@ -1534,7 +1541,7 @@
     if neobundle#tap('jscomplete-vim')
         call neobundle#config({'insert': 1})
 
-        Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
+        Autocmd BufNewFile,BufRead *.{js,jsx} setl omnifunc=jscomplete#CompleteJS
 
         function! neobundle#hooks.on_source(bundle)
             let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API']
@@ -1550,7 +1557,7 @@
     if neobundle#tap('vim-jsdoc')
         call neobundle#config({'mappings': [['n', '<Plug>(jsdoc)']]})
 
-        AutocmdFT javascript,jsx nmap <buffer> ,c <Plug>(jsdoc)
+        AutocmdFT javascript,javascript.jsx nmap <buffer> ,c <Plug>(jsdoc)
 
         function! neobundle#hooks.on_source(bundle)
             let g:jsdoc_default_mapping = 0
@@ -1564,7 +1571,7 @@
         call neobundle#untap()
     endif
     " Tags
-    Autocmd BufNewFile,BufRead *.{js,jsx} setl tags=
+    Autocmd BufNewFile,BufRead *.{js,jsx,javascript.jsx} setl tags=
         \$VIMFILES/tags/js.react/react-0.13.tags
         \,$VIMFILES/tags/js.react/JSXTransformer-0.13.tags
 
@@ -1599,12 +1606,11 @@
     if neobundle#tap('emmet-vim')
         call neobundle#config({'mappings': [['i', '<Plug>']]})
 
-        AutocmdFT html,twig,htmltwig,css
-            \ call <SID>EmmetMappings()
-            \| imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
-            \| imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
+        AutocmdFT html,twig,htmltwig,css call <SID>EmmetMappings()
 
         function! s:EmmetMappings()
+            imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
+            imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
             imap <silent> <buffer> <expr> <Tab>
                 \ pumvisible() ? "\<C-n>" : <SID>checkBackSpace() ?
                     \ neocomplete#start_manual_complete() : emmet#isExpandable() ?
@@ -1619,7 +1625,7 @@
         call neobundle#untap()
     endif
     if neobundle#is_installed('vim-closetag')
-        let g:closetag_filenames = '*.{html,twig,htmltwig,xml}'
+        let g:closetag_filenames = '*.{html,twig,htmltwig,xml,javascript.jsx}'
     endif
 
 " Twig
@@ -1629,7 +1635,7 @@
     if neobundle#tap('vim-twig')
         call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
 
-        Autocmd BufNewFile,BufRead *.html.twig set ft=htmltwig
+        Autocmd BufNewFile,BufRead *.html.twig set filetype=htmltwig
 
         call neobundle#untap()
     endif
@@ -1652,6 +1658,8 @@
         \})
 
         function! neobundle#hooks.on_source(bundle)
+            let g:colorizer_nomap = 1
+
             Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
                 \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
                 \ ? 'call <SID>clearColor()'
@@ -1673,7 +1681,7 @@
         call neobundle#config({'filetypes': ['css', 'less']})
 
         Autocmd BufNew,BufEnter,BufWinEnter,WinEnter
-            \ *.{css,less} call <SID>setHyperstyleMappings()
+            \ *.{css,less} call <SID>HyperstyleMappings()
 
         function! s:HyperstyleMappings()
             imap <Enter> <CR>
@@ -1700,6 +1708,7 @@
     endif
 
 " JSON
+    Autocmd BufNewFile,BufRead .{babelrc,eslintrc} set filetype=json
     " Syntax
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
@@ -2216,15 +2225,14 @@
     nnoremap <silent> <expr> N v:count ?
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
 
-    " zz: move to top/center/bottom
-    nnoremap <expr> zz (winline() == (winheight(0)+1)/ 2) ?
-      \ 'zt' : (winline() == 1) ? 'zb' : 'zz'
-
     " #: keep search pattern at the center of the screen
     nnoremap <silent># #zz
 
     " Remove spaces at the end of lines
     nnoremap <silent> ,<Space> :<C-u>silent! keeppatterns %substitute/\s\+$//e<CR>
+
+    " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
+    nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
 
     " Inspect syntax
     nnoremap ,i :<C-u>echo map(synstack(line('.'), col('.')), 'synIDattr(synIDtrans(v:val), "name")')<CR>
