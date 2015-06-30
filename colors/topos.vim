@@ -220,6 +220,6 @@ hi yamlKey                    guifg=#0050B1                   gui=NONE
 hi jsonString                 guifg=#2B2B2B                   gui=NONE
 hi jsonEscape                 guifg=#A67F59                   gui=NONE
 hi jsonBraces                 guifg=#999999                   gui=NONE
-hi jsonBoolean                guifg=#CD7F32                   gui=bold
+hi jsonBoolean                guifg=#CD7F32                   gui=NONE
 hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=NONE
 hi jsonKeywordRegion          guifg=#0050B1                   gui=NONE
