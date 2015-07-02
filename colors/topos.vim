@@ -1,7 +1,8 @@
 " Vim colour file
 " File:         topos.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
-" Last Updated: 2015 March
+" Source:       https://github.com/AlexMasterov/vimfiles
+" Last Updated: 2015 July
 " Description:  GUI only
 
 hi clear
