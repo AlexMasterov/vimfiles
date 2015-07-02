@@ -247,9 +247,6 @@
         " NeoBundleLazy 'justinj/vim-textobj-reactprop', {
         " \ 'depends': 'kana/vim-textobj-user'
         " \}
-        " NeoBundle 'junegunn/vim-after-object', {
-        " \ 'depends': 'kana/vim-textobj-user'
-        " \}
 
         " PHP
         " NeoBundleLazy 'joonty/vdebug'
@@ -320,10 +317,9 @@
         nmap ,X <Plug>(crunch-operator-line)
         xmap ,x <Plug>(visual-crunch-operator)
         " ,z: toggle crunch append
-        nnoremap <silent> ,z :<C-r>={
-            \ '0': 'let g:crunch_result_type_append = 1',
-            \ '1': 'let g:crunch_result_type_append = 0'
-            \}[get(g:, 'crunch_result_type_append', 0)]<CR><CR>
+        nnoremap <silent> ,z 
+            \ :<C-u>let g:crunch_result_type_append = !get(g:, 'crunch_result_type_append', 0)<CR>
+            \:echo ' Crunch append: '. (g:crunch_result_type_append == 1 ? 'On' : 'Off')<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:crunch_result_type_append = 0
@@ -728,12 +724,6 @@
         endfunction
 
         call neobundle#untap()
-    endif
-
-    if neobundle#is_installed('vim-after-object')
-        Autocmd VimEnter * call after_object#enable(
-        \ '=', '-', ':', ';', '#', '>', '>', '$', '(', ')', '[', ']', '|', ' '
-        \)
     endif
 
     if neobundle#tap('wildfire.vim')
@@ -2107,6 +2097,14 @@
     nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
     " <Space>R: rotate windows upwards/leftwards
     nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
+    " <Space>b: set current window to highest possible
+    nnoremap <silent> <Space>b :<C-u>wincmd _<CR>
+    " <Space>n: make all windows (almost) equally high and wide
+    nnoremap <silent> <Space>n :<C-u>wincmd =<CR>
+    " >: increase current window height
+    nnoremap <silent> < :<C-u>resize +2<CR>
+    " <: decrease current window height
+    nnoremap <silent> > :<C-u>resize -2<CR>
     " <Space>m: move window to a new tab page
     nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
     " <Space>q: smart close window -> tab -> buffer
@@ -2244,10 +2242,13 @@
 
 " Experimental
 "---------------------------------------------------------------------------
-    " ,p: toggle paste  mode
-    nnoremap <silent> ,p :<C-r>={
-        \ '0': 'set paste',
-        \ '1': 'set nopaste'}[&paste]<CR><CR>
+    " ,p: toggle paste mode
+    nnoremap <silent> ,p :<C-u>let &paste = !&paste<CR>
+        \:echo ' Paste mode: '. (&paste == 1 ? 'On' : 'Off')<CR>
+
+    " .o: toggle wrapping of text
+    nnoremap <silent> ,o :<C-u>let &wrap = !&wrap<CR>
+        \:echo ' Wrap mode: '. (&wrap == 1 ? 'On' : 'Off')<CR>
 
     " [nN]: append blank line and space
     nnoremap <silent> <expr> n v:count ?
