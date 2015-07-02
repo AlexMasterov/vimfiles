@@ -1,4 +1,4 @@
-" .vimrc / 2015 June
+" .vimrc / 2015 July
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -190,7 +190,6 @@
         NeoBundle 'kopischke/vim-stay'
         NeoBundle 'kshenoy/vim-signature'
         NeoBundleLazy 'mbbill/undotree'
-        NeoBundleLazy 'arecarn/crunch.vim'
         NeoBundleLazy 'Shougo/vimfiler.vim'
         NeoBundleLazy 'tpope/vim-projectionist'
         NeoBundleLazy 'lilydjwg/colorizer'
@@ -210,6 +209,10 @@
         NeoBundleLazy 'xolox/vim-misc'
         NeoBundleLazy 'xolox/vim-session', {
         \ 'depends': 'xolox/vim-misc'
+        \}
+        NeoBundleLazy 'arecarn/selection.vim'
+        NeoBundleLazy 'arecarn/crunch.vim', {
+        \ 'depends': 'arecarn/selection.vim'
         \}
 
         " Edit
@@ -309,19 +312,34 @@
 "---------------------------------------------------------------------------
     if neobundle#tap('crunch.vim')
         call neobundle#config({
-        \ 'mappings': ['<Plug>CrunchOperator', '<Plug>VisualCrunchOperator'],
+        \ 'mappings': [['n', '<Plug>'], ['x', '<Plug>(visual-crunch-operator)']],
         \ 'commands': 'Crunch'
         \})
 
-        nnoremap <silent> ,x <Plug>CrunchOperator_
-        xnoremap <silent> ,x <Plug>VisualCrunchOperator
+        nmap ,x <Plug>(crunch-operator)
+        nmap ,X <Plug>(crunch-operator-line)
+        xmap ,x <Plug>(visual-crunch-operator)
         " ,z: toggle crunch append
         nnoremap <silent> ,z :<C-r>={
             \ '0': 'let g:crunch_result_type_append = 1',
-            \ '1': 'let g:crunch_result_type_append = 0'}[g:crunch_result_type_append]<CR><CR>
+            \ '1': 'let g:crunch_result_type_append = 0'
+            \}[get(g:, 'crunch_result_type_append', 0)]<CR><CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:crunch_result_type_append = 0
+        endfunction
+
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('selection.vim')
+        call neobundle#config({'augroup': 'SELECTION_MODE'})
+
+        function! neobundle#hooks.on_post_source(bundle)
+            augroup SELECTION_MODE
+                autocmd!
+            augroup END
+            augroup! SELECTION_MODE
         endfunction
 
         call neobundle#untap()
@@ -420,7 +438,6 @@
         let g:SignatureMap = {
         \ 'Leader':           '\|',
         \ 'ToggleMarkAtLine': '\',
-        \ 'PlaceNextMark':    '',
         \ 'PurgeMarksAtLine': '<BS>',
         \ 'DeleteMark':       '<S-BS>',
         \ 'PurgeMarks':       '<Del>',
@@ -437,6 +454,7 @@
         nnoremap <silent> <Up> :<C-u>call signature#mark#Goto('next', 'line', 'alpha')<CR>zz
         nnoremap <silent> <Down> :<C-u>call signature#mark#Goto('prev', 'line', 'alpha')<CR>zz
 
+        Autocmd BufRead * SignatureRefresh
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
     endif
@@ -914,8 +932,10 @@
         \ '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
         \}]
 
+        " PHP
         AutocmdFT php
         \ let b:switch_custom_definitions = [
+        \ ['development', 'production'],
         \ ['&&', '||'],
         \ ['and', 'or'],
         \ ['public', 'protected', 'private'],
@@ -934,6 +954,8 @@
         \   '\->\(\k\+\)': '[''\1'']'
         \ }
         \]
+
+        " HTML
         AutocmdFT html,twig,htmltwig
         \ let b:switch_custom_definitions = [
         \ ['h1', 'h2', 'h3'],
@@ -948,6 +970,8 @@
         \   '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
         \ }
         \]
+
+        " CSS
         AutocmdFT css
         \ let b:switch_custom_definitions = [
         \ ['border-top', 'border-bottom'],
@@ -1062,11 +1086,14 @@
 
         " Tab: completion
         inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
-        inoremap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-j>"
-        inoremap <expr> <C-k>   pumvisible() ? "\<C-p>" : "\<C-k>"
         inoremap <silent> <expr> <Tab> pumvisible()
             \ ? "\<C-n>" : <SID>checkBackSpace()
             \ ? "\<Tab>" : neocomplete#start_manual_complete()
+
+        " Ctrl-d: select the previous match OR delete till start of line
+        inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
+        " Ctrl-k: select the next match OR delete to end of line
+        inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
 
         function! s:checkBackSpace()
             let col = col('.') - 1
@@ -1231,6 +1258,10 @@
 
             " Command mode
             cmap <buffer> ` <Esc>
+
+            " Unbinds
+            nmap <buffer> <BS> <Nop>
+            nmap <buffer> <S-BS> <Nop>
         endfunction
 
         function! neobundle#hooks.on_source(bundle)
@@ -1667,7 +1698,7 @@
 
             function! s:clearColor()
                 augroup Colorizer
-                    au!
+                    autocmd!
                 augroup END
                 augroup! Colorizer
             endfunction
@@ -1719,7 +1750,8 @@
         AutocmdFT json
             \ nmap <buffer> <silent> ,c :<C-r>={
             \   '0': 'setl conceallevel=2',
-            \   '2': 'setl conceallevel=0'}[&conceallevel]<CR><CR>
+            \   '2': 'setl conceallevel=0'
+            \}[&conceallevel]<CR><CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:vim_json_syntax_concealcursor = 'inc'
@@ -1782,10 +1814,10 @@
         set guicursor=n-v:blinkon0  " turn off blinking the cursor
         set linespace=3             " extra spaces between rows
         " Window size and position
-        if has('vim_starting')
-            winsize 176 38 | winpos 492 314
+        " if has('vim_starting')
+            winsize 176 38 | winpos 492 320
             " winsize 140 46 | winpos 360 224
-        endif
+        " endif
     endif
 
     " Font
@@ -2109,12 +2141,10 @@
     inoremap <C-e> <C-o>A
     " Ctrl-b: jump back to beginning of previous wordmp to first char
     inoremap <C-q> <Home>
-    " Ctrl-BS: delete word
+    " Ctrl-<BS>: delete word
     inoremap <C-d> <BS>
-    " Ctrl-d: delete next char
+    " Ctrl-f: delete next char
     inoremap <C-f> <Del>
-    " Ctrl-d: deleting till start of line
-    " inoremap <C-d> <C-g>u<C-u>
     " Ctrl-Enter: break line below
     inoremap <C-CR> <Esc>O
     " Shift-Enter: break line above
@@ -2224,6 +2254,11 @@
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
     nnoremap <silent> <expr> N v:count ?
         \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
+
+    " ): jump to next pair
+    nnoremap ) f)
+    " (: jump to previous pair
+    nnoremap ( F(
 
     " #: keep search pattern at the center of the screen
     nnoremap <silent># #zz
