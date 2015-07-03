@@ -317,7 +317,7 @@
         nmap ,X <Plug>(crunch-operator-line)
         xmap ,x <Plug>(visual-crunch-operator)
         " ,z: toggle crunch append
-        nnoremap <silent> ,z 
+        nnoremap <silent> ,z
             \ :<C-u>let g:crunch_result_type_append = !get(g:, 'crunch_result_type_append', 0)<CR>
             \:echo ' Crunch append: '. (g:crunch_result_type_append == 1 ? 'On' : 'Off')<CR>
 
@@ -1074,18 +1074,29 @@
     if neobundle#tap('neocomplete.vim') && has('lua')
         call neobundle#config({'insert': 1})
 
-        " Tab: completion
-        inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
-        inoremap <silent> <expr> <Tab> pumvisible()
-            \ ? "\<C-n>" : <SID>checkBackSpace()
-            \ ? "\<Tab>" : neocomplete#start_manual_complete()
-
         " Ctrl-d: select the previous match OR delete till start of line
         inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
         " Ctrl-k: select the next match OR delete to end of line
         inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
 
-        function! s:checkBackSpace()
+        " Tab: completion
+        inoremap <silent> <Tab> <C-r>=<SID>neoComplete()<CR>
+        inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
+
+        function! s:neoComplete()
+            if pumvisible()
+                return "\<C-n>"
+            endif
+
+            if <SID>isBackspace() == 1
+                return "\<Tab>"
+            endif
+
+            call feedkeys("\<C-x>\<C-i>")
+            return neocomplete#start_manual_complete()
+        endfunction
+
+        function! s:isBackspace()
             let col = col('.') - 1
             return !col || getline('.')[col - 1] =~ '\s'
         endfunction
@@ -1094,41 +1105,18 @@
             let g:neocomplete#enable_at_startup = 1
             let g:neocomplete#enable_smart_case = 1
             let g:neocomplete#enable_camel_case = 1
-            let g:neocomplete#enable_insert_char_pre = 1
-            let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
-            let g:neocomplete#min_keyword_length = 2
+            let g:neocomplete#enable_auto_delimiter = 1
             let g:neocomplete#auto_completion_start_length = 1
             let g:neocomplete#manual_completion_start_length = 1
+            let g:neocomplete#min_keyword_length = 2
             let g:neocomplete#sources#syntax#min_keyword_length = 3
-            let g:neocomplete#sources#buffer#disabled_pattern = '\.log$\|\.log\.\|\.csv$'
+            let g:neocomplete#sources#buffer#disabled_pattern = '\.log$\|\.csv$'
+            let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
 
-            let g:neocomplete#enable_cursor_hold_i = 1
-            let g:neocomplete#cursor_hold_i_time = 4000
-            " Reset 'CursorHold' time
-            Autocmd InsertEnter * setl updatetime=260
-            Autocmd InsertLeave * set updatetime=4000
-
-            " Alias filetypes
-            let g:neocomplete#same_filetypes = get(g:, 'neocomplete#same_filetypes', {})
-            let g:neocomplete#same_filetypes.twig = 'html'
-            let g:neocomplete#same_filetypes.htmltwig = 'html'
-            let g:neocomplete#same_filetypes.less = 'css'
-            let g:neocomplete#same_filetypes = {'javascript.jsx': 'javascript'}
-
-            " Sources
-            let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
-            let g:neocomplete#sources._ = ['buffer', 'omni', 'file/include']
-            let g:neocomplete#sources.php = ['buffer', 'member', 'omni', 'tag', 'file/include', 'ultisnips']
-            let g:neocomplete#sources.javascript = ['buffer', 'member', 'omni', 'tag', 'file/include', 'ultisnips']
-            let g:neocomplete#sources.html = ['omni', 'file/include', 'ultisnips']
-            let g:neocomplete#sources.css = ['omni', 'ultisnips']
             " Custom settings
-            call neocomplete#custom#source('omni', 'rank', 10)
-            call neocomplete#custom#source('tag', 'rank', 20)
-            call neocomplete#custom#source('buffer', 'rank', 30)
-            call neocomplete#custom#source('file/include', 'rank', 40)
             call neocomplete#custom#source('ultisnips', 'rank', 100)
             call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
+
             " Completion patterns
             let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
             let g:neocomplete#sources#omni#input_patterns.php =
@@ -1148,12 +1136,21 @@
         \ 'insert': 1
         \})
 
+        inoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
         snoremap <C-c> <Esc>
+
+        function! s:ultiComplete()
+            if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
+                return UltiSnips#ExpandSnippet()
+            end
+            return "\`"
+        endfunction
+
         Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
 
         function! neobundle#hooks.on_source(bundle)
-            let g:UltiSnipsExpandTrigger = '`'
-            let g:UltiSnipsListSnippets = '<S-F12>'
+            let g:UltiSnipsExpandTrigger = '<F99>'
+            let g:UltiSnipsListSnippets = '<F99>'
             let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
         endfunction
 
@@ -1181,7 +1178,7 @@
         " [prefix]g: grep search
         nnoremap <silent> [prefix]g
             \ :<C-u>Unite grep:. -no-split -auto-preview<CR>
-        " /: search
+        " [prefix]s: search
         nnoremap <silent> [prefix]s
             \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert<CR>
         " *: search keyword under the cursor
@@ -1204,12 +1201,11 @@
                 \ setl nonu nornu nolist colorcolumn=
 
         AutocmdFT unite call <SID>UniteMappings()
-            \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
 
         function! s:UniteMappings()
             " Normal mode
-            nmap <buffer> `       <Plug>(unite_exit)
-            nmap <buffer> q       <Plug>(unite_exit)
+            nmap <buffer> <S-BS>  <Plug>(unite_exit)
+            nmap <buffer> <C-BS>  <Plug>(unite_exit)
             nmap <buffer> <S-Tab> <Plug>(unite_loop_cursor_up)
             nmap <buffer> <Tab>   <Plug>(unite_loop_cursor_down)
             nmap <silent> <buffer> <expr> o  unite#do_action('open')
@@ -1232,7 +1228,8 @@
             endif
 
             " Insert mode
-            imap <buffer> `       <Plug>(unite_exit)
+            imap <buffer> <C-BS>  <Plug>(unite_exit)
+            imap <buffer> <C-i>   <Plug>(unite_insert_leave)
             imap <buffer> <C-n>   <Plug>(unite_complete)
             imap <buffer> <Tab>   <Plug>(unite_select_next_line)
             imap <buffer> <S-Tab> <Plug>(unite_select_previous_line)
@@ -1243,15 +1240,10 @@
             imap <buffer> <C-d>   <Plug>(unite_delete_backward_line)
             imap <buffer> <C-j>   <Plug>(unite_select_next_line)
             imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
-            imap <buffer> <expr> <C-e> len(getline('.')) != 1 ? "\<Plug>(unite_delete_backward_char)" : ''
-            imap <buffer> <expr> <BS>  len(getline('.')) != 1 ? "\<Plug>(unite_delete_backward_char)" : ''
-
-            " Command mode
-            cmap <buffer> ` <Esc>
-
-            " Unbinds
-            nmap <buffer> <BS> <Nop>
-            nmap <buffer> <S-BS> <Nop>
+            imap <buffer> <S-BS>  <Plug>(unite_delete_backward_line)
+            imap <buffer> <expr> <BS> len(getline('.')) > 1 ? "\<Plug>(unite_delete_backward_char)" : ""
+            imap <buffer> <expr> <C-e> len(getline('.')) != 1 ? "\<Plug>(unite_delete_backward_char)" : ""
+            imap <buffer> <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
         endfunction
 
         function! neobundle#hooks.on_source(bundle)
@@ -1275,7 +1267,7 @@
             let s:unite_default = {
             \ 'winheight': 20,
             \ 'direction': 'botright',
-            \ 'prompt_direction': 'top',
+            \ 'prompt_direction': 'bellow',
             \ 'cursor_line_time': '0.0',
             \ 'short_source_names': 1,
             \ 'hide_source_names': 1,
@@ -1284,21 +1276,23 @@
             \ 'prompt': '>',
             \ 'wipe': 1
             \}
+
+            " Search profile
+            let s:unite_search = {
+            \ 'winheight': 20
+            \}
+
             " Quickfix profile
             let s:unite_quickfix = {
             \ 'winheight': 16,
             \ 'no_quit': 1,
             \ 'keep_focus': 1
             \}
-            " Line profile
-            let s:unite_line = {
-            \ 'winheight': 20
-            \}
 
             " Custom profiles
             call unite#custom#profile('default', 'context', s:unite_default)
+            call unite#custom#profile('source/grep', 'context', s:unite_search)
             call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
-            call unite#custom#profile('source/line,source/grep', 'context', s:unite_line)
 
             " Custom filters
             call unite#filters#sorter_default#use(['sorter_rank'])
@@ -1629,13 +1623,27 @@
 
         AutocmdFT html,twig,htmltwig,css call <SID>EmmetMappings()
 
+        function! s:emmetComplete()
+            if pumvisible()
+                return "\<C-n>"
+            endif
+
+            if <SID>isBackspace() == 1
+                return "\<Tab>"
+            endif
+
+            if emmet#isExpandable()
+                return emmet#expandAbbr(0, '')
+            endif
+
+            call feedkeys("\<C-x>\<C-i>")
+            return neocomplete#start_manual_complete()
+        endfunction
+
         function! s:EmmetMappings()
             imap <silent> <buffer> <C-p> <Plug>(emmet-expand-abbr)
             imap <silent> <buffer> <C-q> <Plug>(emmet-expand-word)
-            imap <silent> <buffer> <expr> <Tab>
-                \ pumvisible() ? "\<C-n>" : <SID>checkBackSpace() ?
-                    \ neocomplete#start_manual_complete() : emmet#isExpandable() ?
-                        \ "\<C-g>u\<C-r>=emmet#expandAbbr(0, '')\<CR>" : "\<Tab>"
+            inoremap <silent> <buffer> <Tab> <C-r>=<SID>emmetComplete()<CR>
         endfunction
 
         function! neobundle#hooks.on_source(bundle)
@@ -1706,9 +1714,7 @@
 
         function! s:HyperstyleMappings()
             imap <Enter> <CR>
-            imap <silent> <expr> <Tab> pumvisible()
-                \ ? "\<C-n>" : <SID>checkBackSpace()
-                \ ? "\<Tab>" : neocomplete#start_manual_complete()
+            inoremap <silent> <Tab> <C-r>=<SID>neoComplete()<CR>
         endfunction
 
         call neobundle#untap()
@@ -1804,10 +1810,10 @@
         set guicursor=n-v:blinkon0  " turn off blinking the cursor
         set linespace=3             " extra spaces between rows
         " Window size and position
-        " if has('vim_starting')
+        if has('vim_starting')
             winsize 176 38 | winpos 492 320
             " winsize 140 46 | winpos 360 224
-        " endif
+        endif
     endif
 
     " Font
@@ -1830,6 +1836,7 @@
     exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
 
     set shortmess=aoOtTIc
+    set formatoptions+=n         " support formatting of numbered lists
     set number relativenumber    " show the line number
     set nocursorline             " highlight the current line
     set hidden                   " allows the closing of buffers without saving
@@ -1946,7 +1953,7 @@
     " Autocomplete
     set complete=.
     set completeopt=longest
-    set pumheight=9
+    set pumheight=14
     " Syntax complete if nothing else available
     Autocmd BufEnter,WinEnter * if &omnifunc == ''| setl omnifunc=syntaxcomplete#Complete |endif
 
@@ -2102,9 +2109,9 @@
     " <Space>n: make all windows (almost) equally high and wide
     nnoremap <silent> <Space>n :<C-u>wincmd =<CR>
     " >: increase current window height
-    nnoremap <silent> < :<C-u>resize +2<CR>
+    nnoremap <silent> < :<C-u>resize +3<CR>
     " <: decrease current window height
-    nnoremap <silent> > :<C-u>resize -2<CR>
+    nnoremap <silent> > :<C-u>resize -3<CR>
     " <Space>m: move window to a new tab page
     nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
     " <Space>q: smart close window -> tab -> buffer
@@ -2299,3 +2306,10 @@
     endfunction
     xnoremap R "_dP
     xnoremap <silent> R :<C-u>call <SID>replace()<CR>
+
+    " nnoremap <silent> <up> :resize +3<cr>
+    " nnoremap <silent> <down> :resize -3<cr>
+
+    " resize windows w/ arrow keys
+    nnoremap <silent> <Left> :<C-u>vertical resize -3<CR>
+    nnoremap <silent> <Right> :<C-u>vertical resize +3<CR>
