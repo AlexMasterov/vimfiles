@@ -56,6 +56,11 @@
         endif
     endfunction
 
+    function! s:isBackspace()
+        let col = col('.') - 1
+        return !col || getline('.')[col - 1] =~ '\s'
+    endfunction
+
 " Commands
 "---------------------------------------------------------------------------
     " Vimrc augroup sugar
@@ -232,9 +237,12 @@
         NeoBundleLazy 'kana/vim-smartchr'
         NeoBundleLazy 'Shougo/context_filetype.vim'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
-        \ 'depends': 'Shougo/context_filetype.vim'
+        \ 'depends': 'Shougo/context_filetype.vim',
+        \ 'disabled': !has('lua'),
         \}
-        NeoBundleLazy 'SirVer/ultisnips'
+        NeoBundleLazy 'SirVer/ultisnips', {
+        \ 'disabled': !has('python'),
+        \}
 
         " Text objects
         NeoBundleLazy 'kana/vim-textobj-user'
@@ -248,6 +256,13 @@
         " \ 'depends': 'kana/vim-textobj-user'
         " \}
 
+        " Haskell
+        NeoBundleLazy 'eagletmt/ghcmod-vim', {
+        \ 'disabled': !executable('ghc-mod'),
+        \}
+        NeoBundleLazy 'eagletmt/neco-ghc', {
+        \ 'disabled': !executable('ghc-mod'),
+        \}
         " PHP
         " NeoBundleLazy 'joonty/vdebug'
         " NeoBundleLazy 'swekaj/php-foldexpr.vim'
@@ -266,9 +281,9 @@
         NeoBundleLazy 'heavenshell/vim-jsdoc'
         " HTML
         NeoBundle 'alvan/vim-closetag'
+        NeoBundle 'gregsexton/MatchTag'
         NeoBundleLazy 'othree/html5.vim'
         NeoBundleLazy 'mattn/emmet-vim'
-        NeoBundle 'gregsexton/MatchTag'
         " Twig
         NeoBundleLazy 'qbbr/vim-twig'
         NeoBundleLazy 'tokutake/twig-indent'
@@ -474,8 +489,8 @@
         function! s:VimfilerMappings()
             " Normal mode
             nmap <buffer> <expr> q winnr('$') == 1
-                \? "\<Plug>(vimfiler_hide)"
-                \: "\<Plug>(vimfiler_switch_to_other_window)"
+                \ ? "\<Plug>(vimfiler_hide)"
+                \ : "\<Plug>(vimfiler_switch_to_other_window)"
             nmap <buffer> Q <Plug>(vimfiler_close)
             nmap <buffer> ` <Plug>(vimfiler_hide)
             nmap <buffer> l <Plug>(vimfiler_expand_tree)
@@ -543,6 +558,12 @@
 
         " [prefix]p: detect .projections.json
         nnoremap <silent> [prefix]p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            nnoremap m1 :<C-u>Ejs<Space>
+            nnoremap m2 :<C-u>Ecss<Space>
+            nnoremap m3 :<C-u>Epackage<Space>
+        endfunction
 
         call neobundle#untap()
     endif
@@ -692,7 +713,7 @@
             \ 'css': {
             \   'indent_size':  2,
             \   'indent_style': 'space',
-            \   'newline_between_rules': 'true'
+            \   'newline_between_rules': 'true',
             \ },
             \ 'json': {
             \   'indent_size':  4,
@@ -1051,27 +1072,19 @@
             \}
             call <SID>addContext(s:context_ft_coffee, 'html')
 
-            " JSX (ReactJS)
+            " JSX (React)
             let s:context_ft_jsx = {
             \ 'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
             \ 'end':      '</script>',
             \ 'filetype': 'javascript.jsx',
             \}
             call <SID>addContext(s:context_ft_jsx, 'html')
-
-            " Bebel?
-            let s:context_ft_bebel = {
-            \ 'start':    '<script\%( [^>]*\)\? type="text/bebel"\%( [^>]*\)\?>',
-            \ 'end':      '</script>',
-            \ 'filetype': 'javascript',
-            \}
-            call <SID>addContext(s:context_ft_bebel, 'html')
         endfunction
 
         call neobundle#untap()
     endif
 
-    if neobundle#tap('neocomplete.vim') && has('lua')
+    if neobundle#tap('neocomplete.vim')
         call neobundle#config({'insert': 1})
 
         " Ctrl-d: select the previous match OR delete till start of line
@@ -1096,11 +1109,6 @@
             return neocomplete#start_manual_complete()
         endfunction
 
-        function! s:isBackspace()
-            let col = col('.') - 1
-            return !col || getline('.')[col - 1] =~ '\s'
-        endfunction
-
         function! neobundle#hooks.on_source(bundle)
             let g:neocomplete#enable_at_startup = 1
             let g:neocomplete#enable_smart_case = 1
@@ -1117,6 +1125,13 @@
             call neocomplete#custom#source('ultisnips', 'rank', 100)
             call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
 
+            " Sources
+            let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
+            let g:neocomplete#sources.html = ['syntax', 'omni', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.javascript = ['omni', 'tag', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.css = ['omni', 'tag', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.vim = ['omni', 'file/include', 'ultisnips']
+
             " Completion patterns
             let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
             let g:neocomplete#sources#omni#input_patterns.php =
@@ -1130,7 +1145,7 @@
         call neobundle#untap()
     endif
 
-    if neobundle#tap('ultisnips') && has('python')
+    if neobundle#tap('ultisnips')
         call neobundle#config({
         \ 'functions': 'UltiSnips#FileTypeChanged',
         \ 'insert': 1
@@ -1140,7 +1155,8 @@
         snoremap <C-c> <Esc>
 
         function! s:ultiComplete()
-            if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
+            " if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
+            if len(UltiSnips#SnippetsInCurrentScope()) >= 1
                 return UltiSnips#ExpandSnippet()
             end
             return "\`"
@@ -1149,8 +1165,8 @@
         Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
 
         function! neobundle#hooks.on_source(bundle)
-            let g:UltiSnipsExpandTrigger = '<F99>'
-            let g:UltiSnipsListSnippets = '<F99>'
+            let g:UltiSnipsExpandTrigger = '<S-F12>'
+            let g:UltiSnipsListSnippets = '<S-F12>'
             let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
         endfunction
 
@@ -1201,6 +1217,7 @@
                 \ setl nonu nornu nolist colorcolumn=
 
         AutocmdFT unite call <SID>UniteMappings()
+            \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
 
         function! s:UniteMappings()
             " Normal mode
@@ -1229,7 +1246,6 @@
 
             " Insert mode
             imap <buffer> <C-BS>  <Plug>(unite_exit)
-            imap <buffer> <C-i>   <Plug>(unite_insert_leave)
             imap <buffer> <C-n>   <Plug>(unite_complete)
             imap <buffer> <Tab>   <Plug>(unite_select_next_line)
             imap <buffer> <S-Tab> <Plug>(unite_select_previous_line)
@@ -1329,9 +1345,9 @@
         function! neobundle#hooks.on_source(bundle)
             let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
             let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$'
-            let g:neomru#filename_format = ':~:.'
+            let g:neomru#filename_format = ':.'
             let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
-            let g:neomru#time_format = '%d.%m %H:%M — '
+            let g:neomru#time_format = '%d.%m %H:%M | '
             " Limit results for recently edited files
             call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
             " Search relative to Project Root if it exists
@@ -1432,6 +1448,41 @@
 
 " Languages
 "---------------------------------------------------------------------------
+" Haskell
+    AutocmdFT haskell setl nowrap | Indent 4
+    " Autocomplete
+    if neobundle#tap('neco-ghc')
+        call neobundle#config({'functions': 'necoghc#omnifunc'})
+
+        AutocmdFT haskell setl omnifunc=necoghc#omnifunc
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:necoghc_enable_detailed_browse = 1
+        endfunction
+
+        call neobundle#untap()
+    endif
+    if neobundle#tap('ghcmod-vim')
+        call neobundle#config({
+        \ 'commands': ['GhcModCheck', 'GhcModLint', 'GhcModCheckAndLintAsync']
+        \})
+
+        AutocmdFT haskell Autocmd BufWritePost <buffer> GhcModCheckAndLintAsync
+        AutocmdFT haskell
+            \  nnoremap <silent> <buffer> ,t :<C-u>GhcModType!<CR>
+            \| nnoremap <silent> <buffer> ,T :<C-u>GhcModTypeClear<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:ghcmod_open_quickfix_function = 'GhcModQuickFix'
+
+            function! GhcModQuickFix()
+                Unite quickfix -no-empty -silent
+            endfunction
+        endfunction
+
+        call neobundle#untap()
+    endif
+
 " PHP
     " Indent
     AutocmdFT php Indent 4
@@ -1463,7 +1514,7 @@
     " Autocomplete
     AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
     if neobundle#tap('phpcomplete.vim')
-        call neobundle#config({'insert': 1})
+        call neobundle#config({'functions': 'phpcomplete#CompletePHP'})
 
         function! neobundle#hooks.on_source(bundle)
             let g:phpcomplete_relax_static_constraint = 0
@@ -1554,7 +1605,7 @@
     endif
     " Autocomplete
     if neobundle#tap('jscomplete-vim')
-        call neobundle#config({'insert': 1})
+        call neobundle#config({'functions': 'jscomplete#CompleteJS'})
 
         Autocmd BufNewFile,BufRead *.{js,jsx} setl omnifunc=jscomplete#CompleteJS
 
@@ -1713,7 +1764,8 @@
             \ *.{css,less} call <SID>HyperstyleMappings()
 
         function! s:HyperstyleMappings()
-            imap <Enter> <CR>
+            silent! iunmap <buffer> <CR>
+            silent! iunmap <buffer> <BS>
             inoremap <silent> <Tab> <C-r>=<SID>neoComplete()<CR>
         endfunction
 
@@ -1735,7 +1787,7 @@
     endif
 
 " JSON
-    Autocmd BufNewFile,BufRead .{babelrc,eslintrc} set filetype=json
+    Autocmd BufNewFile,BufRead .{babelrc,eslintrc} Indent 2
     " Syntax
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
@@ -1802,6 +1854,9 @@
 
 " Vim
     AutocmdFT vim setl iskeyword+=:
+    " Auto reload VimScript
+    AutocmdFT vim
+        \ Autocmd BufWritePost,FileWritePost <buffer> source <afile>
 
 " GUI
 "---------------------------------------------------------------------------
@@ -1811,7 +1866,7 @@
         set linespace=3             " extra spaces between rows
         " Window size and position
         if has('vim_starting')
-            winsize 176 38 | winpos 492 320
+            winsize 176 34 | winpos 492 326
             " winsize 140 46 | winpos 360 224
         endif
     endif
@@ -2104,14 +2159,14 @@
     nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
     " <Space>R: rotate windows upwards/leftwards
     nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
-    " <Space>b: set current window to highest possible
-    nnoremap <silent> <Space>b :<C-u>wincmd _<CR>
-    " <Space>n: make all windows (almost) equally high and wide
-    nnoremap <silent> <Space>n :<C-u>wincmd =<CR>
+    " <Space>n: set current window to highest possible
+    nnoremap <silent> <Space>n :<C-u>wincmd _<CR>
+    " <Space>b: make all windows (almost) equally high and wide
+    nnoremap <silent> <Space>b :<C-u>wincmd =<CR>
     " >: increase current window height
-    nnoremap <silent> < :<C-u>resize +3<CR>
+    nnoremap <silent> > :<C-u>resize +3<CR>
     " <: decrease current window height
-    nnoremap <silent> > :<C-u>resize -3<CR>
+    nnoremap <silent> < :<C-u>resize -3<CR>
     " <Space>m: move window to a new tab page
     nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
     " <Space>q: smart close window -> tab -> buffer
@@ -2306,10 +2361,3 @@
     endfunction
     xnoremap R "_dP
     xnoremap <silent> R :<C-u>call <SID>replace()<CR>
-
-    " nnoremap <silent> <up> :resize +3<cr>
-    " nnoremap <silent> <down> :resize -3<cr>
-
-    " resize windows w/ arrow keys
-    nnoremap <silent> <Left> :<C-u>vertical resize -3<CR>
-    nnoremap <silent> <Right> :<C-u>vertical resize +3<CR>
