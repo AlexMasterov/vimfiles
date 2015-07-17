@@ -1155,7 +1155,6 @@
         snoremap <C-c> <Esc>
 
         function! s:ultiComplete()
-            " if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
             if len(UltiSnips#SnippetsInCurrentScope()) >= 1
                 return UltiSnips#ExpandSnippet()
             end
@@ -1334,13 +1333,22 @@
     if neobundle#tap('neomru.vim')
         call neobundle#config({
         \ 'unite_sources': ['neomru/file', 'neomru/directory'],
-        \ 'augroup': 'neomru'
+        \ 'commands': ['NeoMRUSave', 'NeoMRUReload'],
         \})
 
+        Autocmd BufLeave,VimLeavePre * NeoMRUSave
+
         " [prefix]l: open recently-opened files
-        nnoremap <silent> [prefix]w :<C-u>Unite neomru/file<CR>
+        nnoremap <silent> [prefix]w
+            \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_project_files', 'matcher_hide_current_file'])<CR>
         " [prefix]L: open recently-opened directories
-        nnoremap <silent> [prefix]W :<C-u>Unite neomru/directory<CR>
+        nnoremap <silent> [prefix]W
+            \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
+
+        function! s:openMRU(matchers)
+            call unite#custom#source('neomru/file', 'matchers', a:matchers)
+            Unite neomru/file -toggle
+        endfunction
 
         function! neobundle#hooks.on_source(bundle)
             let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
@@ -1350,14 +1358,10 @@
             let g:neomru#time_format = '%d.%m %H:%M | '
             " Limit results for recently edited files
             call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
-            " Search relative to Project Root if it exists
-            call unite#custom#source('neomru/file,neomru/directory',
-                \ 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
         endfunction
 
         call neobundle#untap()
     endif
-
 
     if neobundle#tap('unite-vimpatches')
         call neobundle#config({'unite_sources': 'vimpatches'})
@@ -1431,7 +1435,7 @@
 
     if neobundle#tap('vim-qfreplace')
         call neobundle#config({
-        \ 'filetypes': ['unite', 'quickfix'],
+        \ 'functions': 'qfreplace#start',
         \ 'commands': 'Qfreplace'
         \})
 
@@ -1757,6 +1761,10 @@
     endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
+    if neobundle#tap('vim-better-css-completion')
+        call neobundle#config({'functions': 'csscomplete#CompleteCSS'})
+        call neobundle#untap()
+    endif
     if neobundle#tap('vim-hyperstyle')
         call neobundle#config({'filetypes': ['css', 'less']})
 
@@ -1792,14 +1800,12 @@
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
 
-        " AutocmdFT json
-        "     \  Autocmd InsertEnter <buffer> setl concealcursor=
-        "     \| Autocmd InsertLeave <buffer> setl concealcursor=inc
         AutocmdFT json
-            \ nmap <buffer> <silent> ,c :<C-r>={
-            \   '0': 'setl conceallevel=2',
-            \   '2': 'setl conceallevel=0'
-            \}[&conceallevel]<CR><CR>
+            \  Autocmd InsertEnter <buffer> let &l:concealcursor = ''
+            \| Autocmd InsertLeave <buffer> let &l:concealcursor = (&conceallevel == 0 ? '' : 'inc')
+        AutocmdFT json
+            \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
+            \:echo ' Conceal mode: '. (&l:conceallevel == 2 ? 'On' : 'Off')<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:vim_json_syntax_concealcursor = 'inc'
@@ -1855,8 +1861,7 @@
 " Vim
     AutocmdFT vim setl iskeyword+=:
     " Auto reload VimScript
-    AutocmdFT vim
-        \ Autocmd BufWritePost,FileWritePost <buffer> source <afile>
+    AutocmdFT vim Autocmd BufWritePost,FileWritePost <buffer> source <afile>
 
 " GUI
 "---------------------------------------------------------------------------
@@ -2306,11 +2311,14 @@
 "---------------------------------------------------------------------------
     " ,p: toggle paste mode
     nnoremap <silent> ,p :<C-u>let &paste = !&paste<CR>
-        \:echo ' Paste mode: '. (&paste == 1 ? 'On' : 'Off')<CR>
+        \:echo printf(' Paste mode: %3S (global)', (&paste == 1 ? 'On' : 'Off'))<CR>
 
-    " .o: toggle wrapping of text
-    nnoremap <silent> ,o :<C-u>let &wrap = !&wrap<CR>
-        \:echo ' Wrap mode: '. (&wrap == 1 ? 'On' : 'Off')<CR>
+    " ,o: toggle wrapping of text (local)
+    nnoremap <silent> ,o :<C-u>let &l:wrap = !&l:wrap<CR>
+        \:echo printf(' Wrap mode: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
+    " ,O: toggle wrapping of text (global)
+    nnoremap <silent> ,O :<C-u>let &wrap = !&wrap<CR>
+        \:echo printf(' Wrap mode: %3S (global)', (&wrap == 1 ? 'On' : 'Off'))<CR>
 
     " [nN]: append blank line and space
     nnoremap <silent> <expr> n v:count ?
