@@ -69,12 +69,12 @@
     command! -bar -nargs=* Indent
         \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
     command! -nargs=* FontSize
-        \ let &guifont = substitute(&guifont, '\d\+', '\=submatch(0)+<args>', 'g')
+        \ let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
     command! -nargs=* Mkdir call MakeDir(<f-args>)
-    " Rename current file name
-    command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
     " Strip trailing whitespace at the end of non-blank lines
     command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge | :let @/="" |endif
+    " Rename current file name
+    command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
 
 " Events
 "---------------------------------------------------------------------------
@@ -85,8 +85,6 @@
     " Toggle settings between modes
     Autocmd InsertEnter * setl list colorcolumn=120
     Autocmd InsertLeave * setl nolist colorcolumn=
-    " Disable paste mode when leaving Insert mode
-    Autocmd InsertLeave * if &paste| set nopaste |endif
     " Resize splits then the window is resized
     Autocmd VimResized * wincmd =
     " Create directories if not exist
@@ -257,6 +255,9 @@
         " \}
 
         " Haskell
+        NeoBundleLazy 'itchyny/vim-haskell-indent'
+        NeoBundleLazy 'enomsg/vim-haskellConcealPlus'
+        NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal'
         NeoBundleLazy 'eagletmt/ghcmod-vim', {
         \ 'disabled': !executable('ghc-mod'),
         \}
@@ -291,7 +292,7 @@
         NeoBundleLazy 'JulesWang/css.vim'
         NeoBundleLazy 'hail2u/vim-css3-syntax'
         NeoBundleLazy '1995eaton/vim-better-css-completion'
-        NeoBundleLazy 'rstacruz/vim-hyperstyle'
+        " NeoBundleLazy 'rstacruz/vim-hyperstyle'
         " LESS
         NeoBundleLazy 'groenewege/vim-less'
         " JSON
@@ -1047,6 +1048,32 @@
         call neobundle#untap()
     endif
 
+    if neobundle#tap('colorizer')
+        let g:color_codes_ft = 'css,less,html,twig,htmltwig'
+        call neobundle#config({
+        \ 'filetypes': split(g:color_codes_ft, ','),
+        \ 'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
+        \})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:colorizer_nomap = 1
+
+            Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
+                \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
+                \ ? 'call <SID>clearColor()'
+                \ : 'ColorHighlight'
+
+            function! s:clearColor()
+                augroup Colorizer
+                    autocmd!
+                augroup END
+                augroup! Colorizer
+            endfunction
+        endfunction
+
+        call neobundle#untap()
+    endif
+
     if neobundle#tap('context_filetype.vim')
         function! neobundle#hooks.on_source(bundle)
             let g:context_filetype#search_offset = 500
@@ -1453,7 +1480,30 @@
 " Languages
 "---------------------------------------------------------------------------
 " Haskell
-    AutocmdFT haskell setl nowrap | Indent 4
+    let g:haskell_fontsize_ft = 'haskell'
+    Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
+        \ exe index(split(g:haskell_fontsize_ft, ','), &filetype) == -1
+        \ ? 'FontSize 10' : 'FontSize 11'
+    " Indent
+    AutocmdFT haskell setl nowrap | Indent 4 | 
+    if neobundle#tap('vim-haskell-indent')
+        call neobundle#config({'filetypes': 'haskell'})
+        call neobundle#untap()
+    endif
+    " Syntax
+    if neobundle#tap('vim-haskellConcealPlus')
+        call neobundle#config({'filetypes': 'haskell'})
+
+        AutocmdFT haskell
+            \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
+            \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
+
+        call neobundle#untap()
+    endif
+    if neobundle#tap('vim-syntax-haskell-cabal')
+        call neobundle#config({'filename_patterns': '\.cabal$'})
+        call neobundle#untap()
+    endif
     " Autocomplete
     if neobundle#tap('neco-ghc')
         call neobundle#config({'functions': 'necoghc#omnifunc'})
@@ -1630,7 +1680,6 @@
         AutocmdFT javascript,javascript.jsx nmap <buffer> ,c <Plug>(jsdoc)
 
         function! neobundle#hooks.on_source(bundle)
-            let g:jsdoc_default_mapping = 0
             let g:jsdoc_allow_shorthand = 1
             let g:jsdoc_allow_input_prompt = 1
             let g:jsdoc_input_description = 1
@@ -1715,6 +1764,11 @@
 " Twig
     AutocmdFT twig,htmltwig Indent 2
     AutocmdFT twig,htmltwig setl commentstring={#<!--%s-->#}
+    " Indent
+    if neobundle#tap('twig-indent')
+        call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
+        call neobundle#untap()
+    endif
     " Syntax
     if neobundle#tap('vim-twig')
         call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
@@ -1723,40 +1777,18 @@
 
         call neobundle#untap()
     endif
-    " Indent
-    if neobundle#tap('twig-indent')
-        call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
-        call neobundle#untap()
-    endif
 
 " CSS
+    AutocmdFT css setl iskeyword+=-,%
+    " Indent
     AutocmdFT css setl nowrap | Indent 2
     " Syntax
-    AutocmdFT css setl iskeyword+=-,%
-    " hex colors
-    if neobundle#tap('colorizer')
-        let g:color_codes_ft = 'css,less,html,twig,htmltwig'
-        call neobundle#config({
-        \ 'filetypes': split(g:color_codes_ft, ','),
-        \ 'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
-        \})
-
-        function! neobundle#hooks.on_source(bundle)
-            let g:colorizer_nomap = 1
-
-            Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
-                \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
-                \ ? 'call <SID>clearColor()'
-                \ : 'ColorHighlight'
-
-            function! s:clearColor()
-                augroup Colorizer
-                    autocmd!
-                augroup END
-                augroup! Colorizer
-            endfunction
-        endfunction
-
+    if neobundle#tap('css.vim')
+        call neobundle#config({'filetypes': ['css', 'less']})
+        call neobundle#untap()
+    endif
+    if neobundle#tap('vim-css3-syntax')
+        call neobundle#config({'filetypes': ['css', 'less']})
         call neobundle#untap()
     endif
     " Autocomplete
@@ -1801,15 +1833,8 @@
         call neobundle#config({'filetypes': 'json'})
 
         AutocmdFT json
-            \  Autocmd InsertEnter <buffer> let &l:concealcursor = ''
-            \| Autocmd InsertLeave <buffer> let &l:concealcursor = (&conceallevel == 0 ? '' : 'inc')
-        AutocmdFT json
             \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
-            \:echo ' Conceal mode: '. (&l:conceallevel == 2 ? 'On' : 'Off')<CR>
-
-        function! neobundle#hooks.on_source(bundle)
-            let g:vim_json_syntax_concealcursor = 'inc'
-        endfunction
+            \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
 
         call neobundle#untap()
     endif
