@@ -1,4 +1,4 @@
-" .vimrc / 2015 July
+" .vimrc / 2015 Aug
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -71,10 +71,10 @@
     command! -nargs=* FontSize
         \ let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
     command! -nargs=* Mkdir call MakeDir(<f-args>)
-    " Strip trailing whitespace at the end of non-blank lines
-    command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge | :let @/="" |endif
     " Rename current file name
     command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
+    " Strip trailing whitespace at the end of non-blank lines
+    command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge | :let @/="" |endif
 
 " Events
 "---------------------------------------------------------------------------
@@ -90,7 +90,7 @@
     " Create directories if not exist
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
     " Convert tabs to soft tabs if expandtab is set
-    Autocmd BufWritePre * if &expandtab| exe '%s/\t/'. repeat(' ', &tabstop) .'/ge' |endif
+    " Autocmd BufWritePre * if &expandtab| exe '%s/\t/'. repeat(' ', &tabstop) .'/ge' |endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -192,11 +192,11 @@
         " Utils
         NeoBundle 'kopischke/vim-stay'
         NeoBundle 'kshenoy/vim-signature'
+        NeoBundleLazy 'tpope/vim-characterize'
         NeoBundleLazy 'mbbill/undotree'
         NeoBundleLazy 'Shougo/vimfiler.vim'
         NeoBundleLazy 'tpope/vim-projectionist'
         NeoBundleLazy 'lilydjwg/colorizer'
-        NeoBundleLazy 'maksimr/vim-jsbeautify'
         NeoBundleLazy 'LeafCage/yankround.vim'
         NeoBundleLazy 'Shougo/unite.vim'
         NeoBundleLazy 'Shougo/neomru.vim'
@@ -217,6 +217,9 @@
         NeoBundleLazy 'arecarn/crunch.vim', {
         \ 'depends': 'arecarn/selection.vim'
         \}
+        NeoBundleLazy 'thinca/vim-quickrun', {
+        \ 'depends': 'Shougo/vimproc.vim'
+        \}
 
         " Edit
         NeoBundleLazy 'tyru/caw.vim'
@@ -234,8 +237,12 @@
         NeoBundleLazy 'AndrewRadev/switch.vim'
         NeoBundleLazy 'kana/vim-smartchr'
         NeoBundleLazy 'Shougo/context_filetype.vim'
+        NeoBundleLazy 'Shougo/neoinclude.vim'
+        NeoBundleLazy 'Shougo/neco-syntax'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
-        \ 'depends': 'Shougo/context_filetype.vim',
+        \ 'depends': [
+        \   'Shougo/context_filetype.vim', 'Shougo/neoinclude.vim', 'Shougo/neco-syntax'
+        \ ],
         \ 'disabled': !has('lua'),
         \}
         NeoBundleLazy 'SirVer/ultisnips', {
@@ -255,7 +262,8 @@
         " \}
 
         " Haskell
-        NeoBundleLazy 'itchyny/vim-haskell-indent'
+        " NeoBundleLazy 'itchyny/vim-haskell-indent'
+        NeoBundleLazy 'philopon/haskell-indent.vim'
         NeoBundleLazy 'enomsg/vim-haskellConcealPlus'
         NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal'
         NeoBundleLazy 'eagletmt/ghcmod-vim', {
@@ -338,8 +346,112 @@
             \:echo ' Crunch append: '. (g:crunch_result_type_append == 1 ? 'On' : 'Off')<CR>
 
         function! neobundle#hooks.on_source(bundle)
-            let g:crunch_result_type_append = 0
+            let g:crunch_result_type_append = get(g:, 'crunch_result_type_append', 0)
         endfunction
+
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('vim-quickrun')
+        call neobundle#config({
+        \ 'mappings': [['n', '<Plug>(quickrun)']],
+        \ 'functions': ['quickrun#is_running', 'quickrun#sweep_sessions'],
+        \ 'commands': 'QuickRun'
+        \})
+
+        nmap ,, <Plug>(quickrun)
+        nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
+
+        AutocmdFT javascript,html,css,json
+            \ nnoremap ,b :<C-u>QuickRun -formatter<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:quickrun_config = get(g:, 'quickrun_config', {})
+            let g:quickrun_config._ = {
+            \ 'outputter':                 'null',
+            \ 'runner':                    'vimproc',
+            \ 'runner/vimproc/updatetime': 30
+            \}
+
+            " JavaScript
+            let g:quickrun_config.javascript = {
+            \ 'type': executable('esformatter') ? 'javascript/formatter' : ''
+            \}
+            let g:quickrun_config['javascript/formatter'] = {
+            \ 'command':   'esformatter',
+            \ 'exec':      '%c %s',
+            \ 'outputter': 'rebuffer'
+            \}
+
+            " HTML
+            let g:quickrun_config.html = {
+            \ 'type': executable('html-beautify') ? 'html/formatter' : ''
+            \}
+            let s:html_config = ' --indent-size 2'
+            let g:quickrun_config.html = {
+            \ 'command':   'html-beautify',
+            \ 'exec':      '%c -f %s'. s:html_config,
+            \ 'outputter': 'rebuffer'
+            \}
+            " Twig
+            let g:quickrun_config.twig = g:quickrun_config.html
+            let g:quickrun_config.htmltwig = g:quickrun_config.html
+
+            " CSS
+            let g:quickrun_config.css = {
+            \ 'type': executable('css-beautify') ? 'css/formatter' : ''
+            \}
+            let s:css_config = ' --indent-size 2'
+            let g:quickrun_config['css/formatter'] = {
+            \ 'command': 'css-beautify',
+            \ 'exec':    '%c -f %s'. s:css_config,
+            \ 'outputter': 'rebuffer'
+            \}
+
+            " JSON
+            let g:quickrun_config.json = {
+            \ 'type': executable('js-beautify') ? 'json/formatter' : ''
+            \}
+            let s:json_config = ' --indent-size 2'
+            let g:quickrun_config['json/formatter'] = {
+            \ 'command': 'js-beautify',
+            \ 'exec':    '%c -f %s'. s:json_config,
+            \ 'outputter': 'rebuffer'
+            \}
+
+            " Outputters
+            let s:rebuffer = {'name': 'rebuffer', 'kind': 'outputter'}
+
+            function! s:rebuffer.output(data, session) abort
+                let self.result = a:data
+            endfunction
+
+            function! s:rebuffer.finish(session) abort
+                if a:session.exit_code == 1 " if error
+                    return
+                endif
+
+                let data = self.result
+                let winView = winsaveview()
+
+                normal! ggdG
+                silent $ put = data
+                silent 1 delete _
+
+                call winrestview(winView)
+                redraw
+            endfunction
+
+            call quickrun#module#register(s:rebuffer, 1)
+        endfunction
+
+        call neobundle#untap()
+    endif
+
+    if neobundle#tap('vim-characterize')
+        call neobundle#config({'mappings': '<Plug>(characterize)'})
+
+        nmap ,c <Plug>(characterize)
 
         call neobundle#untap()
     endif
@@ -367,18 +479,18 @@
             let g:undotree_WindowLayout = 4
             let g:undotree_SplitWidth = 36
             let g:undotree_SetFocusWhenToggle = 1
+
+            AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
+                \  nnoremap <silent> <buffer> q :<C-u>UndotreeHide<CR>
+                \| nnoremap <silent> <buffer> ` :<C-u>UndotreeHide<CR>
         endfunction
 
         function! s:undotreeMyToggle()
             if &filetype != 'php'
-                let s:undotree_lastft = &filetype
+                let s:undotree_last_ft = &filetype
                 AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
-                    \ exe 'setl syntax='. s:undotree_lastft
+                    \ let &l:syntax = s:undotree_last_ft
             endif
-            AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
-                \  nmap <silent> <buffer> q :<C-u>UndotreeHide<CR>
-                \| nmap <silent> <buffer> ` :<C-u>UndotreeHide<CR>
-
             UndotreeToggle
         endfunction
 
@@ -418,12 +530,6 @@
 
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
-
-        Autocmd VimLeavePre * call <SID>autoSaveSession()
-        function! s:autoSaveSession()
-            let session = fnamemodify(v:this_session, ':t')
-            if !empty(session)| SaveSession |endif
-        endfunction
 
         function! s:inputSessionName()
             let session_name = input(" Session name: \n\r ")
@@ -469,6 +575,7 @@
         Autocmd BufRead * SignatureRefresh
         Autocmd VimEnter,Colorscheme *
             \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
+        AutocmdFT unite nmap <buffer> <BS> <Nop>
     endif
 
     if neobundle#tap('vimfiler.vim')
@@ -672,65 +779,6 @@
         call neobundle#untap()
     endif
 
-    if neobundle#tap('vim-jsbeautify')
-        call neobundle#config({
-            \ 'functions': [
-            \   'HtmlBeautify', 'RangeHtmlBeautify',
-            \   'JsBeautify', 'RangeJsBeautify',
-            \   'CSSBeautify', 'RangeCSSBeautify',
-            \   'JsonBeautify', 'RangeJsBeautify',
-            \   'JsxBeautify', 'RangeJsxBeautify'
-            \ ]
-            \})
-
-        AutocmdFT html,twig,htmltwig
-            \  nnoremap <silent> <buffer> ,b :<C-u>call HtmlBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,b :call RangeHtmlBeautify()<CR>
-        AutocmdFT javascript
-            \  nnoremap <silent> <buffer> ,b :<C-u>call JsBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
-        AutocmdFT css,less
-            \  nnoremap <silent> <buffer> ,b :<C-u>call CSSBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,b :call RangeCSSBeautify()<CR>
-        AutocmdFT json
-            \  nnoremap <silent> <buffer> ,b :<C-u>call JsonBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,b :call RangeJsBeautify()<CR>
-        AutocmdFT jsx,javascript.jsx
-            \  nnoremap <silent> <buffer> ,b :<C-u>call JsxBeautify()<CR>
-            \| vnoremap <silent> <buffer> ,b :call RangeJsxBeautify()<CR>
-
-        function! neobundle#hooks.on_source(bundle)
-            let g:config_Beautifier = {
-            \ 'html': {
-            \   'indent_size':  2,
-            \   'indent_style': 'space',
-            \   'brace_style':  'expand',
-            \   'max_char':     120
-            \ },
-            \ 'js': {
-            \   'indent_size':  2,
-            \   'indent_style': 'space',
-            \ },
-            \ 'css': {
-            \   'indent_size':  2,
-            \   'indent_style': 'space',
-            \   'newline_between_rules': 'true',
-            \ },
-            \ 'json': {
-            \   'indent_size':  4,
-            \   'indent_style': 'space'
-            \ },
-            \ 'jsx': {
-            \   'indent_size':            2,
-            \   'indent_style':           'space',
-            \   'keep_array_indentation': 'true'
-            \ }
-            \}
-        endfunction
-
-        call neobundle#untap()
-    endif
-
     " https://medium.com/@evnbr/coding-in-color-3a6db2743a1e
     if neobundle#tap('semantic-highlight.vim')
         call neobundle#config({'commands': 'SemanticHighlightToggle'})
@@ -773,9 +821,9 @@
             let g:caw_i_skip_blank_line = 1
 
             nmap <expr> q v:count >= 2
-                \ ? '<Esc>V'. (v:count - 1) . 'j<Plug>(caw:wrap:toggle)'. col('.') .'l'
+                \ ? printf('<Esc>V%dj<Plug>(caw:wrap:toggle)%dl', (v:count-1), col('.'))
                 \ : '<Plug>(caw:wrap:toggle)'
-            xmap <expr> q '<Plug>(caw:wrap:toggle)'. col('.') .'l'
+            xmap <expr> q printf('<Plug>(caw:wrap:toggle)%dl', col('.'))
             nmap ,q <Plug>(caw:jump:comment-prev)
             nmap ,w <Plug>(caw:jump:comment-next)
             nmap ,a <Plug>(caw:a:toggle)
@@ -1049,9 +1097,9 @@
     endif
 
     if neobundle#tap('colorizer')
-        let g:color_codes_ft = 'css,less,html,twig,htmltwig'
+        let s:color_codes_ft = 'css,less,html,twig,htmltwig'
         call neobundle#config({
-        \ 'filetypes': split(g:color_codes_ft, ','),
+        \ 'filetypes': split(s:color_codes_ft, ','),
         \ 'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
         \})
 
@@ -1059,7 +1107,7 @@
             let g:colorizer_nomap = 1
 
             Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
-                \ exe index(split(g:color_codes_ft, ','), &filetype) == -1
+                \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
                 \ ? 'call <SID>clearColor()'
                 \ : 'ColorHighlight'
 
@@ -1118,6 +1166,8 @@
         inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
         " Ctrl-k: select the next match OR delete to end of line
         inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
+        " <C-x><C-f>: file
+        inoremap <silent> <expr> <C-x><C-f> neocomplete#start_manual_complete('file')
 
         " Tab: completion
         inoremap <silent> <Tab> <C-r>=<SID>neoComplete()<CR>
@@ -1141,10 +1191,9 @@
             let g:neocomplete#enable_smart_case = 1
             let g:neocomplete#enable_camel_case = 1
             let g:neocomplete#enable_auto_delimiter = 1
-            let g:neocomplete#auto_completion_start_length = 1
-            let g:neocomplete#manual_completion_start_length = 1
+            let g:neocomplete#auto_completion_start_length = 2
+            let g:neocomplete#manual_completion_start_length = 2
             let g:neocomplete#min_keyword_length = 2
-            let g:neocomplete#sources#syntax#min_keyword_length = 3
             let g:neocomplete#sources#buffer#disabled_pattern = '\.log$\|\.csv$'
             let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
 
@@ -1154,10 +1203,12 @@
 
             " Sources
             let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
+            let g:neocomplete#sources.php = ['omni', 'tag', 'file/include', 'ultisnips']
             let g:neocomplete#sources.html = ['syntax', 'omni', 'file/include', 'ultisnips']
             let g:neocomplete#sources.javascript = ['omni', 'tag', 'file/include', 'ultisnips']
-            let g:neocomplete#sources.css = ['omni', 'tag', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.css = ['omni', 'file/include', 'ultisnips']
             let g:neocomplete#sources.vim = ['omni', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.haskell = ['omni', 'file/include', 'ultisnips']
 
             " Completion patterns
             let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
@@ -1167,6 +1218,7 @@
                 \ '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s'
             let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
             let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
+            let g:neocomplete#sources#omni#input_patterns.haskell = '\h\w*\|\(import\|from\)\s'
         endfunction
 
         call neobundle#untap()
@@ -1480,12 +1532,12 @@
 " Languages
 "---------------------------------------------------------------------------
 " Haskell
-    let g:haskell_fontsize_ft = 'haskell'
-    Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
-        \ exe index(split(g:haskell_fontsize_ft, ','), &filetype) == -1
-        \ ? 'FontSize 10' : 'FontSize 11'
     " Indent
-    AutocmdFT haskell setl nowrap | Indent 4 | 
+    AutocmdFT haskell setl nowrap | Indent 4 |
+    if neobundle#tap('haskell-indent.vim')
+        call neobundle#config({'filetypes': 'haskell'})
+        call neobundle#untap()
+    endif
     if neobundle#tap('vim-haskell-indent')
         call neobundle#config({'filetypes': 'haskell'})
         call neobundle#untap()
@@ -1646,6 +1698,12 @@
     " Syntax
     if neobundle#tap('yajs.vim')
         call neobundle#config({'filetypes': 'javascript'})
+
+        function! neobundle#hooks.on_source(bundle)
+            hi link javascriptReserved  Normal
+            hi link javascriptInvalidOp Normal
+        endfunction
+
         call neobundle#untap()
     endif
     if neobundle#tap('javascript-libraries-syntax')
@@ -1785,6 +1843,13 @@
     " Syntax
     if neobundle#tap('css.vim')
         call neobundle#config({'filetypes': ['css', 'less']})
+
+        function! neobundle#hooks.on_source(bundle)
+            hi link cssError Normal
+            hi link cssBraceError Normal
+            hi link cssDeprecated Normal
+        endfunction
+
         call neobundle#untap()
     endif
     if neobundle#tap('vim-css3-syntax')
@@ -1835,6 +1900,8 @@
         AutocmdFT json
             \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
             \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
+
+        AutocmdFT json setl formatoptions+=2l
 
         call neobundle#untap()
     endif
@@ -2068,8 +2135,8 @@
     nnoremap <expr> j v:count == 0 ? 'gj' : 'j'
     nnoremap <expr> k v:count == 0 ? 'gk' : 'k'
     " Alt-[jkhl]: move selected lines
-    nnoremap <silent> <A-j> :move+<CR>
-    nnoremap <silent> <A-k> :move-2<CR>
+    nnoremap <silent> <A-j> :<C-u>move+<CR>
+    nnoremap <silent> <A-k> :<C-u>move-2<CR>
     nnoremap <A-h> <<<Esc>
     nnoremap <A-h> <<<Esc>
     nnoremap <A-l> >>><Esc>
@@ -2096,9 +2163,9 @@
     " gu: capitalize
     nnoremap gu gUiw`]
     " gr: replace word under the cursor
-    nnoremap gr :%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
+    nnoremap gr :<C-u>%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
     " g.: smart replace word under the cursor
-    nnoremap <silent> g. :let @/=escape(expand('<cword>'),'$*[]/')<CR>cgn
+    nnoremap <silent> g. :<C-u>let @/=escape(expand('<cword>'),'$*[]/')<CR>cgn
     " gl: select last changed text
     nnoremap gl `[v`]
     " gp: select last paste in visual mode
@@ -2106,9 +2173,10 @@
     " gv: last selected text operator
     onoremap gv :<C-u>normal! gv<CR>
 
+    " ,<Space>: remove spaces at the end of lines
+    nnoremap <silent> ,<Space> :<C-u>FixWhitespace<CR>
     " Ctrl-c: old clear highlight after search
     nnoremap <silent> <C-c> :<C-u>nohl<CR>:let @/=""<CR>
-
     " [N]+Enter: jump to a line number or mark
     nnoremap <silent> <expr> <Enter> v:count ?
         \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
@@ -2116,7 +2184,7 @@
     " Files
     "-----------------------------------------------------------------------
     " ,ev: open .vimrc in a new tab
-    nnoremap ,ev :<C-u>tabnew $MYVIMRC<CR>
+    nnoremap <silent> ,ev :<C-u>tabnew $MYVIMRC<CR>
     " Ctrl-Enter: save file
     nnoremap <silent> <C-Enter> :<C-u>write!<CR>
     " Shift-Enter: force save file
@@ -2201,11 +2269,11 @@
     nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
     " <Space>q: smart close window -> tab -> buffer
     nnoremap <silent> <expr> <Space>q winnr('$') == 1
-        \ ? tabpagenr('$') == 1 ? ':<C-u>bdelete<CR>' : ':<C-u>tabclose<CR>'
+        \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
         \ : ':<C-u>close<CR>'
     " <Space>Q: force smart close window -> tab -> buffer
     nnoremap <silent> <expr> <Space>Q winnr('$') == 1
-        \ ? tabpagenr('$') == 1 ? ':<C-u>bdelete!<CR>' : ':<C-u>tabclose!<CR>'
+        \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
         \ : ':<C-u>close!<CR>'
     " <Space>s: split window horizontaly
     nnoremap <silent> <Space>s :<C-u>split<CR>
@@ -2358,9 +2426,6 @@
 
     " #: keep search pattern at the center of the screen
     nnoremap <silent># #zz
-
-    " Remove spaces at the end of lines
-    nnoremap <silent> ,<Space> :<C-u>silent! keeppatterns %substitute/\s\+$//e<CR>
 
     " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
     nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
