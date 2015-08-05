@@ -4,6 +4,7 @@
 
 " My vimfiles
 "---------------------------------------------------------------------------
+    let $VIM = substitute($VIM, '[\\/]\+', '/', 'g')  " unification
     let $VIMFILES = $VIM.'/vimfiles'
     let $VIMCACHE = $VIMFILES.'/cache'
 
@@ -299,7 +300,7 @@
         " CSS
         NeoBundleLazy 'JulesWang/css.vim'
         NeoBundleLazy 'hail2u/vim-css3-syntax'
-        NeoBundleLazy '1995eaton/vim-better-css-completion'
+        NeoBundleLazy 'npacker/vim-css3complete'
         " NeoBundleLazy 'rstacruz/vim-hyperstyle'
         " LESS
         NeoBundleLazy 'groenewege/vim-less'
@@ -363,7 +364,7 @@
         nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
         AutocmdFT javascript,html,css,json
-            \ nnoremap ,b :<C-u>QuickRun -formatter<CR>
+            \ nnoremap <silent> ,b :<C-u>QuickRun -formatter<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:quickrun_config = get(g:, 'quickrun_config', {})
@@ -379,20 +380,22 @@
             \}
             let g:quickrun_config['javascript/formatter'] = {
             \ 'command':   'esformatter',
-            \ 'exec':      '%c %s',
+            \ 'exec':      '%c %a %s',
             \ 'outputter': 'rebuffer'
             \}
+            let g:quickrun_config['javascript/formatter'].args = 
+                \ printf('--config %s/preset/js.json', $VIMFILES)
 
             " HTML
             let g:quickrun_config.html = {
             \ 'type': executable('html-beautify') ? 'html/formatter' : ''
             \}
-            let s:html_config = ' --indent-size 2'
-            let g:quickrun_config.html = {
+            let g:quickrun_config['html/formatter'] = {
             \ 'command':   'html-beautify',
-            \ 'exec':      '%c -f %s'. s:html_config,
+            \ 'exec':      '%c -f %s %a',
             \ 'outputter': 'rebuffer'
             \}
+            let g:quickrun_config['html/formatter'].args = '--indent-size 2'
             " Twig
             let g:quickrun_config.twig = g:quickrun_config.html
             let g:quickrun_config.htmltwig = g:quickrun_config.html
@@ -401,23 +404,23 @@
             let g:quickrun_config.css = {
             \ 'type': executable('css-beautify') ? 'css/formatter' : ''
             \}
-            let s:css_config = ' --indent-size 2'
             let g:quickrun_config['css/formatter'] = {
-            \ 'command': 'css-beautify',
-            \ 'exec':    '%c -f %s'. s:css_config,
+            \ 'command':   'css-beautify',
+            \ 'exec':      '%c -f %s %a',
             \ 'outputter': 'rebuffer'
             \}
+            let g:quickrun_config['css/formatter'].args = '--indent-size 2'
 
             " JSON
             let g:quickrun_config.json = {
             \ 'type': executable('js-beautify') ? 'json/formatter' : ''
             \}
-            let s:json_config = ' --indent-size 2'
             let g:quickrun_config['json/formatter'] = {
-            \ 'command': 'js-beautify',
-            \ 'exec':    '%c -f %s'. s:json_config,
+            \ 'command':   'js-beautify',
+            \ 'exec':      '%c -f %s %a',
             \ 'outputter': 'rebuffer'
             \}
+            let g:quickrun_config['json/formatter'].args = '--indent-size 2'
 
             " Outputters
             let s:rebuffer = {'name': 'rebuffer', 'kind': 'outputter'}
@@ -432,6 +435,10 @@
                 endif
 
                 let data = self.result
+                if &l:fileformat ==# 'dos'
+                    let data = substitute(data, "\r\n", "\n", 'g')
+                endif
+
                 let winView = winsaveview()
 
                 normal! ggdG
@@ -530,6 +537,12 @@
 
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
+
+        " Autocmd VimLeavePre * call <SID>autoSaveSession()
+        " function! s:autoSaveSession()
+        "     let session = fnamemodify(v:this_session, ':t')
+        "     if !empty(session)| SaveSession |endif
+        " endfunction
 
         function! s:inputSessionName()
             let session_name = input(" Session name: \n\r ")
@@ -1216,7 +1229,7 @@
                 \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
             let g:neocomplete#sources#omni#input_patterns.javascript =
                 \ '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s'
-            let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+            " let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
             let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
             let g:neocomplete#sources#omni#input_patterns.haskell = '\h\w*\|\(import\|from\)\s'
         endfunction
@@ -1254,7 +1267,8 @@
     if neobundle#tap('unite.vim')
         call neobundle#config({
         \ 'commands': [
-        \   {'name': 'Unite', 'complete': 'customlist,vimfiler#complete'}
+        \   {'name': 'Unite', 'complete': 'customlist,vimfiler#complete'},
+        \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
         \]})
 
         " [prefix]b: open buffers
@@ -1281,6 +1295,9 @@
         " [prefix]r: resume search buffer
         nnoremap <silent> [prefix]r
             \ :<C-u>UniteResume search-`bufnr('%')` -no-start-insert -force-redraw<CR>
+        " [prefix]e: bookmarks
+        nnoremap [prefix]e :<C-u>Unite bookmark:
+        nnoremap [prefix]E :<C-u>UniteBookmarkAdd<space>
 
         " [prefix]o: open message log
         nnoremap <silent> [prefix]x :<C-u>Unite output:message<CR>
@@ -1307,7 +1324,8 @@
             nmap <silent> <buffer> <expr> ss unite#do_action('split')
             nmap <silent> <buffer> <expr> sv unite#do_action('vsplit')
             nmap <silent> <buffer> <expr> cc unite#do_action('lcd')
-            nmap <silent> <buffer> <expr> b  unite#do_action('backup')
+            nmap <silent> <buffer> <expr> b  unite#do_action('bookmark')
+            nmap <silent> <buffer> <expr> B  unite#do_action('backup')
             nmap <silent> <buffer> <expr> y  unite#do_action('yank')
             nmap <silent> <buffer> <expr> Y  unite#do_action('yank_escape')
 
@@ -1858,7 +1876,7 @@
     endif
     " Autocomplete
     AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
-    if neobundle#tap('vim-better-css-completion')
+    if neobundle#tap('vim-css3complete')
         call neobundle#config({'functions': 'csscomplete#CompleteCSS'})
         call neobundle#untap()
     endif
@@ -1894,6 +1912,7 @@
 " JSON
     Autocmd BufNewFile,BufRead .{babelrc,eslintrc} Indent 2
     " Syntax
+    let g:vim_json_warnings = 0
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
 
