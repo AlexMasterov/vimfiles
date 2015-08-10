@@ -90,8 +90,6 @@
     Autocmd VimResized * wincmd =
     " Create directories if not exist
     Autocmd BufWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
-    " Convert tabs to soft tabs if expandtab is set
-    " Autocmd BufWritePre * if &expandtab| exe '%s/\t/'. repeat(' ', &tabstop) .'/ge' |endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -241,10 +239,10 @@
         NeoBundleLazy 'Shougo/neoinclude.vim'
         NeoBundleLazy 'Shougo/neco-syntax'
         NeoBundleLazy 'Shougo/neocomplete.vim', {
+        \ 'disabled': !has('lua'),
         \ 'depends': [
         \   'Shougo/context_filetype.vim', 'Shougo/neoinclude.vim', 'Shougo/neco-syntax'
-        \ ],
-        \ 'disabled': !has('lua'),
+        \ ]
         \}
         NeoBundleLazy 'SirVer/ultisnips', {
         \ 'disabled': !has('python'),
@@ -291,7 +289,7 @@
         NeoBundleLazy 'heavenshell/vim-jsdoc'
         " HTML
         NeoBundle 'alvan/vim-closetag'
-        NeoBundle 'gregsexton/MatchTag'
+        NeoBundleLazy 'gregsexton/MatchTag'
         NeoBundleLazy 'othree/html5.vim'
         NeoBundleLazy 'mattn/emmet-vim'
         " Twig
@@ -353,110 +351,8 @@
         call neobundle#untap()
     endif
 
-    if neobundle#tap('vim-quickrun')
-        call neobundle#config({
-        \ 'mappings': [['n', '<Plug>(quickrun)']],
-        \ 'functions': ['quickrun#is_running', 'quickrun#sweep_sessions'],
-        \ 'commands': 'QuickRun'
-        \})
-
-        nmap ,, <Plug>(quickrun)
-        nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
-
-        AutocmdFT javascript,html,css,json
-            \ nnoremap <silent> ,b :<C-u>QuickRun -formatter<CR>
-
-        function! neobundle#hooks.on_source(bundle)
-            let g:quickrun_config = get(g:, 'quickrun_config', {})
-            let g:quickrun_config._ = {
-            \ 'outputter':                 'null',
-            \ 'runner':                    'vimproc',
-            \ 'runner/vimproc/updatetime': 30
-            \}
-
-            " JavaScript
-            let g:quickrun_config.javascript = {
-            \ 'type': executable('esformatter') ? 'javascript/formatter' : ''
-            \}
-            let g:quickrun_config['javascript/formatter'] = {
-            \ 'command':   'esformatter',
-            \ 'exec':      '%c %a %s',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['javascript/formatter'].args = 
-                \ printf('--config %s/preset/js.json', $VIMFILES)
-
-            " HTML
-            let g:quickrun_config.html = {
-            \ 'type': executable('html-beautify') ? 'html/formatter' : ''
-            \}
-            let g:quickrun_config['html/formatter'] = {
-            \ 'command':   'html-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['html/formatter'].args = '--indent-size 2'
-            " Twig
-            let g:quickrun_config.twig = g:quickrun_config.html
-            let g:quickrun_config.htmltwig = g:quickrun_config.html
-
-            " CSS
-            let g:quickrun_config.css = {
-            \ 'type': executable('css-beautify') ? 'css/formatter' : ''
-            \}
-            let g:quickrun_config['css/formatter'] = {
-            \ 'command':   'css-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['css/formatter'].args = '--indent-size 2'
-
-            " JSON
-            let g:quickrun_config.json = {
-            \ 'type': executable('js-beautify') ? 'json/formatter' : ''
-            \}
-            let g:quickrun_config['json/formatter'] = {
-            \ 'command':   'js-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['json/formatter'].args = '--indent-size 2'
-
-            " Outputters
-            let s:rebuffer = {'name': 'rebuffer', 'kind': 'outputter'}
-
-            function! s:rebuffer.output(data, session) abort
-                let self.result = a:data
-            endfunction
-
-            function! s:rebuffer.finish(session) abort
-                if a:session.exit_code == 1 " if error
-                    return
-                endif
-
-                let data = self.result
-                if &l:fileformat ==# 'dos'
-                    let data = substitute(data, "\r\n", "\n", 'g')
-                endif
-
-                let winView = winsaveview()
-
-                normal! ggdG
-                silent $ put = data
-                silent 1 delete _
-
-                call winrestview(winView)
-                redraw
-            endfunction
-
-            call quickrun#module#register(s:rebuffer, 1)
-        endfunction
-
-        call neobundle#untap()
-    endif
-
     if neobundle#tap('vim-characterize')
-        call neobundle#config({'mappings': '<Plug>(characterize)'})
+        call neobundle#config({'mappings': [['nx', '<Plug>(characterize)']]})
 
         nmap ,c <Plug>(characterize)
 
@@ -493,8 +389,8 @@
         endfunction
 
         function! s:undotreeMyToggle()
-            if &filetype != 'php'
-                let s:undotree_last_ft = &filetype
+            if &l:filetype != 'php'
+                let s:undotree_last_ft = &l:filetype
                 AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
                     \ let &l:syntax = s:undotree_last_ft
             endif
@@ -567,10 +463,10 @@
         let g:SignatureIncludeMarks = 'weratsdfqglcvbzxyi'
         let g:SignatureErrorIfNoAvailableMarks = 0
         let g:SignatureMap = {
-        \ 'Leader':           '\|',
-        \ 'ToggleMarkAtLine': '\',
-        \ 'PurgeMarksAtLine': '<BS>',
-        \ 'DeleteMark':       '<S-BS>',
+        \ 'Leader':           '<S-BS>',
+        \ 'ToggleMarkAtLine': '<BS>',
+        \ 'PurgeMarksAtLine': '\',
+        \ 'DeleteMark':       '\|',
         \ 'PurgeMarks':       '<Del>',
         \ 'PurgeMarkers':     '<S-Del>',
         \}
@@ -650,7 +546,7 @@
             let g:unite_kind_file_use_trashbox = s:is_windows
 
             let g:vimfiler_ignore_pattern =
-                \ '^\%(\..*\|.git\|bin\|node_modules\)$'
+                \ '^\%(\..*\|.git\|.lock\|bin\|node_modules\)$'
 
             " Icons
             let g:vimfiler_file_icon = ' '
@@ -674,6 +570,159 @@
         call neobundle#untap()
     endif
 
+    if neobundle#tap('vim-quickrun')
+        call neobundle#config({
+        \ 'mappings': [['n', '<Plug>(quickrun)']],
+        \ 'functions': ['quickrun#is_running', 'quickrun#sweep_sessions'],
+        \ 'commands': 'QuickRun'
+        \})
+
+        nmap ,, <Plug>(quickrun)
+        nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
+
+        AutocmdFT php
+            \ nnoremap <silent> ,b :<C-u>QuickRun -phpunit<CR>
+        AutocmdFT javascript,html,css,json
+            \ nnoremap <silent> ,b :<C-u>QuickRun -formatter<CR>
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:quickrun_config = get(g:, 'quickrun_config', {})
+            let g:quickrun_config._ = {
+            \ 'outputter':                 'null',
+            \ 'runner':                    'vimproc',
+            \ 'runner/vimproc/updatetime': 30
+            \}
+
+            " JavaScript
+            let g:quickrun_config.javascript = {
+            \ 'type': executable('esformatter') ? 'javascript/formatter' : ''
+            \}
+            let g:quickrun_config['javascript/formatter'] = {
+            \ 'command':   'esformatter',
+            \ 'exec':      '%c %a %s',
+            \ 'outputter': 'rebuffer'
+            \}
+            let g:quickrun_config['javascript/formatter'].args =
+                \ printf('--config %s/preset/js.json', $VIMFILES)
+
+            " HTML
+            let g:quickrun_config.html = {
+            \ 'type': executable('html-beautify') ? 'html/formatter' : ''
+            \}
+            let g:quickrun_config['html/formatter'] = {
+            \ 'command':   'html-beautify',
+            \ 'exec':      '%c -f %s %a',
+            \ 'outputter': 'rebuffer'
+            \}
+            let g:quickrun_config['html/formatter'].args = '--indent-size 2'
+            " Twig
+            let g:quickrun_config.twig = g:quickrun_config.html
+            let g:quickrun_config.htmltwig = g:quickrun_config.html
+
+            " CSS
+            let g:quickrun_config.css = {
+            \ 'type': executable('css-beautify') ? 'css/formatter' : ''
+            \}
+            let g:quickrun_config['css/formatter'] = {
+            \ 'command':   'css-beautify',
+            \ 'exec':      '%c -f %s %a',
+            \ 'outputter': 'rebuffer'
+            \}
+            let g:quickrun_config['css/formatter'].args = '--indent-size 2'
+
+            " JSON
+            let g:quickrun_config.json = {
+            \ 'type': executable('js-beautify') ? 'json/formatter' : ''
+            \}
+            let g:quickrun_config['json/formatter'] = {
+            \ 'command':   'js-beautify',
+            \ 'exec':      '%c -f %s %a',
+            \ 'outputter': 'rebuffer'
+            \}
+            let g:quickrun_config['json/formatter'].args = '--indent-size 2'
+
+            " PHP
+            let g:quickrun_config.php = {
+            \ 'type': executable('phpunit') ? 'php/phpunit' : ''
+            \}
+            let g:quickrun_config['php/phpunit'] = {
+            \ 'command':   'phpunit',
+            \ 'exec':      '%c %a',
+            \ 'outputter': 'phpunit'
+            \}
+            let g:quickrun_config['php/phpunit'].args =
+                \ '--bootstrap D:/Lab/backend/store/vendor/autoload.php D:/Lab/backend/store/tests'
+
+            " Outputters
+            "-----------------------------------------------------------------------
+            " Rebuffer
+            let s:rebuffer = {'name': 'rebuffer', 'kind': 'outputter'}
+
+            function! s:rebuffer.output(data, session) abort
+                let self.result = a:data
+            endfunction
+
+            function! s:rebuffer.finish(session) abort
+                if a:session.exit_code == 1 " if error
+                    return
+                endif
+
+                let data = self.result
+                if &l:fileformat ==# 'dos'
+                    let data = substitute(data, "\r\n", "\n", 'g')
+                endif
+
+                let winView = winsaveview()
+
+                normal! ggdG
+                silent $ put = data
+                silent 1 delete _
+
+                call winrestview(winView)
+                redraw
+            endfunction
+
+            call quickrun#module#register(s:rebuffer, 1)
+
+            " PHPUnit
+            let s:phpunit = {'name': 'phpunit', 'kind': 'outputter'}
+
+            function! s:phpunit.output(data, session) abort
+                let self.result = a:data
+            endfunction
+
+            function! s:phpunit.finish(session) abort
+                let data = self.result
+                if stridx(data, 'OK (') > 0
+                    let ok_message = substitute(data, '.*\nOK (\(.*\))\n', ' OK \1 ', '')
+                    echohl TODO| echo ok_message |echohl None
+                else
+                    if stridx(data, 'FAILURES!') > 0
+                        let errorMessage = substitute(data, '.*\nFAILURES!\n\(.*\)\n', ' FAILURES! \1 ', '')
+                        set errorformat=%E%n)\ %.%#,%Z%f:%l,%C%m,%-G%.%#
+                    elseif stridx(data, 'error:') > 0
+                        let errorMessage = ' ERROR! '
+                        set errorformat=%m\ in\ %f\ on\ line\ %l,%-G%.%#
+                    elseif stridx(data, 'Warning:') > 0
+                        let errorMessage = ' WARNING! '
+                        set errorformat=%m\ in\ %f\ on\ line\ %l,%-G%.%#
+                    else
+                        let errorMessage = ' SOMETHING WRONG! CHECK PHPUNIT SETTINGS. '
+                    endif
+
+                    lgetexpr data
+                    Unite location_list
+                    echohl WarningMsg| echo errorMessage |echohl None
+                    redraw
+                endif
+            endfunction
+
+            call quickrun#module#register(s:phpunit, 1)
+        endfunction
+
+        call neobundle#untap()
+    endif
+
     if neobundle#tap('vim-projectionist')
         call neobundle#config({'functions': 'ProjectionistDetect'})
 
@@ -681,9 +730,11 @@
         nnoremap <silent> [prefix]p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
         function! neobundle#hooks.on_source(bundle)
-            nnoremap m1 :<C-u>Ejs<Space>
-            nnoremap m2 :<C-u>Ecss<Space>
-            nnoremap m3 :<C-u>Epackage<Space>
+            nnoremap [prefix]e :<C-u>E
+            nnoremap [prefix]1 :<C-u>Ecomposer<Space>
+            nnoremap [prefix]2 :<C-u>Eapp<Space>
+            nnoremap [prefix]3 :<C-u>Esrc<Space>
+            nnoremap [prefix]4 :<C-u>Etest<Space>
         endfunction
 
         call neobundle#untap()
@@ -719,7 +770,7 @@
     endif
 
     if neobundle#tap('vim-easy-align')
-        call neobundle#config({'mappings': '<Plug>(EasyAlign)'})
+        call neobundle#config({'mappings': [['nx', '<Plug>(EasyAlign)']]})
 
         vmap <Enter> <Plug>(EasyAlign)
 
@@ -1295,9 +1346,9 @@
         " [prefix]r: resume search buffer
         nnoremap <silent> [prefix]r
             \ :<C-u>UniteResume search-`bufnr('%')` -no-start-insert -force-redraw<CR>
-        " [prefix]e: bookmarks
-        nnoremap [prefix]e :<C-u>Unite bookmark:
-        nnoremap [prefix]E :<C-u>UniteBookmarkAdd<space>
+        " [prefix]a: bookmarks
+        nnoremap [prefix]a :<C-u>Unite bookmark:
+        nnoremap [prefix]A :<C-u>UniteBookmarkAdd<space>
 
         " [prefix]o: open message log
         nnoremap <silent> [prefix]x :<C-u>Unite output:message<CR>
@@ -1470,7 +1521,7 @@
     endif
 
     if neobundle#tap('unite-quickfix')
-        call neobundle#config({'unite_sources': 'quickfix'})
+        call neobundle#config({'unite_sources': ['quickfix', 'location_list']})
         call neobundle#untap()
     endif
 
@@ -1511,12 +1562,12 @@
         AutocmdFT php,javascript call <SID>UniteTagSettings()
         function! s:UniteTagSettings()
             if empty(&buftype)
-                " Ctrl-]: open tag under cursor
-                nnoremap <silent> <buffer> <C-]> :<C-u>UniteWithCursorWord tag -immediately<CR>
                 " ,t: open tag
                 nnoremap <silent> <buffer> ,t :<C-u>UniteWithCursorWord tag tag/include<CR>
                 " ,T: search tag by name
                 nnoremap <silent> <buffer> ,T :<C-u>call <SID>inputSearchTag()<CR>
+                " Ctrl-t: open tag under cursor
+                nnoremap <silent> <buffer> <C-t> :<C-u>UniteWithCursorWord tag -immediately<CR>
             endif
         endfu
 
@@ -1790,9 +1841,10 @@
         call neobundle#untap()
     endif
     if neobundle#tap('MatchTag')
-        call neobundle#config({'filetypes': ['html', 'twig', 'htmltwig']})
+        call neobundle#config({'filetypes': ['html', 'twig', 'htmltwig', 'xml']})
 
         AutocmdFT twig,htmltwig runtime! ftplugin/html.vim
+        AutocmdFT xml runtime! ftplugin/xml.vim
 
         call neobundle#untap()
     endif
