@@ -581,9 +581,16 @@
         nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
         AutocmdFT php
-            \ nnoremap <silent> ,b :<C-u>QuickRun -phpunit<CR>
-        AutocmdFT javascript,html,css,json
-            \ nnoremap <silent> ,b :<C-u>QuickRun -formatter<CR>
+            \ nnoremap <silent> ,b :<C-u>call <SID>MyQuickRun('csfixer')<CR>
+            \| nnoremap <silent> ,t :<C-u>call <SID>MyQuickRun('phpunit')<CR>
+        AutocmdFT javascript,html,twig,htmltwig,css,scss,json
+            \ nnoremap <silent> ,b :<C-u>call <SID>MyQuickRun('formatter')<CR>
+
+        function! s:MyQuickRun(type)
+            let g:quickrun_config = get(g:, 'quickrun_config', {})
+            let g:quickrun_config[&filetype] = {'type': printf('%s/%s', &filetype, a:type)}
+            call quickrun#run('-'.a:type)
+        endfunction
 
         function! neobundle#hooks.on_source(bundle)
             let g:quickrun_config = get(g:, 'quickrun_config', {})
@@ -593,65 +600,40 @@
             \ 'runner/vimproc/updatetime': 30
             \}
 
-            " JavaScript
-            let g:quickrun_config.javascript = {
-            \ 'type': executable('esformatter') ? 'javascript/formatter' : ''
-            \}
-            let g:quickrun_config['javascript/formatter'] = {
-            \ 'command':   'esformatter',
-            \ 'exec':      '%c %a %s',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['javascript/formatter'].args =
-                \ printf('--config %s/preset/js.json', $VIMFILES)
-
-            " HTML
-            let g:quickrun_config.html = {
-            \ 'type': executable('html-beautify') ? 'html/formatter' : ''
-            \}
-            let g:quickrun_config['html/formatter'] = {
-            \ 'command':   'html-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['html/formatter'].args = '--indent-size 2'
-            " Twig
-            let g:quickrun_config.twig = g:quickrun_config.html
-            let g:quickrun_config.htmltwig = g:quickrun_config.html
-
-            " CSS
-            let g:quickrun_config.css = {
-            \ 'type': executable('css-beautify') ? 'css/formatter' : ''
-            \}
-            let g:quickrun_config['css/formatter'] = {
-            \ 'command':   'css-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['css/formatter'].args = '--indent-size 2'
-
-            " JSON
-            let g:quickrun_config.json = {
-            \ 'type': executable('js-beautify') ? 'json/formatter' : ''
-            \}
-            let g:quickrun_config['json/formatter'] = {
-            \ 'command':   'js-beautify',
-            \ 'exec':      '%c -f %s %a',
-            \ 'outputter': 'rebuffer'
-            \}
-            let g:quickrun_config['json/formatter'].args = '--indent-size 2'
-
             " PHP
-            let g:quickrun_config.php = {
-            \ 'type': executable('phpunit') ? 'php/phpunit' : ''
+            let g:quickrun_config['php/csfixer'] = {
+            \ 'command': 'php-cs-fixer', 'exec': '%c fix %a %s', 'outputter': 'reopen', 'args': '--level=symfony'
             \}
             let g:quickrun_config['php/phpunit'] = {
-            \ 'command':   'phpunit',
-            \ 'exec':      '%c %a',
-            \ 'outputter': 'phpunit'
+            \ 'command': 'phpunit', 'exec': '%c %s %a', 'outputter': 'phpunit'
             \}
-            let g:quickrun_config['php/phpunit'].args =
-                \ '--bootstrap D:/Lab/backend/store/vendor/autoload.php D:/Lab/backend/store/tests'
+
+            " JavaScript
+            let g:quickrun_config['javascript/formatter'] = {
+            \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+            \ 'args': printf('--config %s/preset/js.json', $VIMFILES)
+            \}
+
+            " CSS
+            let g:quickrun_config['css/formatter'] = {
+            \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
+            \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
+            \}
+            " SCSS
+            let g:quickrun_config['scss/formatter'] = g:quickrun_config['css/formatter']
+
+            " HTML
+            let g:quickrun_config['html/formatter'] = {
+            \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer', 'args': '--indent-size 2'
+            \}
+            " Twig
+            let g:quickrun_config['twig/formatter'] = g:quickrun_config['html/formatter']
+            let g:quickrun_config['htmltwig/formatter'] = g:quickrun_config['html/formatter']
+
+            " JSON
+            let g:quickrun_config['json/formatter'] = {
+            \ 'command': 'js-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer', 'args': '--indent-size 2'
+            \}
 
             " Outputters
             "-----------------------------------------------------------------------
@@ -683,6 +665,23 @@
             endfunction
 
             call quickrun#module#register(s:rebuffer, 1)
+
+            " Reopen
+            let s:reopen = {'name': 'reopen', 'kind': 'outputter'}
+
+            function! s:reopen.output(data, session) abort
+                let self.result = a:data
+            endfunction
+
+            function! s:reopen.finish(session) abort
+                let winView = winsaveview()
+                edit!
+                syntax on
+                call winrestview(winView)
+                redraw
+            endfunction
+
+            call quickrun#module#register(s:reopen, 1)
 
             " PHPUnit
             let s:phpunit = {'name': 'phpunit', 'kind': 'outputter'}
@@ -1161,7 +1160,7 @@
     endif
 
     if neobundle#tap('colorizer')
-        let s:color_codes_ft = 'css,less,html,twig,htmltwig'
+        let s:color_codes_ft = 'css,scss,less,html,twig,htmltwig'
         call neobundle#config({
         \ 'filetypes': split(s:color_codes_ft, ','),
         \ 'commands': ['ColorToggle', 'ColorHighlight', 'ColorClear']
@@ -1266,21 +1265,25 @@
             call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
 
             " Sources
-            let g:neocomplete#sources = get(g:, 'g:neocomplete#sources', {})
+            let g:neocomplete#sources = get(g:, 'neocomplete#sources', {})
             let g:neocomplete#sources.php = ['omni', 'tag', 'file/include', 'ultisnips']
             let g:neocomplete#sources.html = ['syntax', 'omni', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.twig = g:neocomplete#sources.html
+            let g:neocomplete#sources.htmltwig = g:neocomplete#sources.html
             let g:neocomplete#sources.javascript = ['omni', 'tag', 'file/include', 'ultisnips']
             let g:neocomplete#sources.css = ['omni', 'file/include', 'ultisnips']
+            let g:neocomplete#sources.scss = g:neocomplete#sources.css
             let g:neocomplete#sources.vim = ['omni', 'file/include', 'ultisnips']
             let g:neocomplete#sources.haskell = ['omni', 'file/include', 'ultisnips']
 
             " Completion patterns
-            let g:neocomplete#sources#omni#input_patterns = get(g:, 'g:neocomplete#sources#omni#input_patterns', {})
+            let g:neocomplete#sources#omni#input_patterns = get(g:, 'neocomplete#sources#omni#input_patterns', {})
             let g:neocomplete#sources#omni#input_patterns.php =
                 \ '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
             let g:neocomplete#sources#omni#input_patterns.javascript =
                 \ '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s'
-            " let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+            let g:neocomplete#sources#omni#input_patterns.css = '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+            let g:neocomplete#sources#omni#input_patterns.scss = g:neocomplete#sources#omni#input_patterns.css
             let g:neocomplete#sources#omni#input_patterns.sql = '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?'
             let g:neocomplete#sources#omni#input_patterns.haskell = '\h\w*\|\(import\|from\)\s'
         endfunction
@@ -1505,7 +1508,7 @@
             let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
             let g:neomru#time_format = '%d.%m %H:%M | '
             " Limit results for recently edited files
-            call unite#custom#source('neomru/file,neomru/directory', 'limit', 30)
+            call unite#custom#source('neomru/file,neomru/directory', 'limit', 20)
         endfunction
 
         call neobundle#untap()
@@ -1561,14 +1564,15 @@
 
         AutocmdFT php,javascript call <SID>UniteTagSettings()
         function! s:UniteTagSettings()
-            if empty(&buftype)
-                " ,t: open tag
-                nnoremap <silent> <buffer> ,t :<C-u>UniteWithCursorWord tag tag/include<CR>
-                " ,T: search tag by name
-                nnoremap <silent> <buffer> ,T :<C-u>call <SID>inputSearchTag()<CR>
-                " Ctrl-t: open tag under cursor
-                nnoremap <silent> <buffer> <C-t> :<C-u>UniteWithCursorWord tag -immediately<CR>
+            if !empty(&buftype) " just <empty> == normal buffer
+                return
             endif
+            " [prefix]t: open tag
+            nnoremap <silent> <buffer> [prefix]t :<C-u>UniteWithCursorWord tag tag/include<CR>
+            " [prefix]T: search tag by name
+            nnoremap <silent> <buffer> [prefix]T :<C-u>call <SID>inputSearchTag()<CR>
+            " Ctrl-t: open tag under cursor
+            nnoremap <silent> <buffer> <C-t> :<C-u>UniteWithCursorWord tag -immediately<CR>
         endfu
 
         function! s:inputSearchTag()
@@ -1644,8 +1648,8 @@
 
         AutocmdFT haskell Autocmd BufWritePost <buffer> GhcModCheckAndLintAsync
         AutocmdFT haskell
-            \  nnoremap <silent> <buffer> ,t :<C-u>GhcModType!<CR>
-            \| nnoremap <silent> <buffer> ,T :<C-u>GhcModTypeClear<CR>
+            \  nnoremap <silent> <buffer> [prefix]t :<C-u>GhcModType!<CR>
+            \| nnoremap <silent> <buffer> [prefix]T :<C-u>GhcModTypeClear<CR>
 
         function! neobundle#hooks.on_source(bundle)
             let g:ghcmod_open_quickfix_function = 'GhcModQuickFix'
@@ -1739,7 +1743,8 @@
             \ 'path_maps': {'/www': 'D:/Vagrant/projects'},
             \}
             let g:vdebug_features = {
-            \ 'max_depth': 2048
+            \ 'max_depth': 2048,
+            \ 'max_children': 128
             \}
 
             hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
@@ -1853,7 +1858,7 @@
     if neobundle#tap('emmet-vim')
         call neobundle#config({'mappings': [['i', '<Plug>']]})
 
-        AutocmdFT html,twig,htmltwig,css call <SID>EmmetMappings()
+        AutocmdFT html,twig,htmltwig,css,scss,less call <SID>EmmetMappings()
 
         function! s:emmetComplete()
             if pumvisible()
@@ -1890,29 +1895,27 @@
     endif
 
 " Twig
-    AutocmdFT twig,htmltwig Indent 2
-    AutocmdFT twig,htmltwig setl commentstring={#<!--%s-->#}
+    Autocmd BufNewFile,BufRead *.html.twig set filetype=htmltwig
     " Indent
+    AutocmdFT twig,htmltwig Indent 2
     if neobundle#tap('twig-indent')
         call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
         call neobundle#untap()
     endif
     " Syntax
+    AutocmdFT twig,htmltwig setl commentstring={#<!--%s-->#}
     if neobundle#tap('vim-twig')
         call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
-
-        Autocmd BufNewFile,BufRead *.html.twig set filetype=htmltwig
-
         call neobundle#untap()
     endif
 
 " CSS
-    AutocmdFT css setl iskeyword+=-,%
     " Indent
-    AutocmdFT css setl nowrap | Indent 2
+    AutocmdFT css,scss setl nowrap | Indent 2
     " Syntax
+    AutocmdFT css,scss setl iskeyword+=-,%
     if neobundle#tap('css.vim')
-        call neobundle#config({'filetypes': ['css', 'less']})
+        call neobundle#config({'filetypes': ['css', 'scss', 'less']})
 
         function! neobundle#hooks.on_source(bundle)
             hi link cssError Normal
@@ -1923,20 +1926,20 @@
         call neobundle#untap()
     endif
     if neobundle#tap('vim-css3-syntax')
-        call neobundle#config({'filetypes': ['css', 'less']})
+        call neobundle#config({'filetypes': ['css', 'scss', 'less']})
         call neobundle#untap()
     endif
     " Autocomplete
-    AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
+    AutocmdFT css,scss,less setl omnifunc=csscomplete#CompleteCSS
     if neobundle#tap('vim-css3complete')
         call neobundle#config({'functions': 'csscomplete#CompleteCSS'})
         call neobundle#untap()
     endif
     if neobundle#tap('vim-hyperstyle')
-        call neobundle#config({'filetypes': ['css', 'less']})
+        call neobundle#config({'filetypes': ['css', 'scss' 'less']})
 
         Autocmd BufNew,BufEnter,BufWinEnter,WinEnter
-            \ *.{css,less} call <SID>HyperstyleMappings()
+            \ *.{css,scss,less} call <SID>HyperstyleMappings()
 
         function! s:HyperstyleMappings()
             silent! iunmap <buffer> <CR>
@@ -1968,11 +1971,10 @@
     if neobundle#tap('vim-json')
         call neobundle#config({'filetypes': 'json'})
 
+        AutocmdFT json setl formatoptions+=2l
         AutocmdFT json
             \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
             \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
-
-        AutocmdFT json setl formatoptions+=2l
 
         call neobundle#untap()
     endif
@@ -2137,9 +2139,10 @@
     endfunction
 
     function! FileSize()
-        let bytes = getfsize(expand('%:p'))
-        return bytes <= 0 ? '' :
-            \ bytes < 1024 ? bytes.'B' : (bytes / 1024).'K'
+        let size = &encoding ==# &fileencoding || &fileencoding ==# ''
+            \ ? line2byte(line('$') + 1) - 1 : getfsize(expand('%:p'))
+        return size <= 0 ? '' :
+            \ size < 1024 ? size.'B' : (size / 1024).'K'
     endfunction
 
 " Edit
