@@ -49,12 +49,20 @@
 
 " Functions
 "---------------------------------------------------------------------------
-    function! MakeDir(dir, ...)
+    function! MakeDir(dir, ...) abort
         let dir = expand(a:dir, 1)
         if !isdirectory(dir)
             \ && (a:0 || input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
             silent! call mkdir(iconv(dir, &encoding, &termencoding), 'p')
         endif
+    endfunction
+
+    function! s:trimWhiteSpace()
+        if &bin| return |endif
+        let [winView, _s] = [winsaveview(), @/]
+        silent! %s/\s\+$//ge
+        call winrestview(winView)
+        let @/=_s
     endfunction
 
     function! s:isBackspace()
@@ -75,7 +83,7 @@
     " Rename current file name
     command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
     " Strip trailing whitespace at the end of non-blank lines
-    command! -bar FixWhitespace if !&bin| silent! :%s/\s\+$//ge | :let @/="" |endif
+    command! -bar -nargs=* -complete=file FixWhitespace f <args>|call <SID>trimWhiteSpace()
 
 " Events
 "---------------------------------------------------------------------------
@@ -197,17 +205,19 @@
         NeoBundleLazy 'tpope/vim-projectionist'
         NeoBundleLazy 'lilydjwg/colorizer'
         NeoBundleLazy 'LeafCage/yankround.vim'
-        NeoBundleLazy 'Shougo/unite.vim'
+        NeoBundleLazy 'mattn/httpstatus-vim'
+        NeoBundleLazy 'tsukkee/unite-tag'
+        NeoBundleLazy 'jaxbot/semantic-highlight.vim'
+        " NeoBundleLazy 'osyo-manga/vim-brightest'
         NeoBundleLazy 'Shougo/neomru.vim'
         NeoBundleLazy 'Shougo/unite-outline'
         NeoBundleLazy 'osyo-manga/unite-vimpatches'
         NeoBundleLazy 'osyo-manga/unite-quickfix'
         NeoBundleLazy 'osyo-manga/unite-filetype'
         NeoBundleLazy 'thinca/vim-qfreplace'
-        NeoBundleLazy 'mattn/httpstatus-vim'
-        NeoBundleLazy 'tsukkee/unite-tag'
-        NeoBundleLazy 'jaxbot/semantic-highlight.vim'
-        " NeoBundleLazy 'osyo-manga/vim-brightest'
+        NeoBundleLazy 'Shougo/unite.vim', {
+        \ 'depends': 'thinca/vim-qfreplace'
+        \}
         NeoBundleLazy 'xolox/vim-misc'
         NeoBundleLazy 'xolox/vim-session', {
         \ 'depends': 'xolox/vim-misc'
@@ -256,9 +266,9 @@
         NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
         \ 'depends': 'kana/vim-textobj-user'
         \}
-        " NeoBundleLazy 'justinj/vim-textobj-reactprop', {
-        " \ 'depends': 'kana/vim-textobj-user'
-        " \}
+        NeoBundleLazy 'justinj/vim-textobj-reactprop', {
+        \ 'depends': 'kana/vim-textobj-user'
+        \}
 
         " Haskell
         " NeoBundleLazy 'itchyny/vim-haskell-indent'
@@ -304,8 +314,6 @@
         NeoBundleLazy 'groenewege/vim-less'
         " JSON
         NeoBundleLazy 'elzr/vim-json'
-        " JSX
-        NeoBundleLazy 'mxw/vim-jsx'
         " SQL
         NeoBundleLazy 'shmup/vim-sql-syntax'
         " Nginx
@@ -434,11 +442,11 @@
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
 
-        " Autocmd VimLeavePre * call <SID>autoSaveSession()
-        " function! s:autoSaveSession()
-        "     let session = fnamemodify(v:this_session, ':t')
-        "     if !empty(session)| SaveSession |endif
-        " endfunction
+        Autocmd VimLeavePre * call <SID>autoSaveSession()
+        function! s:autoSaveSession()
+            let session = fnamemodify(v:this_session, ':t')
+            if !empty(session)| SaveSession |endif
+        endfunction
 
         function! s:inputSessionName()
             let session_name = input(" Session name: \n\r ")
@@ -529,6 +537,13 @@
             nmap <buffer> <expr> <Enter>
                 \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
 
+            nmap <buffer> 1 <Plug>(vimfiler_switch_to_project_directory)
+            nmap <buffer> 2 <Plug>(vimfiler_switch_to_parent_directory)
+            nmap <buffer> 3 <Plug>(vimfiler_cd_file)
+            nmap <buffer> 4 <Plug>(vimfiler_switch_to_history_directory)
+            nmap <buffer> 5 <Plug>(vimfiler_cd_file)
+            nmap <buffer> 6 <Plug>(vimfiler_cd_vim_current_dir)
+
             " <Space>[hjkl]: jump to a window
             for s in ['h', 'j', 'k', 'l']
                 exe printf('nnoremap <silent> <buffer> <Space>%s :<C-u>wincmd %s<CR>', s, s)
@@ -546,7 +561,7 @@
             let g:unite_kind_file_use_trashbox = s:is_windows
 
             let g:vimfiler_ignore_pattern =
-                \ '^\%(\..*\|.git\|.lock\|bin\|node_modules\)$'
+                \ '^\%(\..*\|.git\|.hg\|bin\|node_modules\)$'
 
             " Icons
             let g:vimfiler_file_icon = ' '
@@ -581,12 +596,12 @@
         nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
         AutocmdFT php
-            \ nnoremap <silent> ,b :<C-u>call <SID>MyQuickRun('csfixer')<CR>
-            \| nnoremap <silent> ,t :<C-u>call <SID>MyQuickRun('phpunit')<CR>
+            \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>MyQuickRun('csfixer')<CR>
+            \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>MyQuickRun('phpunit')<CR>
         AutocmdFT javascript,html,twig,htmltwig,css,scss,json
-            \ nnoremap <silent> ,b :<C-u>call <SID>MyQuickRun('formatter')<CR>
+            \ nnoremap <silent> <buffer> ,b :<C-u>call <SID>MyQuickRun('formatter')<CR>
 
-        function! s:MyQuickRun(type)
+        function! s:MyQuickRun(type) abort
             let g:quickrun_config = get(g:, 'quickrun_config', {})
             let g:quickrun_config[&filetype] = {'type': printf('%s/%s', &filetype, a:type)}
             call quickrun#run('-'.a:type)
@@ -670,15 +685,12 @@
             let s:reopen = {'name': 'reopen', 'kind': 'outputter'}
 
             function! s:reopen.output(data, session) abort
-                let self.result = a:data
             endfunction
 
             function! s:reopen.finish(session) abort
                 let winView = winsaveview()
-                edit!
-                syntax on
+                edit! | syntax on
                 call winrestview(winView)
-                redraw
             endfunction
 
             call quickrun#module#register(s:reopen, 1)
@@ -696,6 +708,7 @@
                     let ok_message = substitute(data, '.*\nOK (\(.*\))\n', ' OK \1 ', '')
                     echohl TODO| echo ok_message |echohl None
                 else
+                    let errorFormat = &errorformat
                     if stridx(data, 'FAILURES!') > 0
                         let errorMessage = substitute(data, '.*\nFAILURES!\n\(.*\)\n', ' FAILURES! \1 ', '')
                         set errorformat=%E%n)\ %.%#,%Z%f:%l,%C%m,%-G%.%#
@@ -826,8 +839,8 @@
         nmap p <Plug>(yankround-p)
         xmap p <Plug>(yankround-p)
         nmap P <Plug>(yankround-P)
-        nmap <expr> <C-p> yankround#is_active() ? "\<Plug>(yankround-prev)" : "\<C-p>"
-        nmap <expr> <C-n> yankround#is_active() ? "\<Plug>(yankround-next)" : "\<C-n>"
+        nmap <expr> <C-o> yankround#is_active() ? "\<Plug>(yankround-prev)" : "\<C-p>"
+        nmap <expr> <C-p> yankround#is_active() ? "\<Plug>(yankround-next)" : "\<C-n>"
 
         " [prefix]y: yankround
         nnoremap <silent> [prefix]y :<C-u>Unite yankround -buffer-name=yankround<CR>
@@ -846,7 +859,7 @@
     if neobundle#tap('semantic-highlight.vim')
         call neobundle#config({'commands': 'SemanticHighlightToggle'})
 
-        AutocmdFT php,javascript,jsx
+        AutocmdFT php,javascript
             \ nnoremap <silent> <buffer> ,v :<C-u>SemanticHighlightToggle<CR>
 
         function! neobundle#hooks.on_source(bundle)
@@ -994,7 +1007,7 @@
             endfunction
 
             " Fix pair completion
-            for pair in ['()', '[]', '{}']
+            for pair in ['()', '[]']
                 call lexima#add_rule({
                 \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'. escape(pair[1], ']') .']', 'input': pair[0]
                 \})
@@ -1020,7 +1033,7 @@
             \})
 
             " Attributes
-            let s:lexima_attr_close_ft = ['html', 'twig', 'htmltwig', 'xml', 'javascript.jsx']
+            let s:lexima_attr_close_ft = ['html', 'twig', 'htmltwig', 'xml']
             call lexima#add_rule({
             \ 'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>',
             \ 'filetype': s:lexima_attr_close_ft
@@ -1214,7 +1227,7 @@
             let s:context_ft_jsx = {
             \ 'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
             \ 'end':      '</script>',
-            \ 'filetype': 'javascript.jsx',
+            \ 'filetype': 'javascript',
             \}
             call <SID>addContext(s:context_ft_jsx, 'html')
         endfunction
@@ -1330,7 +1343,7 @@
         " [prefix]h: open windows
         nnoremap <silent> [prefix]h :<C-u>Unite window -toggle<CR>
         " [prefix]t: open tab pages
-        nnoremap <silent> [prefix]t
+        nnoremap <silent> [prefix]H
             \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
 
         " [prefix]f: open files
@@ -1590,10 +1603,9 @@
         \ 'functions': 'qfreplace#start',
         \ 'commands': 'Qfreplace'
         \})
-
         " qfreplace tuning
         AutocmdFT qfreplace
-            \  call feedkeys("\<CR>\<CR>")
+            \  call feedkeys("\<CR>\<Esc>")
             \| setl nonu nornu colorcolumn= laststatus=0
             \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
             \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2
@@ -1781,10 +1793,10 @@
         call neobundle#untap()
     endif
     if neobundle#tap('javascript-libraries-syntax')
-        call neobundle#config({'filetypes': ['javascript', 'javascript.jsx']})
+        call neobundle#config({'filetypes': 'javascript'})
 
         function! neobundle#hooks.on_source(bundle)
-            let g:used_javascript_libs = 'react,angularjs,underscore,jquery'
+            let g:used_javascript_libs = 'react,angularjs,underscore,jquery,jasmine'
         endfunction
 
         call neobundle#untap()
@@ -1793,7 +1805,7 @@
     if neobundle#tap('jscomplete-vim')
         call neobundle#config({'functions': 'jscomplete#CompleteJS'})
 
-        Autocmd BufNewFile,BufRead *.{js,jsx} setl omnifunc=jscomplete#CompleteJS
+        Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
 
         function! neobundle#hooks.on_source(bundle)
             let g:jscomplete_use = ['dom', 'moz', 'es6th', 'html5API']
@@ -1809,7 +1821,7 @@
     if neobundle#tap('vim-jsdoc')
         call neobundle#config({'mappings': [['n', '<Plug>(jsdoc)']]})
 
-        AutocmdFT javascript,javascript.jsx nmap <buffer> ,c <Plug>(jsdoc)
+        AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)
 
         function! neobundle#hooks.on_source(bundle)
             let g:jsdoc_allow_shorthand = 1
@@ -1822,20 +1834,9 @@
         call neobundle#untap()
     endif
     " Tags
-    Autocmd BufNewFile,BufRead *.{js,jsx,javascript.jsx} setl tags=
+    Autocmd BufNewFile,BufRead *.js setl tags=
         \$VIMFILES/tags/js.react/react-0.13.tags
         \,$VIMFILES/tags/js.react/JSXTransformer-0.13.tags
-
-" JSX
-    if neobundle#tap('vim-jsx')
-        call neobundle#config({'filename_patterns': '\.jsx$'})
-
-        function! neobundle#hooks.on_source(bundle)
-            let g:jsx_ext_required = 0
-        endfunction
-
-        call neobundle#untap()
-    endif
 
 " HTML
     AutocmdFT html Indent 2
@@ -1891,7 +1892,7 @@
         call neobundle#untap()
     endif
     if neobundle#is_installed('vim-closetag')
-        let g:closetag_filenames = '*.{html,twig,htmltwig,xml,javascript.jsx}'
+        let g:closetag_filenames = '*.{html,twig,htmltwig,xml}'
     endif
 
 " Twig
@@ -1965,7 +1966,7 @@
     endif
 
 " JSON
-    Autocmd BufNewFile,BufRead .{babelrc,eslintrc} Indent 2
+    Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json | Indent 2
     " Syntax
     let g:vim_json_warnings = 0
     if neobundle#tap('vim-json')
@@ -2123,7 +2124,7 @@
     set laststatus=2
     " Format the statusline
     let &statusline =
-    \  "%1* %L %*"
+    \  "%1* %l%*.%c %L %*"
     \. "%-0.60f "
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
@@ -2186,22 +2187,22 @@
 " Shortcuts
 "---------------------------------------------------------------------------
     " Insert the current file
-    ab ##f <C-r>=expand('%:t:r')<CR>
+    iab <silent> ##f <C-r>=expand('%:t:r')<CR>
     ca ##f <C-r>=expand('%:t:r')<CR>
     " Insert the current file path
-    ab ##p <C-r>=expand('%:p')<CR>
+    ia <silent> ##p <C-r>=expand('%:p')<CR>
     ca ##p <C-r>=expand('%:p')<CR>
     " Insert the current file directory
-    ab ##d <C-r>=expand('%:p:h').'\'<CR>
+    ia <silent> ##d <C-r>=expand('%:p:h').'\'<CR>
     ca ##d <C-r>=expand('%:p:h').'\'<CR>
     " Inset the current timestamp
-    ab ##t <C-r>=strftime('%Y-%m-%d')<CR>
+    ia <silent> ##t <C-r>=strftime('%Y-%m-%d')<CR>
     ca ##t <C-r>=strftime('%Y-%m-%d')<CR>
     " Inset the current Unix time
-    ab ##l <C-r>=localtime()<CR>
+    ia <silent> ##l <C-r>=localtime()<CR>
     ca ##l <C-r>=localtime()<CR>
     " Shebang
-    ab <expr> #!! '#!/usr/bin/env' . (empty(&filetype) ? '' : ' '.&filetype)
+    ia <silent> <expr> ##! '#!/usr/bin/env' . (empty(&filetype) ? '' : ' '.&filetype)
 
 " Normal mode
 "---------------------------------------------------------------------------
@@ -2506,6 +2507,7 @@
 
     " Inspect syntax
     nnoremap ,i :<C-u>echo map(synstack(line('.'), col('.')), 'synIDattr(synIDtrans(v:val), "name")')<CR>
+    nnoremap ,I :<C-u>echo synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
 
     " [#*]: make # and * work in visual mode too
     vnoremap # y?<C-r>*<CR>
