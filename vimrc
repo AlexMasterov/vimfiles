@@ -199,6 +199,7 @@
         " Utils
         NeoBundle 'kopischke/vim-stay'
         NeoBundle 'kshenoy/vim-signature'
+        NeoBundleLazy 'KabbAmine/zeavim.vim'
         NeoBundleLazy 'tpope/vim-characterize'
         NeoBundleLazy 'mbbill/undotree'
         NeoBundleLazy 'Shougo/vimfiler.vim'
@@ -251,7 +252,7 @@
         NeoBundleLazy 'Shougo/neocomplete.vim', {
         \ 'disabled': !has('lua'),
         \ 'depends': [
-        \   'Shougo/context_filetype.vim', 'Shougo/neoinclude.vim', 'Shougo/neco-syntax'
+        \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax', 'Shougo/neoinclude.vim',
         \ ]
         \}
         NeoBundleLazy 'SirVer/ultisnips', {
@@ -264,9 +265,6 @@
         \ 'depends': 'kana/vim-textobj-user'
         \}
         NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
-        \ 'depends': 'kana/vim-textobj-user'
-        \}
-        NeoBundleLazy 'justinj/vim-textobj-reactprop', {
         \ 'depends': 'kana/vim-textobj-user'
         \}
 
@@ -359,6 +357,25 @@
         call neobundle#untap()
     endif
 
+    if neobundle#tap('zeavim.vim')
+        call neobundle#config({
+        \ 'mappings': [['n', '<Plug>Zeavim'], ['n', '<Plug>ZVKey'], ['v', '<Plug>ZVVisSelection']],
+        \})
+
+        nmap ,1 <Plug>Zeavim
+        vmap ,2 <Plug>ZVVisSelection
+        nmap ,3 <Plug>ZVKeyword
+        nmap ,4 <Plug>ZVKeyDocset
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:zv_disable_mapping = 1
+            let g:zv_lazy_docset_list = ['PHP', 'JavaScript', 'HTML', 'CSS']
+            let g:zv_zeal_directory = s:is_windows ? 'zeal' : '/usr/bin/zeal'
+        endfunction
+
+        call neobundle#untap()
+    endif
+
     if neobundle#tap('vim-characterize')
         call neobundle#config({'mappings': [['nx', '<Plug>(characterize)']]})
 
@@ -442,12 +459,6 @@
         command! -nargs=0 SessionSaveWithTimeStamp
             \ exe ':SaveSession '. strftime('%y%m%d_%H%M%S')
 
-        Autocmd VimLeavePre * call <SID>autoSaveSession()
-        function! s:autoSaveSession()
-            let session = fnamemodify(v:this_session, ':t')
-            if !empty(session)| SaveSession |endif
-        endfunction
-
         function! s:inputSessionName()
             let session_name = input(" Session name: \n\r ")
             if session_name != ''
@@ -513,6 +524,7 @@
         AutocmdFT vimfiler call s:VimfilerMappings()
         function! s:VimfilerMappings()
             " Normal mode
+            nmap <buffer> <C-c> <Esc>
             nmap <buffer> <expr> q winnr('$') == 1
                 \ ? "\<Plug>(vimfiler_hide)"
                 \ : "\<Plug>(vimfiler_switch_to_other_window)"
@@ -536,7 +548,7 @@
             nmap <buffer> <expr> t vimfiler#do_action('tabopen')
             nmap <buffer> <expr> <Enter>
                 \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-
+            " Temporary
             nmap <buffer> 1 <Plug>(vimfiler_switch_to_project_directory)
             nmap <buffer> 2 <Plug>(vimfiler_switch_to_parent_directory)
             nmap <buffer> 3 <Plug>(vimfiler_cd_file)
@@ -639,7 +651,8 @@
 
             " HTML
             let g:quickrun_config['html/formatter'] = {
-            \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer', 'args': '--indent-size 2'
+            \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
+            \ 'args': '--indent-size 2 --unformatted script'
             \}
             " Twig
             let g:quickrun_config['twig/formatter'] = g:quickrun_config['html/formatter']
@@ -661,6 +674,7 @@
 
             function! s:rebuffer.finish(session) abort
                 if a:session.exit_code == 1 " if error
+                    echohl WarningMsg| echo ' ERROR! ' |echohl None
                     return
                 endif
 
@@ -683,6 +697,10 @@
 
             " Reopen
             let s:reopen = {'name': 'reopen', 'kind': 'outputter'}
+
+            function! s:reopen.start(session) abort
+                silent update!
+            endfunction
 
             function! s:reopen.output(data, session) abort
             endfunction
@@ -743,6 +761,7 @@
 
         function! neobundle#hooks.on_source(bundle)
             nnoremap [prefix]e :<C-u>E
+            " Temporary
             nnoremap [prefix]1 :<C-u>Ecomposer<Space>
             nnoremap [prefix]2 :<C-u>Eapp<Space>
             nnoremap [prefix]3 :<C-u>Esrc<Space>
@@ -1007,7 +1026,7 @@
             endfunction
 
             " Fix pair completion
-            for pair in ['()', '[]']
+            for pair in ['()', '[]', '{}']
                 call lexima#add_rule({
                 \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'. escape(pair[1], ']') .']', 'input': pair[0]
                 \})
@@ -1030,6 +1049,12 @@
             call lexima#add_rule({
             \ 'char': '<Space>', 'at': '{\%#}', 'input': '<Space>', 'input_after': '<Space>',
             \ 'filetype': s:lexima_pair_space_ft
+            \})
+
+            " {{ <Space> }}
+            call lexima#add_rule({
+            \ 'char': '<Space>', 'at': '{{\%#}}', 'input': '<Space>', 'input_after': '<Space>',
+            \ 'filetype': ['twig', 'htmltwig']
             \})
 
             " Attributes
@@ -1071,6 +1096,7 @@
         " PHP
         AutocmdFT php
         \ let b:switch_custom_definitions = [
+        \ ['prod', 'dev', 'test'],
         \ ['development', 'production'],
         \ ['&&', '||'],
         \ ['and', 'or'],
@@ -1148,7 +1174,7 @@
             \  ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
             \| ImapBufExpr > smartchr#loop('>', '=>')
         AutocmdFT javascript
-            \| ImapBufExpr - smartchr#loop('-', '--', '_')
+            \  ImapBufExpr - smartchr#loop('-', '--', '_')
             \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
         AutocmdFT yaml
             \  ImapBufExpr > smartchr#loop('>', '%>')
@@ -1164,11 +1190,6 @@
 
     if neobundle#tap('vim-textobj-xmlattr')
         call neobundle#config({'mappings': ['vix', 'vax']})
-        call neobundle#untap()
-    endif
-
-    if neobundle#tap('vim-textobj-reactprop')
-        call neobundle#config({'mappings': ['var', 'cir']})
         call neobundle#untap()
     endif
 
@@ -1306,11 +1327,12 @@
 
     if neobundle#tap('ultisnips')
         call neobundle#config({
-        \ 'functions': 'UltiSnips#FileTypeChanged',
+        \ 'functions': ['UltiSnips#FileTypeChanged', 'UltiSnips#AddFiletypes'],
         \ 'insert': 1
         \})
 
         inoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
+        xnoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
         snoremap <C-c> <Esc>
 
         function! s:ultiComplete()
@@ -1320,6 +1342,8 @@
             return "\`"
         endfunction
 
+        AutocmdFT htmltwig
+            \ call UltiSnips#AddFiletypes('htmltwig.twig')
         Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
 
         function! neobundle#hooks.on_source(bundle)
@@ -1341,7 +1365,7 @@
         " [prefix]b: open buffers
         nnoremap <silent> [prefix]b :<C-u>Unite buffer -toggle<CR>
         " [prefix]h: open windows
-        nnoremap <silent> [prefix]h :<C-u>Unite window -toggle<CR>
+        nnoremap <silent> [prefix]h :<C-u>Unite window:all:no-current -toggle<CR>
         " [prefix]t: open tab pages
         nnoremap <silent> [prefix]H
             \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
@@ -1383,10 +1407,14 @@
 
         function! s:UniteMappings()
             " Normal mode
+            nmap <buffer> R <Plug>(unite_redraw)
+            nmap <buffer> e <Plug>(unite_toggle_mark_current_candidate)
             nmap <buffer> <S-BS>  <Plug>(unite_exit)
             nmap <buffer> <C-BS>  <Plug>(unite_exit)
             nmap <buffer> <S-Tab> <Plug>(unite_loop_cursor_up)
             nmap <buffer> <Tab>   <Plug>(unite_loop_cursor_down)
+            nmap <buffer> i <Plug>(unite_insert_enter)<Right><BS>
+            nmap <buffer> <BS> <Plug>(unite_insert_enter)<Right><BS>
             nmap <silent> <buffer> <expr> o  unite#do_action('open')
             nmap <silent> <buffer> <expr> ss unite#do_action('split')
             nmap <silent> <buffer> <expr> sv unite#do_action('vsplit')
@@ -1436,10 +1464,9 @@
                 let g:unite_source_grep_recursive_opt = ''
                 let g:unite_source_grep_encoding = 'utf-8'
                 let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
-
-                let g:unite_source_rec_async_command = 'ag'
-                    \. ' '. join(map(split(g:ignore_pattern, ','), '"\--ignore \"*.".v:val."\""'), ' ')
-                    \. (&smartcase ? ' -S' : ''). ' --nogroup --nocolor --hidden -l .'
+                let g:unite_source_rec_async_command = [
+                \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
+                \]
             endif
 
             " Default profile
@@ -1901,6 +1928,12 @@
     AutocmdFT twig,htmltwig Indent 2
     if neobundle#tap('twig-indent')
         call neobundle#config({'filename_patterns': ['\.twig$', '\.html.twig$']})
+
+        function! neobundle#hooks.on_source(bundle)
+            let g:twig_close_tags = 1
+            let g:twig_indent_tags = 1
+        endfunction
+
         call neobundle#untap()
     endif
     " Syntax
@@ -1927,7 +1960,7 @@
         call neobundle#untap()
     endif
     if neobundle#tap('vim-css3-syntax')
-        call neobundle#config({'filetypes': ['css', 'scss', 'less']})
+        call neobundle#config({'filetypes': ['css', 'scss']})
         call neobundle#untap()
     endif
     " Autocomplete
