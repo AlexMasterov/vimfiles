@@ -2,7 +2,7 @@
 " File:         topos.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
 " Source:       https://github.com/AlexMasterov/vimfiles
-" Last Updated: 2015 July
+" Last Updated: 2015 Aug
 " Description:  GUI only
 
 hi clear
@@ -174,6 +174,12 @@ hi javaScriptDOMObjects       guifg=#708090                   gui=NONE
 hi javaScriptGlobalObjects    guifg=#708090                   gui=NONE
 hi javaScriptBrowserObjects   guifg=#708090                   gui=NONE
 hi javaScriptRegexpString     guifg=#009926                   gui=NONE
+hi javascriptIdentifierName   guifg=#2B2B2B                   gui=NONE
+hi javascriptReturn           guifg=#2B2B2B                   gui=bold
+hi javascriptConditional      guifg=#0050B0                   gui=bold
+hi javascriptConditionalElse  guifg=#0050B0                   gui=bold
+hi javascriptVariable         guifg=#008080                   gui=NONE
+hi javascriptOperator         guifg=#1E347B                   gui=NONE
 
 " HTML
 "---------------------------------------------------------------------------
