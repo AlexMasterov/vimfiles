@@ -32,8 +32,8 @@
   if s:is_windows
     set shellslash
   endif
-  set noexrc            " avoid reading local (g)vimrc, exrc
-  set modelines=0       " prevents security exploits
+  set noexrc          " avoid reading local (g)vimrc, exrc
+  set modelines=0     " prevents security exploits
 
   " Initialize autogroup in MyVimrc
   augroup MyVimrc| exe 'autocmd!' |augroup END
@@ -50,9 +50,9 @@
 " Functions
 "---------------------------------------------------------------------------
   function! s:installNeoBundle(neobundlePath) abort
-    let s:neobundleUri = 'https://github.com/Shougo/neobundle.vim'
+    let neobundleUri = 'https://github.com/Shougo/neobundle.vim.git'
     if executable('git')
-      call system(printf('git clone --depth 1 %s %s', s:neobundleUri, a:neobundlePath))
+      call system(printf('git clone --depth 1 %s %s', neobundleUri, a:neobundlePath))
     else
       echom "Can\'t download NeoBundle: Git not found."
     endif
@@ -621,9 +621,8 @@
     nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
     AutocmdFT php
-      \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>MyQuickRun('csfixer')<CR>
-      \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>MyQuickRun('phpunit')<CR>
-      \| nnoremap <silent> <buffer> ,T :<C-u>call <SID>MyQuickRun('phpunit')<CR>
+      \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('csfixer')<CR>
+      \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
     AutocmdFT javascript,html,twig,htmltwig,css,json
       \ nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('formatter')<CR>
 
@@ -1274,8 +1273,8 @@
       let g:context_filetype#search_offset = 500
 
       function! s:addContext(rule, filetype)
-        let s:context_ft_def = context_filetype#default_filetypes()
-        let g:context_filetype#filetypes[a:filetype] = add(s:context_ft_def.html, a:rule)
+        let context_ft_def = context_filetype#default_filetypes()
+        let g:context_filetype#filetypes[a:filetype] = add(context_ft_def.html, a:rule)
       endfunction
 
       " CSS
@@ -2171,7 +2170,7 @@
 
   function! FileSize()
     let size = &encoding ==# &fileencoding || &fileencoding ==# ''
-            \ ? line2byte(line('$') + 1) - 1 : getfsize(expand('%:p'))
+        \ ? line2byte(line('$') + 1) - 1 : getfsize(expand('%:p'))
     return size <= 0 ? '' :
       \ size < 1024 ? size.'B' : (size / 1024).'K'
   endfunction
@@ -2295,9 +2294,9 @@
   " Shift-Enter: force save file
   nnoremap <silent> <S-Enter> :<C-u>update!<CR>
   " [prefix]e: reopen file
-  nnoremap <silent> ;e :<C-u>edit<CR>
+  nnoremap <silent> [prefix]e :<C-u>edit<CR>
   " [prefix]E: force reopen file
-  nnoremap <silent> ;E :<C-u>edit!<CR>
+  nnoremap <silent> [prefix]E :<C-u>edit!<CR>
 
   " Buffers
   "-----------------------------------------------------------------------
@@ -2539,8 +2538,8 @@
   nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
 
   " Inspect syntax
-  nnoremap ,i :<C-u>echo map(synstack(line('.'), col('.')), 'synIDattr(synIDtrans(v:val), "name")')<CR>
-  nnoremap ,I :<C-u>echo synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
+  nnoremap ,9 :<C-u>echo map(synstack(line('.'), col('.')), 'synIDattr(synIDtrans(v:val), "name")')<CR>
+  nnoremap ,0 :<C-u>echo synIDattr(synID(line('.'), col('.'), 1), 'name')<CR>
 
   " [#*]: make # and * work in visual mode too
   vnoremap # y?<C-r>*<CR>
@@ -2568,3 +2567,5 @@
   endfunction
   xnoremap R "_dP
   xnoremap <silent> R :<C-u>call <SID>replace()<CR>
+
+  inoremap <S-BS> <Esc>
