@@ -74,11 +74,6 @@
     let @/=_s
   endfunction
 
-  function! s:isBackspace() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1] =~ '\s'
-  endfunction
-
 " Commands
 "---------------------------------------------------------------------------
   " Vimrc augroup sugar
@@ -191,7 +186,7 @@
     " Let NeoBundle manage NeoBundle
     NeoBundleFetch 'Shougo/neobundle.vim'
     " Local plugins for doing development
-    exe 'NeoBundleLocal '.$VIMFILES.'/dev'
+    NeoBundleLocal $VIMFILES/dev
 
     NeoBundleLazy 'Shougo/vimproc.vim', {
     \ 'build': {
@@ -1308,27 +1303,24 @@
   if neobundle#tap('neocomplete.vim')
     call neobundle#config({'insert': 1})
 
-    " Ctrl-d: select the previous match OR delete till start of line
-    inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
-    " Ctrl-k: select the next match OR delete to end of line
-    inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
-    " <C-x><C-f>: file
-    inoremap <silent> <expr> <C-x><C-f> neocomplete#start_manual_complete('file')
-
     " Tab: completion
     inoremap <silent> <Tab> <C-r>=<SID>neoComplete()<CR>
     inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
+    " Ctrl-d: select the previous match OR delete till start of line
+    inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
+    " " Ctrl-k: select the next match OR delete to end of line
+    inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
 
     function! s:neoComplete()
       if pumvisible()
         return "\<C-n>"
       endif
 
-      if <SID>isBackspace() == 1
-          return "\<Tab>"
+      let curPosChar = getline('.')[getcurpos()[4]-2]
+      if curPosChar ==# ' '
+        return "\<Tab>"
       endif
 
-      call feedkeys("\<C-x>\<C-i>")
       return neocomplete#start_manual_complete()
     endfunction
 
@@ -1379,14 +1371,25 @@
     \ })
 
     inoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
-    xnoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
+    xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
 
-    function! s:ultiComplete()
-      if len(UltiSnips#SnippetsInCurrentScope()) >= 0
+    function! s:ultiComplete()  " <3 VimScript
+      if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
         return UltiSnips#ExpandSnippet()
-      end
-      return "\`"
+      endif
+
+      let curPos = getcurpos()[4]
+      let curLinelength = len(line('.'))
+      let curPosChar = getline('.')[getcurpos()[4]-2]
+
+      if curPos > curLinelength || curPosChar ==# ' '
+        return "\`"
+      elseif len(UltiSnips#SnippetsInCurrentScope()) >= 1
+        return UltiSnips#ExpandSnippet()
+      else
+        return "\`"
+      endif
     endfunction
 
     AutocmdFT htmltwig
@@ -1394,8 +1397,9 @@
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
 
     function! neobundle#hooks.on_source(bundle)
-      let g:UltiSnipsExpandTrigger = '<S-F12>'
-      let g:UltiSnipsListSnippets = '<S-F12>'
+      let g:UltiSnipsEnableSnipMate = 0
+      let g:UltiSnipsExpandTrigger = '<C-F12>'
+      let g:UltiSnipsListSnippets = '<C-F12>'
       let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
     endfunction
 
@@ -1495,9 +1499,9 @@
         imap <buffer> <C-j>   <Plug>(unite_select_next_line)
         imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
         imap <buffer> <S-BS>  <Plug>(unite_delete_backward_line)
-        imap <buffer> <expr> <BS> len(getline('.')) > 1 ? "\<Plug>(unite_delete_backward_char)" : ""
-        imap <buffer> <expr> <C-e> len(getline('.')) != 1 ? "\<Plug>(unite_delete_backward_char)" : ""
-        imap <buffer> <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
+        imap <buffer> <expr> <BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
+        imap <buffer> <expr> <C-e> col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
+        imap <buffer> <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
       endfunction
 
       function! neobundle#hooks.on_source(bundle)
@@ -1567,7 +1571,12 @@
   endif
 
   if neobundle#tap('neomru.vim')
-    call neobundle#config({'commands': ['NeoMRUSave', 'NeoMRUReload']})
+    call neobundle#config({
+    \ 'unite_sources': ['neomru/file', 'neomru/directory'],
+    \ 'commands': ['NeoMRUSave', 'NeoMRUReload'],
+    \ })
+
+    Autocmd BufLeave,VimLeavePre * NeoMRUSave
 
     " [prefix]l: open recently-opened files
     nnoremap <silent> [prefix]w
@@ -2414,7 +2423,7 @@
   " Shift-Enter: break line above
   inoremap <S-CR> <C-m>
   " jj: fast Esc
-  inoremap <expr> j getline('.')[col('.')-2] ==# 'j' ? "\<BS>\<Esc>`^" : 'j'
+  inoremap <expr> j getline('.')[getcurpos()[4]-2] ==# 'j' ? "\<BS>\<Esc>`^" : 'j'
   " Ctrl-l: fast Esc
   inoremap <C-l> <Esc>`^
   " Ctrl-c: old fast Esc
@@ -2430,8 +2439,8 @@
   " Alt-q: change language
   inoremap <A-q> <C-^>
   " qq: smart fast Esc
-  imap <expr> q getline('.')[col('.')-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
-
+  imap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
+                 
 " Visual mode
 "---------------------------------------------------------------------------
   " jk: don't skip wrap lines
@@ -2567,5 +2576,3 @@
   endfunction
   xnoremap R "_dP
   xnoremap <silent> R :<C-u>call <SID>replace()<CR>
-
-  inoremap <S-BS> <Esc>
