@@ -14,16 +14,6 @@
   nmap ; [prefix]
   noremap [prefix] <Nop>
 
-  let &suffixes = ''
-  " Ignore pattern
-  let g:ignore_pattern =
-  \  'hq,git,svn'
-  \. ',png,jpg,jpeg,gif,ico,bmp'
-  \. ',zip,rar,tar,tar.bz,tar.bz2'
-  \. ',o,a,so,obj.pyc,bin,exe,lib,dll'
-  \. ',lock,bak,tmp,dist,doc,docx,md'
-  \. ',otf,ttf,svg,svgz'
-
   let s:is_windows = has('win32') || has('win64')
 
   if &compatible
@@ -214,8 +204,6 @@
     NeoBundleLazy 'Shougo/vimfiler.vim'
     NeoBundleLazy 'tpope/vim-projectionist'
     NeoBundleLazy 'lilydjwg/colorizer'
-    NeoBundleLazy 'LeafCage/yankround.vim'
-    NeoBundleLazy 'jaxbot/semantic-highlight.vim'
     NeoBundleLazy 'tyru/current-func-info.vim'
     " NeoBundleLazy 'osyo-manga/vim-brightest'
     NeoBundleLazy 'Shougo/neomru.vim'
@@ -880,48 +868,6 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('yankround.vim')
-    call neobundle#config({
-    \ 'unite_sources': 'yankround',
-    \ 'mappings': '<Plug>'
-    \ })
-
-    nmap p <Plug>(yankround-p)
-    xmap p <Plug>(yankround-p)
-    nmap P <Plug>(yankround-P)
-    nmap <expr> <C-o> yankround#is_active() ? "\<Plug>(yankround-prev)" : "\<C-p>"
-    nmap <expr> <C-p> yankround#is_active() ? "\<Plug>(yankround-next)" : "\<C-n>"
-
-    " [prefix]y: yankround
-    nnoremap <silent> [prefix]y :<C-u>Unite yankround -buffer-name=yankround<CR>
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:yankround_max_history = 10
-      let g:yankround_use_region_hl = 1
-      let g:yankround_region_hl_groupname = 'TODO'
-      let g:yankround_dir = $VIMCACHE.'/yankround'
-    endfunction
-
-    call neobundle#untap()
-  endif
-
-  " https://medium.com/@evnbr/coding-in-color-3a6db2743a1e
-  if neobundle#tap('semantic-highlight.vim')
-    call neobundle#config({'commands': 'SemanticHighlightToggle'})
-
-    AutocmdFT php,javascript
-      \ nnoremap <silent> <buffer> ,v :<C-u>SemanticHighlightToggle<CR>
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:semanticPersistCacheLocation = $VIMCACHE.'/semantic-hl'
-      let g:semanticGUIColors = [
-      \ '#CD7F32', '#999999', '#0050B1', '#A67F59'
-      \ ]
-    endfunction
-
-    call neobundle#untap()
-  endif
-
   if neobundle#tap('wildfire.vim')
     call neobundle#config({'mappings': '<Plug>'})
 
@@ -1374,7 +1320,7 @@
     xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
 
-    function! s:ultiComplete()  " <3 VimScript
+    function! s:ultiComplete()
       if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
         return UltiSnips#ExpandSnippet()
       endif
@@ -1413,159 +1359,134 @@
     \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
     \ ]})
 
+    " [prefix]f: open files
+    nnoremap <silent> [prefix]f
+      \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -buffer-name=files -start-insert<CR>
+    nnoremap <silent> [prefix]F
+      \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -buffer-name=files -start-insert -no-smartcase<CR>
+
     " [prefix]b: open buffers
     nnoremap <silent> [prefix]b :<C-u>Unite buffer -toggle<CR>
     " [prefix]h: open windows
     nnoremap <silent> [prefix]h :<C-u>Unite window:all:no-current -toggle<CR>
-    " [prefix]t: open tab pages
+    " [prefix]H: open tab pages
     nnoremap <silent> [prefix]H
       \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
 
-    " [prefix]f: open files
-    nnoremap <silent> [prefix]f
-      \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -start-insert<CR>
-
     " [prefix]g: grep search
-    nnoremap <silent> [prefix]g
-      \ :<C-u>Unite grep:. -no-split -auto-preview<CR>
+    nnoremap <silent> [prefix]g :<C-u>Unite grep:. -no-split -auto-preview<CR>
     " [prefix]s: search
     nnoremap <silent> [prefix]s
       \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert<CR>
+    nnoremap <silent> [prefix]S
+      \ :<C-u>Unite line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe -no-split -start-insert -no-smartcase<CR>
     " *: search keyword under the cursor
     nnoremap <silent> *
       \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search-`bufnr('%')` -no-wipe<CR>
-    " [prefix]r: resume search buffer
+
+     " [prefix]r: resume search buffer
     nnoremap <silent> [prefix]r
       \ :<C-u>UniteResume search-`bufnr('%')` -no-start-insert -force-redraw<CR>
-
-    " [prefix]a: bookmarks
-    nnoremap [prefix]a :<C-u>Unite bookmark:
-    nnoremap [prefix]A :<C-u>UniteBookmarkAdd<space>
     " [prefix]o: open message log
-    nnoremap <silent> [prefix]x :<C-u>Unite output:message<CR>
+    nnoremap <silent> [prefix]O :<C-u>Unite output:message<CR>
     " [prefix]i: NeoBundle update
     nnoremap <silent> [prefix]u
       \ :<C-u>Unite neobundle/update -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
 
     " Unite tuning
-    AutocmdFT unite
+    AutocmdFT unite,unite_exrename
       \ setl nolist guicursor=a:blinkon0
         \| Autocmd InsertEnter,InsertLeave <buffer>
           \ setl nonu nornu nolist colorcolumn=
+    AutocmdFT unite call <SID>uniteMappings()
 
-      AutocmdFT unite call <SID>uniteMappings()
-        \| imap <buffer> <C-i> <Plug>(unite_insert_leave)
+    function! s:uniteMappings()
+      let b:unite = unite#get_current_unite()
 
-      function! s:uniteMappings()
-        " Normal mode
-        nmap <buffer> R <Plug>(unite_redraw)
-        nmap <buffer> e <Plug>(unite_toggle_mark_current_candidate)
-        nmap <buffer> <S-BS>  <Plug>(unite_exit)
-        nmap <buffer> <C-BS>  <Plug>(unite_exit)
-        nmap <buffer> <S-Tab> <Plug>(unite_loop_cursor_up)
-        nmap <buffer> <Tab>   <Plug>(unite_loop_cursor_down)
-        nmap <buffer> i <Plug>(unite_insert_enter)<Right><BS>
-        nmap <buffer> <BS> <Plug>(unite_insert_enter)<Right><BS>
-        nmap <silent> <buffer> <expr> o  unite#do_action('open')
-        nmap <silent> <buffer> <expr> ss unite#do_action('split')
-        nmap <silent> <buffer> <expr> sv unite#do_action('vsplit')
-        nmap <silent> <buffer> <expr> cc unite#do_action('lcd')
-        nmap <silent> <buffer> <expr> b  unite#do_action('bookmark')
-        nmap <silent> <buffer> <expr> B  unite#do_action('backup')
-        nmap <silent> <buffer> <expr> y  unite#do_action('yank')
-        nmap <silent> <buffer> <expr> Y  unite#do_action('yank_escape')
+      " Normal mode
+      nmap <buffer> <C-k> <C-u>
+      nmap <buffer> R     <Plug>(unite_redraw)
+      nmap <buffer> <Tab> <Plug>(unite_insert_head)
+      nmap <silent> <buffer> <nowait> <expr> o unite#do_action('open')
+      nmap <silent> <buffer> <nowait> <expr> O unite#do_action('choose')
+      nmap <silent> <buffer> <nowait> <expr> s unite#do_action('above')
+      nmap <silent> <buffer> <nowait> <expr> S unite#do_action('below')
+      nmap <silent> <buffer> <nowait> <expr> v unite#do_action('left')
+      nmap <silent> <buffer> <nowait> <expr> V unite#do_action('right')
+      nmap <silent> <buffer> <nowait> <expr> b unite#do_action('backup')
+      nmap <silent> <buffer> <nowait> <expr> r
+        \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('rename')
+      nmap <silent> <buffer> <nowait> <expr> R
+        \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
 
-        let unite = unite#get_current_unite()
-        if unite.profile_name ==# 'line'
-          nmap <silent> <buffer> <expr> r unite#do_action('replace')
-        else
-          nmap <silent> <buffer> <expr> r unite#do_action('rename')
-        endif
-        " yankround.vim
-        if unite.buffer_name ==# 'yankround'
-          nmap <silent> <buffer> o <Enter>
-        endif
+      " Insert mode
+      imap <buffer> <C-e>   <C-o>A
+      imap <buffer> <C-a>   <Plug>(unite_move_head)
+      imap <buffer> <C-j>   <Plug>(unite_move_left)
+      imap <buffer> <C-l>   <Plug>(unite_move_right)
+      imap <buffer> <Tab>   <Plug>(unite_insert_leave)
+      imap <buffer> <C-j>   <Plug>(unite_select_next_line)
+      imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
+      imap <buffer> <expr> <C-h>  col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
+      imap <buffer> <expr> <BS>   col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
+      imap <buffer> <expr> <S-BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_word)" : ""
+      imap <buffer> <expr> q      getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
+    endfunction
 
-        " Insert mode
-        imap <buffer> <C-BS>  <Plug>(unite_exit)
-        imap <buffer> <C-n>   <Plug>(unite_complete)
-        imap <buffer> <Tab>   <Plug>(unite_select_next_line)
-        imap <buffer> <S-Tab> <Plug>(unite_select_previous_line)
-        imap <buffer> <C-a>   <Plug>(unite_move_head)
-        imap <buffer> <C-j>   <Plug>(unite_move_left)
-        imap <buffer> <C-l>   <Plug>(unite_move_right)
-        imap <buffer> <C-p>   <Plug>(unite_delete_backward_path)
-        imap <buffer> <C-d>   <Plug>(unite_delete_backward_line)
-        imap <buffer> <C-j>   <Plug>(unite_select_next_line)
-        imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
-        imap <buffer> <S-BS>  <Plug>(unite_delete_backward_line)
-        imap <buffer> <expr> <BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
-        imap <buffer> <expr> <C-e> col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
-        imap <buffer> <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
-      endfunction
+    function! neobundle#hooks.on_source(bundle)
+      let g:unite_source_history_yank_enable = 0
+      let g:unite_source_rec_min_cache_files = 50
+      let g:unite_source_buffer_time_format = '%H:%M '
+      let g:unite_data_directory = $VIMCACHE.'/unite'
+      if executable('ag')
+        let g:unite_source_grep_command = 'ag'
+        let g:unite_source_grep_recursive_opt = ''
+        let g:unite_source_grep_encoding = 'utf-8'
+        let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+        let g:unite_source_rec_async_command = [
+        \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
+        \ ]
+      endif
 
-      function! neobundle#hooks.on_source(bundle)
-        let g:unite_source_history_yank_enable = 0
-        let g:unite_source_rec_min_cache_files = 50
-        let g:unite_source_buffer_time_format = '%H:%M '
-        let g:unite_data_directory = $VIMCACHE.'/unite'
+      " Default profile
+      let s:unite_default = {
+      \ 'winheight': 20,
+      \ 'direction': 'botright',
+      \ 'prompt_direction': 'bellow',
+      \ 'cursor_line_time': '0.0',
+      \ 'short_source_names': 1,
+      \ 'hide_source_names': 1,
+      \ 'hide_icon': 0,
+      \ 'marked_icon': '+',
+      \ 'prompt': '>',
+      \ 'wipe': 1
+      \ }
+      " Search profile
+      let s:unite_search = {
+      \ 'winheight': 20
+      \ }
+      " Quickfix profile
+      let s:unite_quickfix = {
+      \ 'winheight': 16,
+      \ 'no_quit': 1,
+      \ 'keep_focus': 1
+      \ }
 
-        if executable('ag')
-          let g:unite_source_grep_command = 'ag'
-          let g:unite_source_grep_recursive_opt = ''
-          let g:unite_source_grep_encoding = 'utf-8'
-          let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
-          let g:unite_source_rec_async_command = [
-          \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
-          \ ]
-        endif
+      " Custom profiles
+      call unite#custom#profile('default', 'context', s:unite_default)
+      call unite#custom#profile('source/grep', 'context', s:unite_search)
+      call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
+      " Custom filters
+      call unite#custom#source('file_rec/async', 'max_candidates', 40)
+      call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
 
-        " Default profile
-        let s:unite_default = {
-        \ 'winheight': 20,
-        \ 'direction': 'botright',
-        \ 'prompt_direction': 'bellow',
-        \ 'cursor_line_time': '0.0',
-        \ 'short_source_names': 1,
-        \ 'hide_source_names': 1,
-        \ 'hide_icon': 0,
-        \ 'marked_icon': '+',
-        \ 'prompt': '>',
-        \ 'wipe': 1
-        \ }
-
-        " Search profile
-        let s:unite_search = {
-        \ 'winheight': 20
-        \ }
-
-        " Quickfix profile
-        let s:unite_quickfix = {
-        \ 'winheight': 16,
-        \ 'no_quit': 1,
-        \ 'keep_focus': 1
-        \ }
-
-        " Custom profiles
-        call unite#custom#profile('default', 'context', s:unite_default)
-        call unite#custom#profile('source/grep', 'context', s:unite_search)
-        call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
-
-        " Custom filters
-        call unite#filters#sorter_default#use(['sorter_rank'])
-        call unite#filters#matcher_default#use(['matcher_fuzzy'])
-        call unite#custom#source('buffer', 'sorters', 'sorter_reverse')
-        call unite#custom#source('file_rec/async', 'max_candidates', 0)
-        call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
-        call unite#custom#source('source/grep,', 'ignore_globs', map(split(g:ignore_pattern, ','), '"\*.".v:val.""'))
-
-        hi link uniteStatusHead             StatusLine
-        hi link uniteStatusNormal           StatusLine
-        hi link uniteStatusMessage          StatusLine
-        hi link uniteStatusSourceNames      StatusLine
-        hi link uniteStatusSourceCandidates User1
-        hi link uniteStatusLineNR           User2
-      endfunction
+      hi link uniteStatusHead             StatusLine
+      hi link uniteStatusNormal           StatusLine
+      hi link uniteStatusMessage          StatusLine
+      hi link uniteStatusSourceNames      StatusLine
+      hi link uniteStatusSourceCandidates User1
+      hi link uniteStatusLineNR           User2
+    endfunction
 
     call neobundle#untap()
   endif
@@ -2200,9 +2121,9 @@
   set autoindent       " indent at the same level of the previous line
   set shiftround       " indent multiple of shiftwidth
   set expandtab        " spaces instead of tabs
-  set tabstop=4        " number of spaces per tab for display
-  set shiftwidth=4     " number of spaces per tab in insert mode
-  set softtabstop=4    " number of spaces when indenting
+  set tabstop=2        " number of spaces per tab for display
+  set shiftwidth=2     " number of spaces per tab in insert mode
+  set softtabstop=2    " number of spaces when indenting
   set nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
   " Backspacing setting
   set backspace=indent,eol,start
@@ -2440,7 +2361,7 @@
   inoremap <A-q> <C-^>
   " qq: smart fast Esc
   imap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
-                 
+
 " Visual mode
 "---------------------------------------------------------------------------
   " jk: don't skip wrap lines
