@@ -1261,12 +1261,10 @@
       if pumvisible()
         return "\<C-n>"
       endif
-
-      let curPosChar = getline('.')[getcurpos()[4]-2]
-      if curPosChar ==# ' '
+      let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s' ? 1 : 0
+      if isBackspace
         return "\<Tab>"
       endif
-
       return neocomplete#start_manual_complete()
     endfunction
 
@@ -1316,26 +1314,23 @@
     \ 'insert': 1
     \ })
 
-    inoremap <silent> ` <C-r>=<SID>ultiComplete()<CR>
+    inoremap <silent> ` <C-r>=<SID>ultiComplete('`')<CR>
     xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
 
-    function! s:ultiComplete()
-      if pumvisible() && len(UltiSnips#SnippetsInCurrentScope()) >= 1
+    function! s:ultiComplete(key)
+      if len(UltiSnips#SnippetsInCurrentScope()) >= 1
+        let curPos = getcurpos()[4]
+        let curLinelength = col('$')
+        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s' ? 1 : 0
+
+        if isBackspace || curPos <= 1 || curPos > curLinelength
+          return a:key
+        endif
+
         return UltiSnips#ExpandSnippet()
       endif
-
-      let curPos = getcurpos()[4]
-      let curLinelength = len(line('.'))
-      let curPosChar = getline('.')[getcurpos()[4]-2]
-
-      if curPos > curLinelength || curPosChar ==# ' '
-        return "\`"
-      elseif len(UltiSnips#SnippetsInCurrentScope()) >= 1
-        return UltiSnips#ExpandSnippet()
-      else
-        return "\`"
-      endif
+      return a:key
     endfunction
 
     AutocmdFT htmltwig
