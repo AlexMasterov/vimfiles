@@ -240,7 +240,7 @@
     NeoBundleLazy 'Shougo/neocomplete.vim', {
     \ 'disabled': !has('lua'),
     \ 'depends': [
-    \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax', 'Shougo/neoinclude.vim',
+    \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax', 'Shougo/neoinclude.vim'
     \ ]
     \ }
     NeoBundleLazy 'SirVer/ultisnips', {
@@ -512,47 +512,29 @@
     function! s:vimfilerMappings()
       " Normal mode
       nmap <buffer> <C-c> <Esc>
-      nmap <buffer> <expr> q winnr('$') == 1
-      \ ? "\<Plug>(vimfiler_hide)"
-      \ : "\<Plug>(vimfiler_switch_to_other_window)"
-      nmap <buffer> Q <Plug>(vimfiler_close)
-      nmap <buffer> ` <Plug>(vimfiler_hide)
-      nmap <buffer> <C-c> <Plug>(vimfiler_hide)
+      nmap <buffer> <Tab> <Plug>(vimfiler_expand_tree)
+      nmap <buffer> e <Plug>(vimfiler_cursor_top)
+      nmap <buffer> R <Plug>(vimfiler_redraw_screen)
       nmap <buffer> l <Plug>(vimfiler_expand_tree)
+      nmap <buffer> L <Plug>(vimfiler_cd_file)
+      nmap <buffer> J <Plug>(vimfiler_switch_to_root_directory)
+      nmap <buffer> K <Plug>(vimfiler_switch_to_project_directory)
+      nmap <buffer> H <Plug>(vimfiler_switch_to_parent_directory)
       nmap <buffer> o <Plug>(vimfiler_expand_or_edit)
       nmap <buffer> O <Plug>(vimfiler_open_file_in_another_vimfiler)
-      nmap <buffer> <nowait> n <Plug>(vimfiler_new_file)
-      nmap <buffer> <nowait> N <Plug>(vimfiler_make_directory)
-      nmap <buffer> <nowait> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
-      nmap <buffer> <nowait> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)y
+      nmap <buffer> w <Plug>(vimfiler_expand_tree_recursive)
+      nmap <buffer> W <Plug>(vimfiler_toggle_visible_ignore_files)
+      nmap <buffer> <expr> q winnr('$') == 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
+      nmap <buffer> <expr> <Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+      nmap <buffer> <nowait> <expr> t vimfiler#do_action('tabopen')
+      nmap <buffer> <nowait> <expr> v vimfiler#do_switch_action('vsplit')
+      nmap <buffer> <nowait> <expr> s vimfiler#do_switch_action('split')
+      nmap <buffer> <nowait> f <Plug>(vimfiler_new_file)
+      nmap <buffer> <nowait> n <Plug>(vimfiler_make_directory)
       nmap <buffer> <nowait> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)y
-      nmap <buffer> D <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_force_delete_file)
-      nmap <buffer> e <Plug>(vimfiler_toggle_mark_current_line)
-      nmap <buffer> E <Plug>(vimfiler_clear_mark_all_lines)
-      nmap <buffer> R <Plug>(vimfiler_redraw_screen)
-      nmap <buffer> <expr> <nowait> v vimfiler#do_switch_action('vsplit')
-      nmap <buffer> <expr> <nowait> s vimfiler#do_switch_action('split')
-      nmap <buffer> <expr> S <Plug>(vimfiler_split_edit_file)
-      nmap <buffer> <expr> t vimfiler#do_action('tabopen')
-      nmap <buffer> <expr> <Enter>
-        \ vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-      " Temporary
-      nmap <buffer> 1 <Plug>(vimfiler_switch_to_project_directory)
-      nmap <buffer> 2 <Plug>(vimfiler_switch_to_parent_directory)
-      nmap <buffer> 3 <Plug>(vimfiler_cd_file)
-      nmap <buffer> 4 <Plug>(vimfiler_switch_to_history_directory)
-      nmap <buffer> 5 <Plug>(vimfiler_cd_file)
-      nmap <buffer> 6 <Plug>(vimfiler_cd_vim_current_dir)
-
-      " <Space>[hjkl]: jump to a window
-      for s in ['h', 'j', 'k', 'l']
-        exe printf('nnoremap <silent> <buffer> <Space>%s :<C-u>wincmd %s<CR>', s, s)
-      endfor | unlet s
-
-      " Unbinds
-      nmap <buffer> J <Nop>
-      nmap <buffer> K <Nop>
-      nmap <buffer> L <Nop>
+      nmap <buffer> <nowait> D <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_force_delete_file)
+      nmap <buffer> <nowait> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)y
+      nmap <buffer> <nowait> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)y
     endfunction
 
     function! neobundle#hooks.on_source(bundle)
@@ -575,10 +557,8 @@
       \ 'safe': 0,
       \ 'parent': 0,
       \ 'explorer': 1,
-      \ 'winwidth': 22
+      \ 'winwidth': 24
       \ }
-
-      " Custom profiles
       call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
     endfunction
 
@@ -1286,12 +1266,11 @@
       " Sources
       let g:neocomplete#sources = get(g:, 'neocomplete#sources', {})
       let g:neocomplete#sources.php = ['omni', 'tag', 'file/include', 'ultisnips']
-      let g:neocomplete#sources.html = ['syntax', 'omni', 'file/include', 'ultisnips']
+      let g:neocomplete#sources.html = ['omni', 'file/include', 'ultisnips']
       let g:neocomplete#sources.twig = g:neocomplete#sources.html
       let g:neocomplete#sources.htmltwig = g:neocomplete#sources.html
       let g:neocomplete#sources.javascript = ['omni', 'tag', 'file/include', 'ultisnips']
       let g:neocomplete#sources.css = ['omni', 'file/include', 'ultisnips']
-      let g:neocomplete#sources.vim = ['omni', 'file/include', 'ultisnips']
       let g:neocomplete#sources.haskell = ['omni', 'file/include', 'ultisnips']
 
       " Completion patterns
@@ -1320,15 +1299,14 @@
 
     function! s:ultiComplete(key)
       if len(UltiSnips#SnippetsInCurrentScope()) >= 1
-        let curPos = getcurpos()[4]
-        let curLinelength = col('$')
-        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s' ? 1 : 0
+        let [curPos, lineLength] = [getcurpos()[4], col('$')]
+        let isBackspace = getline('.')[curPos-2] =~ '\s' ? 1 : 0
+        let isStartLine = curPos <= 1 ? 1 : 0
+        let isText = curPos <= lineLength ? 1 : 0
 
-        if isBackspace || curPos <= 1 || curPos > curLinelength
-          return a:key
+        if isText && !isStartLine && !isBackspace
+          return UltiSnips#ExpandSnippet()
         endif
-
-        return UltiSnips#ExpandSnippet()
       endif
       return a:key
     endfunction
@@ -1545,6 +1523,8 @@
   endif
 
   if neobundle#tap('httpstatus-vim')
+    call neobundle#config({'unite_sources': 'httpstatus'})
+
     " F12: http codes
     nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>
 
@@ -1810,6 +1790,7 @@
   Autocmd BufNewFile,BufRead *.js setl tags=
     \$VIMFILES/tags/js.react/react-0.13.tags
     \,$VIMFILES/tags/js.react/JSXTransformer-0.13.tags
+    \,$VIMFILES/tags/js.redux/redux.tags,react-redux.tags
 
 " HTML
   AutocmdFT html Indent 2
@@ -1839,15 +1820,13 @@
         return "\<C-n>"
       endif
 
-      if <SID>isBackspace() == 1
-        return "\<Tab>"
-      endif
-
       if emmet#isExpandable()
-        return emmet#expandAbbr(0, '')
+        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s' ? 1 : 0
+        if !isBackspace
+          return emmet#expandAbbr(0, '')
+        endif
       endif
 
-      call feedkeys("\<C-x>\<C-i>")
       return neocomplete#start_manual_complete()
     endfunction
 
@@ -1872,7 +1851,7 @@
   endif
 
 " Twig
-  Autocmd BufNewFile,BufRead *.html.twig set filetype=htmltwig
+    Autocmd BufNewFile,BufRead,BufReadPost *.html.twig set filetype=htmltwig
   " Indent
   AutocmdFT twig,htmltwig Indent 2
   if neobundle#tap('twig-indent')
@@ -2003,7 +1982,7 @@
 "---------------------------------------------------------------------------
   if has('gui_running')
     if has('vim_starting')
-        winsize 176 34 | winpos 492 326
+        winsize 200 34 | winpos 492 326
     endif
     set guioptions=ac
     set guicursor=n-v:blinkon0  " turn off blinking the cursor
@@ -2205,7 +2184,7 @@
   " ,<Space>: remove spaces at the end of lines
   nnoremap <silent> ,<Space> :<C-u>FixWhitespace<CR>
   " Ctrl-c: old clear highlight after search
-  nnoremap <silent> <C-c> :<C-u>nohl<CR>:let @/=""<CR>
+  nnoremap <silent> <C-c> :nohl<CR>:let @/=""<CR>
   " [N]+Enter: jump to a line number or mark
   nnoremap <silent> <expr> <Enter> v:count ?
     \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
