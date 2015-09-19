@@ -88,6 +88,8 @@
   " Toggle settings between modes
   Autocmd InsertEnter * setl list colorcolumn=120
   Autocmd InsertLeave * setl nolist colorcolumn=
+  Autocmd WinLeave * setl nornu
+  Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
   " Resize splits then the window is resized
   Autocmd VimResized * wincmd =
   " Create directories if not exist
@@ -201,10 +203,10 @@
     NeoBundleLazy 'tpope/vim-characterize'
     NeoBundleLazy 'kana/vim-altr'
     NeoBundleLazy 'mbbill/undotree'
+    NeoBundleLazy 't9md/vim-choosewin'
     NeoBundleLazy 'Shougo/vimfiler.vim'
     NeoBundleLazy 'tpope/vim-projectionist'
     NeoBundleLazy 'lilydjwg/colorizer'
-    " NeoBundleLazy 'tyru/current-func-info.vim'
     NeoBundleLazy 'osyo-manga/vim-brightest'
     NeoBundleLazy 'Shougo/neomru.vim'
     NeoBundleLazy 'xolox/vim-misc'
@@ -238,7 +240,6 @@
     NeoBundleLazy 'Shougo/neoinclude.vim'
     NeoBundleLazy 'Shougo/neco-syntax'
     NeoBundleLazy 'Shougo/neocomplete.vim', {
-    \ 'type': 'nosync',
     \ 'disabled': !has('lua'),
     \ 'depends': [
     \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax', 'Shougo/neoinclude.vim'
@@ -272,6 +273,7 @@
     " NeoBundleLazy 'joonty/vdebug'
     NeoBundleLazy '2072/PHP-Indenting-for-VIm'
     NeoBundleLazy 'shawncplus/phpcomplete.vim'
+    " NeoBundleLazy 'mkusher/padawan.vim', {'type': 'nosync'}
     NeoBundleLazy 'tobyS/vmustache'
     NeoBundleLazy 'tobyS/pdv', {
     \ 'depends': 'tobyS/vmustache',
@@ -322,6 +324,11 @@
 
 " Bundle settings
 "---------------------------------------------------------------------------
+  if neobundle#tap('vimproc.vim')
+    call neobundle#config({'functions': 'vimproc#'})
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('crunch.vim')
     call neobundle#config({
     \ 'mappings': [['n', '<Plug>'], ['x', '<Plug>(visual-crunch-operator)']],
@@ -511,7 +518,7 @@
     nnoremap <silent> [prefix]D
       \ :<C-u>VimFiler -split -toggle -invisible -project -force-quit<CR>
     " Shift-Tab: jump to vimfiler window
-    nnoremap <silent> <S-Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
+    nnoremap <silent> <Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
 
     function! s:jumpToVimfiler()
       if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
@@ -534,7 +541,6 @@
     function! s:vimfilerMappings()
       " Normal mode
       nmap <buffer> <C-c> <Esc>
-      nmap <buffer> <Tab> <Plug>(vimfiler_expand_tree)
       nmap <buffer> e <Plug>(vimfiler_cursor_top)
       nmap <buffer> R <Plug>(vimfiler_redraw_screen)
       nmap <buffer> l <Plug>(vimfiler_expand_tree)
@@ -560,12 +566,11 @@
     endfunction
 
     function! neobundle#hooks.on_source(bundle)
-      let g:vimfiler_force_overwrite_statusline = 0
       let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
       let g:unite_kind_file_use_trashbox = s:is_windows
 
       let g:vimfiler_ignore_pattern =
-            \ '^\%(\..*\|^.\|.git\|.hg\|bin\|vendor\|node_modules\)$'
+        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|vendor\|node_modules\)$'
 
       " Icons
       let g:vimfiler_file_icon = ' '
@@ -587,6 +592,28 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-choosewin')
+    call neobundle#config({'mappings': [['n', '<Plug>(choosewin)']]})
+
+    nmap 0 <Plug>(choosewin)
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:choosewin_keymap = {"\<Space>": 'previous'}
+      let g:choosewin_label = 'WERABC'
+      let g:choosewin_label_align = 'left'
+      let g:choosewin_blink_on_land = 0
+      let g:choosewin_color_other = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
+      let g:choosewin_color_shade = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
+      let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}
+      let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}
+      let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}
+      let g:choosewin_color_overlay = g:choosewin_color_label
+      let g:choosewin_color_overlay_current = g:choosewin_color_label_current
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('targets.vim')
     " Disable `n` , `l` , `A`
     let g:targets_aiAI = 'ai I'
@@ -598,7 +625,7 @@
   if neobundle#tap('vim-quickrun')
     call neobundle#config({
     \ 'mappings': [['n', '<Plug>(quickrun)']],
-    \ 'functions': ['quickrun#is_running', 'quickrun#sweep_sessions'],
+    \ 'functions': 'quickrun#',
     \ 'commands': 'QuickRun'
     \})
 
@@ -838,17 +865,19 @@
   if neobundle#tap('vim-brightest')
     call neobundle#config({'filetypes': ['php', 'javascript']})
 
+    Autocmd Syntax,ColorScheme *
+      \ hi BrightestCursorLine guifg=#2B2B2B guibg=#EDE5F4 gui=NONE
+
     function! neobundle#hooks.on_source(bundle)
       let g:brightest#enable_filetypes = {'_': 0}
       let g:brightest#enable_filetypes.php = 1
       let g:brightest#highlight = {'group': 'BrightestCursorLine', 'priority': -1}
 
       AutocmdFT php let b:brightest_ignore_syntax_list = [
-        \ 'None', 'Comment', 'Type', 'Delimiter', 'Conditional', 'Statement', 'Constant', 'Number',
-        \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolen', 'phpInclude', 'phpOperator', 'phpStatement', 'phpEncapsulation'
+        \ 'None', 'Comment', 'Type', 'Delimiter', 'Conditional', 'Statement', 'Constant', 'Number', 'Operator',
+        \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',  'phpOperator',
+        \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags'
         \]
-
-      hi BrightestCursorLine guifg=#2B2B2B guibg=#F3E6F2 gui=NONE
     endfunction
 
     call neobundle#untap()
@@ -912,7 +941,7 @@
   if neobundle#tap('splitjoin.vim')
     call neobundle#config({'commands': ['SplitjoinJoin', 'SplitjoinSplit']})
 
-    nmap <silent> J :<C-u>SplitjoinJoin<CR><CR>
+    nmap <silent> J :<C-u>SplitjoinJoin<CR>
     nmap <silent> S :<C-u>SplitjoinSplit<CR>
 
     call neobundle#untap()
@@ -961,11 +990,11 @@
     map F <Plug>(glowshi-ft-F)
 
     function! neobundle#hooks.on_source(bundle)
+      let g:glowshi_ft_no_default_key_mappings = 1
       let g:glowshi_ft_fix_key = '[\<NL>\o]'
       let g:glowshi_ft_cancel_key = '\`'
       let g:glowshi_ft_selected_hl_guibg = '#9DBAD7'
       let g:glowshi_ft_candidates_hl_guibg = '#DDEECC'
-      let g:glowshi_ft_no_default_key_mappings = 1
     endfunction
 
     call neobundle#untap()
@@ -975,7 +1004,7 @@
       call neobundle#config({'mappings': [['i', '<C-n>']]})
 
       function! neobundle#hooks.on_source(bundle)
-          imap  <C-n> <Plug>SkipIt
+          imap <C-n> <Plug>SkipIt
       endfunction
 
       call neobundle#untap()
@@ -1055,8 +1084,8 @@
     \ 'commands': 'Switch'
     \})
 
-    nnoremap <silent> <Tab> :<C-u>silent! Switch<CR>
-    xnoremap <silent> <Tab> :silent! Switch<CR>
+    nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
+    xnoremap <silent> <S-Tab> :silent! Switch<CR>
     nnoremap <silent> ! :<C-u>silent! call switch#Switch([g:switch_def_quotes])<CR>
     nnoremap <silent> ` :<C-u>silent! call switch#Switch([g:switch_def_camelcase])<CR>
 
@@ -1159,6 +1188,7 @@
     AutocmdFT php
       \  ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
       \| ImapBufExpr > smartchr#loop('>', '=>')
+      \| ImapBufExpr - smartchr#loop('-', '->')
     AutocmdFT javascript
       \  ImapBufExpr - smartchr#loop('-', '--', '_')
       \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
@@ -1189,10 +1219,10 @@
     function! neobundle#hooks.on_source(bundle)
       let g:colorizer_nomap = 1
 
-      Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
-      \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
-      \ ? 'call <SID>removeColor()'
-      \ : 'ColorHighlight'
+      Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
+        \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
+        \ ? 'call <SID>removeColor()'
+        \ : 'ColorHighlight'
 
       function! s:removeColor()
         augroup Colorizer
@@ -1310,7 +1340,7 @@
 
   if neobundle#tap('ultisnips')
     call neobundle#config({
-    \ 'functions': ['UltiSnips#FileTypeChanged', 'UltiSnips#AddFiletypes'],
+    \ 'functions': 'UltiSnips#',
     \ 'insert': 1
     \})
 
@@ -1332,6 +1362,8 @@
       return a:key
     endfunction
 
+    AutocmdFT twig
+      \ call UltiSnips#AddFiletypes('twig.html')
     AutocmdFT htmltwig
       \ call UltiSnips#AddFiletypes('htmltwig.twig')
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
@@ -1385,7 +1417,7 @@
     nnoremap <silent> [prefix]O :<C-u>Unite output:message<CR>
     " [prefix]i: NeoBundle update
     nnoremap <silent> [prefix]u
-      \ :<C-u>Unite neobundle/update -buffer-name=neobundle -no-split -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
+      \ :<C-u>Unite neobundle/update -buffer-name=neobundle -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
 
     " Unite tuning
     AutocmdFT unite,unite_exrename
@@ -1660,7 +1692,6 @@
   let g:php_sql_query = 1
   let g:php_highlight_html = 1
   " Autocomplete
-  AutocmdFT php setl omnifunc=phpcomplete#CompletePHP
   if neobundle#tap('phpcomplete.vim')
     call neobundle#config({'functions': 'phpcomplete#CompletePHP'})
 
@@ -1754,9 +1785,12 @@
   endif
   " Autocomplete
   if neobundle#tap('ternjs.vim')
-    call neobundle#config({'functions': 'jscomplete#CompleteJS'})
+    call neobundle#config({
+    \ 'lazy' : 1,
+    \ 'functions': 'ternjs#Complete'
+    \})
 
-    Autocmd BufNewFile,BufRead *.js setl omnifunc=jscomplete#CompleteJS
+    Autocmd BufNewFile,BufRead *.js setl omnifunc=ternjs#Complete
     " Temporary (dev)
     AutocmdFT javascript
       \  Autocmd BufNewFile,BufEnter *.js TernjsRun
@@ -1795,10 +1829,6 @@
 
     call neobundle#untap()
   endif
-  " Tags
-  Autocmd BufNewFile,BufRead *.js setl tags=
-    \$VIMFILES/tags/js.react/react-0.13.tags
-    \,$VIMFILES/tags/js.redux/redux.tags,react-redux.tags
 
 " HTML
   AutocmdFT html Indent 2
@@ -1821,7 +1851,7 @@
   if neobundle#tap('emmet-vim')
     call neobundle#config({'mappings': [['i', '<Plug>']]})
 
-    AutocmdFT html,twig,htmltwig call <SID>emmetMappings() 
+    AutocmdFT html,twig,htmltwig call <SID>emmetMappings()
 
     function! s:emmetComplete()
       if pumvisible()
@@ -1857,7 +1887,7 @@
   endif
 
 " Twig
-    Autocmd BufNewFile,BufRead,BufReadPost *.html.twig set filetype=htmltwig
+    Autocmd BufNewFile,BufRead,BufEnter *.html.twig set filetype=htmltwig
   " Indent
   AutocmdFT twig,htmltwig Indent 2
   if neobundle#tap('twig-indent')
@@ -1878,7 +1908,7 @@
   endif
 
 " CSS
-  Autocmd BufNewFile,BufRead *.scss setl filetype=css
+  AutocmdFT scss setl filetype=css
   " Indent
   AutocmdFT css setl nowrap | Indent 2
   " Syntax
@@ -1905,17 +1935,17 @@
     call neobundle#untap()
   endif
   if neobundle#tap('vim-hyperstyle')
-    call neobundle#config({'filetypes': 'css'})
+    call neobundle#config({'filetypes': ['css', 'scss']})
 
-    AutocmdFT css Autocmd BufRead,BufEnter <buffer> call <SID>hyperstyleMappings()
+    " https://github.com/rstacruz/vim-hyperstyle/blob/master/REFERENCE.md
+    Autocmd BufReadPost *.{css,scss} call <SID>hyperstyleMappings()
 
     function! s:hyperstyleMappings()
       for s in ['<BS>', '<CR>', '<Tab>', '<Space>', ';', ':']
         exe printf('silent! iunmap <buffer> %s', s)
       endfor | unlet s
 
-      imap <silent> <Tab> <C-r>=<SID>neoComplete('<Tab>')<CR>
-      " https://github.com/rstacruz/vim-hyperstyle/blob/master/REFERENCE.md
+      imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete('<Tab>')<CR>
       imap <buffer> <expr> <Space>
         \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
     endfunction
@@ -1930,7 +1960,7 @@
   if neobundle#tap('vim-json')
     call neobundle#config({'filetypes': 'json'})
 
-    AutocmdFT json setl formatoptions+=2l
+    AutocmdFT json Autocmd BufRead,BufEnter <buffer> setl formatoptions+=2l conceallevel=0
     AutocmdFT json
       \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
         \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
@@ -2420,7 +2450,6 @@
   cnoremap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
   " `: old fast Esc
   cnoremap <silent> ` <C-c>
-  cnoremap <C-c> <Esc>
 
 " Experimental
 "---------------------------------------------------------------------------
@@ -2431,9 +2460,6 @@
   " ,o: toggle wrapping of text (local)
   nnoremap <silent> ,o :<C-u>let &l:wrap = !&l:wrap<CR>
     \:echo printf(' Wrap mode: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
-  " ,O: toggle wrapping of text (global)
-  nnoremap <silent> ,O :<C-u>let &wrap = !&wrap<CR>
-    \:echo printf(' Wrap mode: %3S (global)', (&wrap == 1 ? 'On' : 'Off'))<CR>
 
   " [nN]: append blank line and space
   nnoremap <silent> <expr> n v:count ?
