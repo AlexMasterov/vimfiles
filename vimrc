@@ -10,10 +10,6 @@
 
 " Environment
 "---------------------------------------------------------------------------
-  " The prefix keys
-  nmap ; [prefix]
-  noremap [prefix] <Nop>
-
   let s:is_windows = has('win32') || has('win64')
 
   if &compatible
@@ -78,6 +74,8 @@
   command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
   " Strip trailing whitespace at the end of non-blank lines
   command! -bar -nargs=* -complete=file FixWhitespace f <args>|call <SID>trimWhiteSpace()
+  " Shows the syntax stack under the cursor
+  command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 
 " Events
 "---------------------------------------------------------------------------
@@ -324,9 +322,9 @@
     \ 'commands': 'Crunch'
     \})
 
-    nmap [prefix]c <Plug>(crunch-operator)
-    nmap [prefix]C <Plug>(crunch-operator-line)
-    xmap [prefix]c <Plug>(visual-crunch-operator)
+    nmap ;c <Plug>(crunch-operator)
+    nmap ;C <Plug>(crunch-operator-line)
+    xmap ;c <Plug>(visual-crunch-operator)
     " ,c: toggle crunch append
     nnoremap <silent> ,c
       \ :<C-u>let g:crunch_result_type_append = !get(g:, 'crunch_result_type_append', 0)<CR>
@@ -462,38 +460,44 @@
   if neobundle#tap('vim-signature')
     call neobundle#config({'commands': 'SignatureRefresh'})
 
-    " jump to any marker
-    nnoremap <silent> + :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
-    nnoremap <silent> _ :<C-u>call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
-    " jump to spot alpha
-    nnoremap <silent> = :<C-u>call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
-    nnoremap <silent> - :<C-u>call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
-    " jump to line alpha
-    nnoremap <silent> <Up> :<C-u>call signature#mark#Goto('next', 'line', 'alpha')<CR>zz
-    nnoremap <silent> <Down> :<C-u>call signature#mark#Goto('prev', 'line', 'alpha')<CR>zz
+    let s:signature_ignore_ft = 'unite,qfreplace,vimfiler'
+    AutocmdFT *
+      \ if index(split(s:signature_ignore_ft, ','), &filetype) == -1| call <SID>signatureMappings() |endif
 
-    Autocmd BufReadPost,BufWritePost * SignatureRefresh
+    function! s:signatureMappings()
+      nnoremap <silent> <buffer> <BS>
+        \ :<C-u>call signature#mark#ToggleAtLine()<CR>:call signature#sign#ToggleDummy('remove')<CR>
+      nnoremap <silent> <buffer> <S-BS>  :<C-u>call signature#Input()<CR>
+      nnoremap <silent> <buffer> <Del>   :<C-u>call signature#mark#Purge('all')<CR>
+      nnoremap <silent> <buffer> <S-Del> :<C-u>call signature#marker#Purge()<CR>
+      " jump to spot alpha
+      nnoremap <silent> <buffer> [ :<C-u>call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
+      nnoremap <silent> <buffer> ] :<C-u>call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
+      " jump to any marker
+      nnoremap <silent> <buffer> { :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
+      nnoremap <silent> <buffer> } :<C-u>call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
+    endfunction
+
+    AutocmdFT * Autocmd BufEnter <buffer> call <SID>signatureCleanUp()
+    function! s:signatureCleanUp()
+      for map in ['[]', '[[', '["', '][', ']]', ']"']
+        exe 'silent! nunmap <buffer> '. map
+      endfor
+    endfunction
+
+    Autocmd BufReadPost * SignatureRefresh
 
     function! neobundle#hooks.on_source(bundle)
       let g:SignatureMarkTextHL = "'BookmarkLine'"
       let g:SignatureIncludeMarks = 'weratsdfqglcvbzxyi'
       let g:SignatureErrorIfNoAvailableMarks = 0
-      let g:SignatureMap = {
-      \ 'Leader':           '<S-BS>',
-      \ 'ToggleMarkAtLine': '<BS>',
-      \ 'PurgeMarksAtLine': '\',
-      \ 'DeleteMark':       '\|',
-      \ 'PurgeMarks':       '<Del>',
-      \ "PurgeMarkers":     '<S-Del>',
-      \}
 
-    Autocmd Syntax,ColorScheme *
-      \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
+      Autocmd Syntax,ColorScheme *
+        \ hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
     endfunction
 
     function! neobundle#hooks.on_post_source(bundle)
-      silent! nunmap `[
-      silent! nunmap `]
+      call signature#utils#Maps('remove')
     endfunction
 
     call neobundle#untap()
@@ -502,10 +506,10 @@
   if neobundle#tap('vimfiler.vim')
     call neobundle#config({'commands': ['VimFiler', 'VimFilerCurrentDir']})
 
-    " [dD]: open vimfiler explrer
-    nnoremap <silent> [prefix]d
+    " ;[dD]: open vimfiler explrer
+    nnoremap <silent> ;d
       \ :<C-u>VimFiler -split -toggle -invisible -project -no-quit<CR>
-    nnoremap <silent> [prefix]D
+    nnoremap <silent> ;D
       \ :<C-u>VimFiler -split -toggle -invisible -project -force-quit<CR>
     " Shift-Tab: jump to vimfiler window
     nnoremap <silent> <Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
@@ -589,7 +593,7 @@
   if neobundle#tap('vim-choosewin')
     call neobundle#config({'mappings': [['n', '<Plug>(choosewin)']]})
 
-    nmap 0 <Plug>(choosewin)
+    nmap - <Plug>(choosewin)
 
     function! neobundle#hooks.on_source(bundle)
       let g:choosewin_keymap = {
@@ -776,16 +780,16 @@
   if neobundle#tap('vim-projectionist')
     call neobundle#config({'functions': 'ProjectionistDetect'})
 
-    " [prefix]p: detect .projections.json
-    nnoremap <silent> [prefix]p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
+    " ;p: detect .projections.json
+    nnoremap <silent> ;p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
     function! neobundle#hooks.on_source(bundle)
-      nnoremap [prefix]e :<C-u>E
+      nnoremap ;e :<C-u>E
       " Temporary
-      nnoremap [prefix]1 :<C-u>Ecomposer<Space>
-      nnoremap [prefix]2 :<C-u>Eapp<Space>
-      nnoremap [prefix]3 :<C-u>Esrc<Space>
-      nnoremap [prefix]4 :<C-u>Etest<Space>
+      nnoremap ;1 :<C-u>Ecomposer<Space>
+      nnoremap ;2 :<C-u>Eapp<Space>
+      nnoremap ;3 :<C-u>Esrc<Space>
+      nnoremap ;4 :<C-u>Etest<Space>
     endfunction
 
     call neobundle#untap()
@@ -868,7 +872,7 @@
       \ nnoremap <silent> <buffer> ,v :<C-u>BrightestToggle<CR>
         \:echo printf(' Brightest mode: %3S', (g:brightest_enable == 0 ? 'Off' : 'On'))<CR>
 
-    Autocmd Syntax,ColorScheme *
+    Autocmd Syntax php,javascript
       \ hi BrightestCursorLine guifg=#2B2B2B guibg=#EDE5F4 gui=NONE
 
     function! neobundle#hooks.on_source(bundle)
@@ -1429,38 +1433,39 @@
     \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
     \]})
 
-    " [prefix]f: open files
-    nnoremap <silent> [prefix]f
+    " ;f: open files
+    nnoremap <silent> ;f
       \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -buffer-name=files -start-insert<CR>
-    nnoremap <silent> [prefix]F
+    nnoremap <silent> ;F
       \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -buffer-name=files -start-insert -no-smartcase<CR>
 
-    " [prefix]b: open buffers
-    nnoremap <silent> [prefix]b :<C-u>Unite buffer -toggle<CR>
-    " [prefix]h: open windows
-    nnoremap <silent> [prefix]h :<C-u>Unite window:all:no-current -toggle<CR>
-    " [prefix]H: open tab pages
-    nnoremap <silent> [prefix]H
+    " ;b: open buffers
+    nnoremap <silent> ;b :<C-u>Unite buffer -toggle<CR>
+    nnoremap <silent> = :<C-u>Unite buffer -toggle<CR>
+    " ;h: open windows
+    nnoremap <silent> ;h :<C-u>Unite window:all:no-current -toggle<CR>
+    " ;H: open tab pages
+    nnoremap <silent> ;H
       \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
 
-    " [prefix]g: grep search
-    nnoremap <silent> [prefix]g :<C-u>Unite grep:. -no-split -auto-preview<CR>
-    " [prefix]s: search
-    nnoremap <silent> [prefix]s
+    " ;g: grep search
+    nnoremap <silent> ;g :<C-u>Unite grep:. -no-split -auto-preview<CR>
+    " ;s: search
+    nnoremap <silent> ;s
       \ :<C-u>Unite line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert<CR>
-    nnoremap <silent> [prefix]S
+    nnoremap <silent> ;S
       \ :<C-u>Unite line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert -no-smartcase<CR>
     " *: search keyword under the cursor
     nnoremap <silent> *
       \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe<CR>
 
-     " [prefix]r: resume search buffer
-    nnoremap <silent> [prefix]r
+     " ;r: resume search buffer
+    nnoremap <silent> ;r
       \ :<C-u>UniteResume search%`bufnr('%')` -no-start-insert -force-redraw<CR>
-    " [prefix]o: open message log
-    nnoremap <silent> [prefix]O :<C-u>Unite output:message<CR>
-    " [prefix]i: NeoBundle update
-    nnoremap <silent> [prefix]u
+    " ;o: open message log
+    nnoremap <silent> ;O :<C-u>Unite output:message<CR>
+    " ;i: NeoBundle update
+    nnoremap <silent> ;u
       \ :<C-u>Unite neobundle/update -buffer-name=neobundle -no-start-insert -multi-line -max-multi-lines=1 -log<CR>
 
     " Unite tuning
@@ -1551,12 +1556,13 @@
       call unite#custom#source('file_rec/async', 'max_candidates', 40)
       call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
 
-      hi link uniteStatusHead             StatusLine
-      hi link uniteStatusNormal           StatusLine
-      hi link uniteStatusMessage          StatusLine
-      hi link uniteStatusSourceNames      StatusLine
-      hi link uniteStatusSourceCandidates User1
-      hi link uniteStatusLineNR           User2
+      Autocmd Syntax unite
+      \  hi link uniteStatusHead             StatusLine
+      \| hi link uniteStatusNormal           StatusLine
+      \| hi link uniteStatusMessage          StatusLine
+      \| hi link uniteStatusSourceNames      StatusLine
+      \| hi link uniteStatusSourceCandidates User1
+      \| hi link uniteStatusLineNR           User2
     endfunction
 
     call neobundle#untap()
@@ -1570,11 +1576,11 @@
 
     Autocmd BufLeave,VimLeavePre * NeoMRUSave
 
-    " [prefix]w: open recently-opened files
-    nnoremap <silent> [prefix]w
+    " ;w: open recently-opened files
+    nnoremap <silent> ;w
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_project_files', 'matcher_hide_current_file'])<CR>
-    " [prefix]W: open recently-opened directories
-    nnoremap <silent> [prefix]W
+    " ;W: open recently-opened directories
+    nnoremap <silent> ;W
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
 
     function! s:openMRU(matchers)
@@ -1596,22 +1602,22 @@
   endif
 
   if neobundle#tap('unite-vimpatches')
-    " [prefix]p: open vimpatches log
-    nnoremap <silent> [prefix]U :<C-u>Unite vimpatches -buffer-name=neobundle<CR>
+    " ;p: open vimpatches log
+    nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=neobundle<CR>
 
     call neobundle#untap()
   endif
 
   if neobundle#tap('unite-outline')
-    " [prefix]o: outline
-    nnoremap <silent> [prefix]o :<C-u>Unite outline -winheight=16 -silent<CR>
+    " ;o: outline
+    nnoremap <silent> ;o :<C-u>Unite outline -winheight=16 -silent<CR>
 
     call neobundle#untap()
   endif
 
   if neobundle#tap('unite-filetype')
-    " [prefix]i: filetype change
-    nnoremap <silent> [prefix]z :<C-u>Unite filetype filetype/new -start-insert<CR>
+    " ;i: filetype change
+    nnoremap <silent> ;z :<C-u>Unite filetype filetype/new -start-insert<CR>
 
     function! neobundle#hooks.on_source(bundle)
       call unite#custom#source('filetype', 'sorters', 'sorter_length')
@@ -1636,10 +1642,10 @@
       if !empty(&buftype) " just <empty> == normal buffer
         return
       endif
-      " [prefix]t: open tag
-      nnoremap <silent> <buffer> [prefix]t :<C-u>UniteWithCursorWord tag tag/include<CR>
-      " [prefix]T: search tag by name
-      nnoremap <silent> <buffer> [prefix]T :<C-u>call <SID>inputSearchTag()<CR>
+      " ;t: open tag
+      nnoremap <silent> <buffer> ;t :<C-u>UniteWithCursorWord tag tag/include<CR>
+      " ;T: search tag by name
+      nnoremap <silent> <buffer> ;T :<C-u>call <SID>inputSearchTag()<CR>
       " Ctrl-t: open tag under cursor
       nnoremap <silent> <buffer> <C-t> :<C-u>UniteWithCursorWord tag -immediately<CR>
     endfu
@@ -1711,8 +1717,8 @@
 
     AutocmdFT haskell Autocmd BufWritePost <buffer> GhcModCheckAndLintAsync
     AutocmdFT haskell
-      \  nnoremap <silent> <buffer> [prefix]t :<C-u>GhcModType!<CR>
-      \| nnoremap <silent> <buffer> [prefix]T :<C-u>GhcModTypeClear<CR>
+      \  nnoremap <silent> <buffer> ;t :<C-u>GhcModType!<CR>
+      \| nnoremap <silent> <buffer> ;T :<C-u>GhcModTypeClear<CR>
 
     function! neobundle#hooks.on_source(bundle)
       let g:ghcmod_open_quickfix_function = '<SID>ghcmodQuickfix'
@@ -1759,9 +1765,7 @@
   endif
   " PHP Documentor
   if neobundle#tap('pdv')
-    call neobundle#config({
-    \ 'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine']
-    \})
+    call neobundle#config({'functions': ['pdv#DocumentWithSnip', 'pdv#DocumentCurrentLine']})
 
     AutocmdFT php
       \ nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>
@@ -1791,10 +1795,11 @@
       \ 'max_children': 128
       \}
 
-      hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
-      hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
-      hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
-      hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+      Autocmd Syntax php
+      \  hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
+      \| hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+      \| hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
+      \| hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
     endfunction
 
     call neobundle#untap()
@@ -1812,8 +1817,9 @@
     call neobundle#config({'filetypes': 'javascript'})
 
     function! neobundle#hooks.on_source(bundle)
-      hi link javascriptReserved  Normal
-      hi link javascriptInvalidOp Normal
+      Autocmd Syntax javascript
+      \  hi link javascriptReserved  Normal
+      \| hi link javascriptInvalidOp Normal
     endfunction
 
     call neobundle#untap()
@@ -1885,8 +1891,8 @@
   if neobundle#tap('MatchTag')
     call neobundle#config({'filetypes': ['html', 'twig', 'html.twig', 'xml']})
 
-    AutocmdFT twig,html.twig runtime! ftplugin/html.vim
-    AutocmdFT xml runtime! ftplugin/xml.vim
+    Autocmd Syntax twig,html.twig runtime! ftplugin/html.vim
+    Autocmd Syntax xml runtime! ftplugin/xml.vim
 
     call neobundle#untap()
   endif
@@ -1961,9 +1967,10 @@
     call neobundle#config({'filetypes': 'css'})
 
     function! neobundle#hooks.on_source(bundle)
-      hi link cssError Normal
-      hi link cssBraceError Normal
-      hi link cssDeprecated Normal
+      Autocmd Syntax css
+      \  hi link cssError Normal
+      \| hi link cssBraceError Normal
+      \| hi link cssDeprecated Normal
     endfunction
 
     call neobundle#untap()
@@ -2038,8 +2045,9 @@
     call neobundle#config({'filetypes': 'php', 'filename_patterns': '\.sql$'})
 
     function! neobundle#hooks.on_source(bundle)
-      hi link sqlStatement phpStatement
-      hi link sqlKeyword   phpOperator
+      Autocmd Syntax php
+      \  hi link sqlStatement phpStatement
+      \| hi link sqlKeyword   phpOperator
     endfunction
 
     call neobundle#untap()
@@ -2134,8 +2142,8 @@
   set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
   " Avoid showing trailing whitespace when in Insert mode
   let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
-  Autocmd InsertEnter * exe 'setl listchars-=trail:'. s:trailchar
-  Autocmd InsertLeave * exe 'setl listchars+=trail:'. s:trailchar
+  Autocmd InsertEnter * exe 'setl listchars+=trail:'. s:trailchar
+  Autocmd InsertLeave * exe 'setl listchars-=trail:'. s:trailchar
 
   " Title-line
   set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
@@ -2289,10 +2297,10 @@
   nnoremap <silent> <C-Enter> :<C-u>write!<CR>
   " Shift-Enter: force save file
   nnoremap <silent> <S-Enter> :<C-u>update!<CR>
-  " [prefix]e: reopen file
-  nnoremap <silent> [prefix]e :<C-u>edit<CR>
-  " [prefix]E: force reopen file
-  nnoremap <silent> [prefix]E :<C-u>edit!<CR>
+  " ;e: reopen file
+  nnoremap <silent> ;e :<C-u>edit<CR>
+  " ;E: force reopen file
+  nnoremap <silent> ;E :<C-u>edit!<CR>
 
   " Buffers
   "-----------------------------------------------------------------------
