@@ -76,6 +76,8 @@
   command! -bar -nargs=* -complete=file FixWhitespace f <args>|call <SID>trimWhiteSpace()
   " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  " Golden ratio
+  command! -bar -nargs=0 GoldenRatio execute 'vertical resize' &columns * 5 / 8
 
 " Events
 "---------------------------------------------------------------------------
@@ -231,6 +233,7 @@
     NeoBundleLazy 'triglav/vim-visual-increment'
     NeoBundleLazy 'AndrewRadev/switch.vim'
     NeoBundleLazy 'kana/vim-smartchr'
+    NeoBundleLazy 'romgrk/replace.vim'
     NeoBundleLazy 'Shougo/context_filetype.vim'
     NeoBundleLazy 'Shougo/neoinclude.vim'
     NeoBundleLazy 'Shougo/neco-syntax'
@@ -272,6 +275,7 @@
     \}
     " JavaScript
     NeoBundleLazy 'othree/yajs.vim'
+    NeoBundleLazy 'othree/es.next.syntax.vim'
     NeoBundleLazy 'othree/javascript-libraries-syntax.vim'
     NeoBundleLazy 'gavocanov/vim-js-indent'
     " NeoBundleLazy 'hujo/jscomplete-html5API'
@@ -294,6 +298,7 @@
     NeoBundleLazy 'elzr/vim-json'
     " SQL
     NeoBundleLazy 'shmup/vim-sql-syntax'
+    NeoBundleLazy 'exu/pgsql.vim'
     " Nginx
     NeoBundleLazy 'yaroot/vim-nginx'
     " CSV
@@ -466,16 +471,18 @@
 
     function! s:signatureMappings()
       nnoremap <silent> <buffer> <BS>
+        \ :<C-u>call signature#mark#Toggle('next')<CR>:call signature#sign#ToggleDummy('remove')<CR>
+      nnoremap <silent> <buffer> <S-BS>
         \ :<C-u>call signature#mark#ToggleAtLine()<CR>:call signature#sign#ToggleDummy('remove')<CR>
-      nnoremap <silent> <buffer> <S-BS>  :<C-u>call signature#Input()<CR>
+      nnoremap <silent> <buffer> \ :<C-u>call signature#Input()<CR>
       nnoremap <silent> <buffer> <Del>   :<C-u>call signature#mark#Purge('all')<CR>
       nnoremap <silent> <buffer> <S-Del> :<C-u>call signature#marker#Purge()<CR>
       " jump to spot alpha
       nnoremap <silent> <buffer> [ :<C-u>call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
       nnoremap <silent> <buffer> ] :<C-u>call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
       " jump to any marker
-      nnoremap <silent> <buffer> { :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
-      nnoremap <silent> <buffer> } :<C-u>call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
+      nnoremap <silent> <buffer> <S-[> :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
+      nnoremap <silent> <buffer> <S-]> :<C-u>call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
     endfunction
 
     AutocmdFT * Autocmd BufEnter <buffer> call <SID>signatureCleanUp()
@@ -535,10 +542,11 @@
 
     AutocmdFT vimfiler call s:vimfilerMappings()
     function! s:vimfilerMappings()
+      nunmap <buffer> <Space>
       " Normal mode
       nmap <buffer> <C-c> <Esc>
       nmap <buffer> f <Plug>(vimfiler_grep)
-      nmap <buffer> e <Plug>(vimfiler_cursor_top)
+      nmap <buffer> H <Plug>(vimfiler_cursor_top)
       nmap <buffer> R <Plug>(vimfiler_redraw_screen)
       nmap <buffer> l <Plug>(vimfiler_expand_tree)
       nmap <buffer> L <Plug>(vimfiler_cd_file)
@@ -549,6 +557,8 @@
       nmap <buffer> O <Plug>(vimfiler_open_file_in_another_vimfiler)
       nmap <buffer> w <Plug>(vimfiler_expand_tree_recursive)
       nmap <buffer> W <Plug>(vimfiler_toggle_visible_ignore_files)
+      nmap <buffer> e <Plug>(vimfiler_toggle_mark_current_line)
+      nmap <buffer> E <Plug>(vimfiler_toggle_mark_current_line_up)
       nmap <buffer> <expr> q winnr('$') == 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
       nmap <buffer> <expr> <Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
       nmap <buffer> <nowait> <expr> t vimfiler#do_action('tabopen')
@@ -940,9 +950,9 @@
       let g:caw_i_skip_blank_line = 1
 
       nmap <expr> q v:count >= 2
-        \ ? printf('<Esc>V%dj<Plug>(caw:wrap:toggle)%dl', (v:count-1), col('.'))
+        \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle)%dl', (v:count-1), col('.'))
         \ : '<Plug>(caw:wrap:toggle)'
-      xmap <expr> q printf('<Plug>(caw:wrap:toggle)%dl', col('.'))
+      xmap <expr> q printf('<Plug>(caw:i:toggle)%dl', col('.'))
       nmap ,q <Plug>(caw:jump:comment-prev)
       nmap ,w <Plug>(caw:jump:comment-next)
       nmap ,a <Plug>(caw:a:toggle)
@@ -1034,11 +1044,10 @@
   endif
 
   if neobundle#tap('vim-skipit')
-      call neobundle#config({'mappings': [['i', '<C-n>']]})
+      call neobundle#config({'mappings': [['i', '<Plug>Skip']]})
 
-      function! neobundle#hooks.on_source(bundle)
-          imap <C-n> <Plug>SkipIt
-      endfunction
+      imap <A-]> <Plug>SkipItForward
+      imap <A-[> <Plug>SkipItBack
 
       call neobundle#untap()
   endif
@@ -1076,7 +1085,7 @@
           endfor | unlet pa
 
           " Quotes
-          for quote in ['"', "'", "`"]
+          for quote in ['"', "'"]
               call lexima#add_rule({'char': quote, 'at': '\(.......\)\?\%#\w', 'input': quote})
               call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
               call lexima#add_rule({'char': quote, 'at': '\(...........\)\?\%#'. quote, 'input': '<Right>'})
@@ -1246,6 +1255,17 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('replace.vim')
+    call neobundle#config({'mappings': [['nv', '<Plug>ReplaceOperator'], ['nv', '<Plug>ExchangeOperator']]})
+
+    nmap R <Plug>ReplaceOperator
+    vmap R <Plug>ReplaceOperator
+    nmap X <Plug>ExchangeOperator
+    vmap X <Plug>ExchangeOperator
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-textobj-delimited')
     call neobundle#config({'mappings': ['vid', 'viD', 'vad', 'vaD']})
     call neobundle#untap()
@@ -1286,7 +1306,7 @@
     function! neobundle#hooks.on_source(bundle)
       let g:context_filetype#search_offset = 500
 
-      function! s:addContext(rule, filetype)
+      function! s:addContext(filetype, rule)
         let context_ft_def = context_filetype#default_filetypes()
         let g:context_filetype#filetypes[a:filetype] = add(context_ft_def.html, a:rule)
       endfunction
@@ -1297,7 +1317,9 @@
       \ 'end':      '</style>',
       \ 'filetype': 'css',
       \}
-      call <SID>addContext(s:context_ft_css, 'html')
+      for filetype in ['html', 'twig', 'twig.html']
+        call <SID>addContext(filetype, s:context_ft_css)
+      endfor | unlet filetype
 
       " Coffee script
       let s:context_ft_coffee = {
@@ -1305,7 +1327,7 @@
       \ 'end':      '</script>',
       \ 'filetype': 'coffee',
       \}
-      call <SID>addContext(s:context_ft_coffee, 'html')
+      call <SID>addContext('html', s:context_ft_coffee)
 
       " JSX (React)
       let s:context_ft_jsx = {
@@ -1313,7 +1335,7 @@
       \ 'end':      '</script>',
       \ 'filetype': 'javascript',
       \}
-      call <SID>addContext(s:context_ft_jsx, 'html')
+      call <SID>addContext('html', s:context_ft_jsx)
     endfunction
 
     call neobundle#untap()
@@ -1751,13 +1773,10 @@
       let g:phpcomplete_search_tags_for_variables = 1
       let g:phpcomplete_complete_for_unknown_classes = 0
       let g:phpcomplete_remove_function_extensions = [
-      \ 'apache', 'apc', 'dba', 'dbase', 'odbc', 'msql', 'mssql', 'mysql'
-      \]
-      let g:phpcomplete_remove_class_extensions = [
-      \ 'apc'
+      \ 'apache', 'dba', 'dbase', 'odbc', 'msql', 'mssql'
       \]
       let g:phpcomplete_remove_constant_extensions = [
-      \ 'apc', 'ms_sql_server_pdo', 'msql', 'mssql', 'mysql'
+      \ 'ms_sql_server_pdo', 'msql', 'mssql'
       \]
     endfunction
 
@@ -1816,12 +1835,16 @@
   if neobundle#tap('yajs.vim')
     call neobundle#config({'filetypes': 'javascript'})
 
-    function! neobundle#hooks.on_source(bundle)
+    function! neobundle#hooks.on_post_source(bundle)
       Autocmd Syntax javascript
       \  hi link javascriptReserved  Normal
       \| hi link javascriptInvalidOp Normal
     endfunction
 
+    call neobundle#untap()
+  endif
+  if neobundle#tap('es.next.syntax.vim')
+    call neobundle#config({'filetypes': 'javascript'})
     call neobundle#untap()
   endif
   if neobundle#tap('javascript-libraries-syntax')
@@ -2041,6 +2064,12 @@
   endif
 
 " SQL
+  " Postgres
+  if neobundle#tap('pgsql.vim')
+    call neobundle#config({'filename_patterns': '\.pgsql$'})
+    call neobundle#untap()
+  endif
+  " MySQL
   if neobundle#tap('vim-sql-syntax')
     call neobundle#config({'filetypes': 'php', 'filename_patterns': '\.sql$'})
 
@@ -2277,7 +2306,7 @@
   " gl: select last changed text
   nnoremap gl `[v`]
   " gp: select last paste in visual mode
-  " nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
+  nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
   " gv: last selected text operator
   onoremap gv :<C-u>normal! gv<CR>
 
@@ -2545,22 +2574,3 @@
   " ,r: replace a word under cursor
   nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
   xnoremap re y:%s/<C-r>=substitute(@0, '/', '\\/', 'g')<CR>//gI<Left><Left><Left>
-
-  " R: replace
-  function! s:replace()
-    if visualmode() ==# 'V'
-      if line("'>") == line('$')
-        normal! gv"_dp
-      else
-        normal! gv"_dP
-      endif
-    else
-      if col("'>") == col('$') - 1
-        normal! gv"_dp
-      else
-        normal! gv"_dP
-      endif
-    endif
-  endfunction
-  xnoremap R "_dP
-  xnoremap <silent> R :<C-u>call <SID>replace()<CR>
