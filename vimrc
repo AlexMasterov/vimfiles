@@ -1,4 +1,4 @@
-" .vimrc / 2015 Oct.
+" .vimrc / 2015 Nov.
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -36,12 +36,11 @@
 " Functions
 "---------------------------------------------------------------------------
   function! s:installNeoBundle(neobundlePath) abort
-    let neobundleUri = 'https://github.com/Shougo/neobundle.vim.git'
-    if executable('git')
-      call system(printf('git clone --depth 1 %s %s', neobundleUri, a:neobundlePath))
-    else
-      echom "Can\'t download NeoBundle: Git not found."
+    if !executable('git')
+      echom "Can\'t download NeoBundle: Git not found." | return
     endif
+    let neobundleUri = 'https://github.com/Shougo/neobundle.vim.git'
+    call system(printf('git clone --depth 1 %s %s', neobundleUri, a:neobundlePath))
   endfunction
 
   function! MakeDir(dir, ...) abort
@@ -60,6 +59,19 @@
     let @/=_s
   endfunction
 
+  function! s:cleanBuffers() abort
+    redir => bufs
+      silent buffers
+    redir END
+
+    for ibuf in split(bufs, "\n")
+      let t = matchlist(ibuf, '\v^\s*(\d+)([^"]*)')
+      if t[2] !~# '[#a+]'
+        silent! exe 'bdelete' t[1]
+      endif
+    endfor
+  endfunction
+
 " Commands
 "---------------------------------------------------------------------------
   " Vimrc augroup sugar
@@ -73,7 +85,9 @@
   " Rename current file name
   command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
   " Strip trailing whitespace at the end of non-blank lines
-  command! -bar -nargs=* -complete=file FixWhitespace f <args>|call <SID>trimWhiteSpace()
+  command! -bar -nargs=* -complete=file FixWhitespace f <args>|call s:trimWhiteSpace()
+  " Clean up hidden buffers
+  command! -bar CleanBuffers call s:cleanBuffers()
   " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
@@ -91,6 +105,7 @@
   Autocmd InsertLeave * setl nolist colorcolumn=
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
+  " Autocmd BufHidden * call s:cleanBuffers()
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -162,9 +177,9 @@
   if has('vim_starting')
     let $NEOBUNDLE = $VIMFILES.'/bundle/neobundle.vim'
     if !isdirectory($NEOBUNDLE)
-        call <SID>installNeoBundle($NEOBUNDLE)
+      call s:installNeoBundle($NEOBUNDLE)
     endif
-    set runtimepath=$VIMRUNTIME,$VIMFILES,$NEOBUNDLE
+    set runtimepath=$VIMFILES,$VIMRUNTIME,$NEOBUNDLE
   endif
   let g:neobundle#types#git#clone_depth = 1
   let g:neobundle#install_max_processes =
@@ -185,7 +200,8 @@
 
     " Utils
     NeoBundle 'kopischke/vim-stay'
-    " NeoBundle 'wellle/targets.vim'
+    NeoBundle 'wellle/targets.vim'
+    NeoBundleLazy 'gabesoft/vim-ags'
     NeoBundleLazy 'kshenoy/vim-signature'
     NeoBundleLazy 'Shougo/unite.vim'
     NeoBundleLazy 'Shougo/unite-outline'
@@ -267,6 +283,7 @@
     \}
     " PHP
     " NeoBundleLazy 'joonty/vdebug'
+    " NeoBundleLazy 'mkusher/padawan.vim', {'type': 'nosync'}
     NeoBundleLazy '2072/PHP-Indenting-for-VIm'
     NeoBundleLazy 'shawncplus/phpcomplete.vim'
     NeoBundleLazy 'tobyS/vmustache'
@@ -287,7 +304,7 @@
     NeoBundleLazy 'othree/html5.vim'
     NeoBundleLazy 'mattn/emmet-vim'
     " Twig
-    NeoBundleLazy 'qbbr/vim-twig'
+    NeoBundleLazy 'qbbr/vim-twig', {'type': 'nosync'}
     NeoBundleLazy 'tokutake/twig-indent'
     " CSS
     NeoBundleLazy 'JulesWang/css.vim'
@@ -312,7 +329,7 @@
 
   call neobundle#begin($VIMFILES.'/bundle')
   if neobundle#load_cache()
-    call <SID>cacheBundles()
+    call s:cacheBundles()
   endif
   call neobundle#end()
 
@@ -369,6 +386,16 @@
       let g:zv_disable_mapping = 1
       let g:zv_lazy_docset_list = ['PHP', 'JavaScript', 'HTML', 'CSS']
       let g:zv_zeal_directory = s:is_windows ? 'zeal' : '/usr/bin/zeal'
+    endfunction
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-ags')
+    call neobundle#config({'commands': ['Ags']})
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:ags_no_stats = 1
     endfunction
 
     call neobundle#untap()
@@ -467,7 +494,7 @@
 
     let s:signature_ignore_ft = 'unite,qfreplace,vimfiler'
     AutocmdFT *
-      \ if index(split(s:signature_ignore_ft, ','), &filetype) == -1| call <SID>signatureMappings() |endif
+    \ if index(split(s:signature_ignore_ft, ','), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings()
       nnoremap <silent> <buffer> <BS>
@@ -475,17 +502,18 @@
       nnoremap <silent> <buffer> <S-BS>
         \ :<C-u>call signature#mark#ToggleAtLine()<CR>:call signature#sign#ToggleDummy('remove')<CR>
       nnoremap <silent> <buffer> \ :<C-u>call signature#Input()<CR>
-      nnoremap <silent> <buffer> <Del>   :<C-u>call signature#mark#Purge('all')<CR>
-      nnoremap <silent> <buffer> <S-Del> :<C-u>call signature#marker#Purge()<CR>
+      nnoremap <silent> <buffer> <Del>   :<C-u>call signature#mark#Purge('line')<CR>
+      nnoremap <silent> <buffer> <S-Del> :<C-u>call signature#mark#Purge('all')<CR>
+      nnoremap <silent> <buffer> <C-Del> :<C-u>call signature#marker#Purge()<CR>
       " jump to spot alpha
-      nnoremap <silent> <buffer> [ :<C-u>call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
-      nnoremap <silent> <buffer> ] :<C-u>call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
+      nnoremap <silent> <buffer> [ :<C-u>silent! call signature#mark#Goto('next', 'spot', 'alpha')<CR>zz
+      nnoremap <silent> <buffer> ] :<C-u>silent! call signature#mark#Goto('prev', 'spot', 'alpha')<CR>zz
       " jump to any marker
-      nnoremap <silent> <buffer> <S-[> :<C-u>call signature#marker#Goto('next', 'any',  v:count)<CR>zz
-      nnoremap <silent> <buffer> <S-]> :<C-u>call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
+      nnoremap <silent> <buffer> <S-[> :<C-u>silent! call signature#marker#Goto('next', 'any',  v:count)<CR>zz
+      nnoremap <silent> <buffer> <S-]> :<C-u>silent! call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
     endfunction
 
-    AutocmdFT * Autocmd BufEnter <buffer> call <SID>signatureCleanUp()
+    AutocmdFT * Autocmd BufEnter <buffer> call s:signatureCleanUp()
     function! s:signatureCleanUp()
       for map in ['[]', '[[', '["', '][', ']]', ']"']
         exe 'silent! nunmap <buffer> '. map
@@ -543,7 +571,10 @@
     AutocmdFT vimfiler call s:vimfilerMappings()
     function! s:vimfilerMappings()
       nunmap <buffer> <Space>
+      nunmap <buffer> <Tab>
       " Normal mode
+      nmap <buffer> <C-j> 4j
+      nmap <buffer> <C-k> 4k
       nmap <buffer> <C-c> <Esc>
       nmap <buffer> f <Plug>(vimfiler_grep)
       nmap <buffer> H <Plug>(vimfiler_cursor_top)
@@ -625,12 +656,10 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('targets.vim')
+  if neobundle#is_installed('targets.vim')
     " Disable `n` , `l` , `A`
     let g:targets_aiAI = 'ai I'
     let g:targets_nlNL = '  NL'
-
-    call neobundle#untap()
   endif
 
   if neobundle#tap('vim-quickrun')
@@ -665,7 +694,7 @@
 
       " PHP
       let g:quickrun_config['php/csfixer'] = {
-      \ 'command': 'php-cs-fixer', 'exec': '%c fix %a %s', 'outputter': 'reopen', 'args': '--level=symfony'
+      \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen', 'args': '--level=psr2'
       \}
       let g:quickrun_config['php/phpunit'] = {
       \ 'command': 'phpunit', 'exec': '%c %s %a', 'outputter': 'phpunit'
@@ -674,7 +703,7 @@
       " JavaScript
       let g:quickrun_config['javascript/formatter'] = {
       \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-      \ 'args': printf('--config %s/preset/js.json', $VIMFILES)
+      \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
       \}
 
       " CSS
@@ -793,28 +822,23 @@
     " ;p: detect .projections.json
     nnoremap <silent> ;p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
-    function! neobundle#hooks.on_source(bundle)
-      nnoremap ;e :<C-u>E
-      " Temporary
-      nnoremap ;1 :<C-u>Ecomposer<Space>
-      nnoremap ;2 :<C-u>Eapp<Space>
-      nnoremap ;3 :<C-u>Esrc<Space>
-      nnoremap ;4 :<C-u>Etest<Space>
-    endfunction
-
     call neobundle#untap()
   endif
 
   if neobundle#tap('vim-altr')
-    call neobundle#config({'functions': 'altr#define'})
+    call neobundle#config({
+    \ 'functions': 'altr#define',
+    \ 'mappings': '<Plug>(altr-'
+    \})
 
-    AutocmdFT php
-      \  call <SID>altrMappings()
-      \| call altr#define('src/*/%.php', 'tests/*/%Test.php')
+    AutocmdFT php,html.twig
+      \  call s:altrMappings()
+      \| call altr#define('src/**/%.php', 'tests/**/%Test.php')
+      \| call altr#define('app/views/%.html.twig', 'src/**/Action/%.php')
 
     function! s:altrMappings()
-      nmap <buffer> <Space>9 <Plug>(altr-forward)
-      nmap <buffer> <Space>0 <Plug>(altr-back)
+      nmap <buffer> { <Plug>(altr-back)
+      nmap <buffer> } <Plug>(altr-forward)
     endfunction
 
     function! neobundle#hooks.on_source(bundle)
@@ -951,7 +975,7 @@
 
       nmap <expr> q v:count >= 2
         \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle)%dl', (v:count-1), col('.'))
-        \ : '<Plug>(caw:wrap:toggle)'
+        \ : '<Plug>(caw:i:toggle)'
       xmap <expr> q printf('<Plug>(caw:i:toggle)%dl', col('.'))
       nmap ,q <Plug>(caw:jump:comment-prev)
       nmap ,w <Plug>(caw:jump:comment-next)
@@ -1044,94 +1068,121 @@
   endif
 
   if neobundle#tap('vim-skipit')
-      call neobundle#config({'mappings': [['i', '<Plug>Skip']]})
+    call neobundle#config({'mappings': [['i', '<Plug>Skip']]})
 
-      imap <A-]> <Plug>SkipItForward
-      imap <A-[> <Plug>SkipItBack
+    imap <A-]> <Plug>SkipItForward
+    imap <A-[> <Plug>SkipItBack
 
-      call neobundle#untap()
+    call neobundle#untap()
   endif
 
   if neobundle#tap('lexima.vim')
-      call neobundle#config({'insert': 1})
+    call neobundle#config({'insert': 1})
 
-      function! neobundle#hooks.on_source(bundle)
-          let g:lexima_no_default_rules = 1
-          let g:lexima_no_map_to_escape = 1
-          let g:lexima_enable_newline_rules = 1
-          let g:lexima_enable_endwise_rules = 0
+    function! neobundle#hooks.on_source(bundle)
+      let g:lexima_no_default_rules = 1
+      let g:lexima_no_map_to_escape = 1
+      let g:lexima_enable_newline_rules = 1
+      let g:lexima_enable_endwise_rules = 0
 
-          silent! call remove(g:lexima#default_rules, 11, -1)
-          for rule in g:lexima#default_rules
-              call lexima#add_rule(rule)
-          endfor | unlet rule
+      silent! call remove(g:lexima#default_rules, 11, -1)
+      for rule in g:lexima#default_rules
+        call lexima#add_rule(rule)
+      endfor | unlet rule
 
-          function! s:disable_lexima_inside_regexp(char)
-              call lexima#add_rule({'char': a:char, 'at': '\(...........\)\?/\S.*\%#.*\S/', 'input': a:char})
-          endfunction
-
-          " Fix pair completion
-          for pair in ['()', '[]']
-              call lexima#add_rule({
-              \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
-              \})
-          endfor | unlet pair
-
-          " Delete whole pair
-          for pa in ['()', '[]', '{}', '<>']
-            let epa = escape(pa, '[]')
-            call lexima#add_rule({'char': '<BS>','at': epa[0].'\s\+'.epa[1].'\%#', 'input': '<C-o>di'.pa[0]})
-            call lexima#add_rule({'char': '<BS>', 'at': epa.'\%#', 'input': '<BS><BS>'})
-          endfor | unlet pa
-
-          " Quotes
-          for quote in ['"', "'"]
-              call lexima#add_rule({'char': quote, 'at': '\(.......\)\?\%#\w', 'input': quote})
-              call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
-              call lexima#add_rule({'char': quote, 'at': '\(...........\)\?\%#'. quote, 'input': '<Right>'})
-              call s:disable_lexima_inside_regexp(quote)
-          endfor | unlet quote
-
-          " Attributes
-          let s:lexima_attr_close_ft = ['html', 'twig', 'html.twig', 'xml']
-          call lexima#add_rule({
-          \ 'filetype': s:lexima_attr_close_ft,
-          \ 'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>'
-          \})
-
-          " { <CR> }
-          call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
-          call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
-
-          " { <Space> }
-          let s:lexima_pair_space_ft = ['javascript', 'yaml']
-          call lexima#add_rule({
-          \ 'filetype': s:lexima_pair_space_ft,
-          \ 'char': '<Space>', 'at': '\(.......\)\?{\%#}', 'input': '<Space>', 'input_after': '<Space>'
-          \})
-
-          " {{ <Space> }}
-          call lexima#add_rule({
-          \ 'filetype': ['twig', 'html.twig'],
-          \ 'char': '<Space>', 'at': '{{\%#}}', 'input': '<Space>', 'input_after': '<Space>'
-          \})
-          call lexima#add_rule({
-          \ 'filetype': ['twig', 'html.twig'],
-          \ 'at': '{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
-          \})
-
-          " {% <Space> %}
-          call lexima#add_rule({
-          \ 'filetype': ['twig', 'html.twig'],
-          \ 'at': '{\%#}', 'char': '%', 'input': '%<Space><Space>%<Left><Left>'
-          \})
-          call lexima#add_rule({
-          \ 'filetype': ['twig', 'html.twig'],
-          \ 'at': '{% \%# %}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
-          \})
+      function! s:disable_lexima_inside_regexp(char)
+        call lexima#add_rule({'char': a:char, 'at': '\(...........\)\?/\S.*\%#.*\S/', 'input': a:char})
       endfunction
 
-      call neobundle#untap()
+      " Fix pair completion
+      for pair in ['()', '[]']
+          call lexima#add_rule({
+          \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
+          \})
+      endfor | unlet pair
+
+      " Delete whole pair
+      for pa in ['()', '[]', '{}', '<>']
+        let epa = escape(pa, '[]')
+        call lexima#add_rule({'char': '<BS>','at': epa[0].'\s\+'.epa[1].'\%#', 'input': '<C-o>di'.pa[0]})
+        call lexima#add_rule({'char': '<BS>', 'at': epa.'\%#', 'input': '<BS><BS>'})
+      endfor | unlet pa
+
+      " Quotes
+      for quote in ['"', "'"]
+        call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
+        call lexima#add_rule({'char': quote, 'at': '\(...........\)\?\%#'. quote, 'input': '<Right>'})
+        call lexima#add_rule({'char': '<BS>', 'at': '\(.......\)\?'. quote .'\%#'. quote, 'delete': 1})
+        call s:disable_lexima_inside_regexp(quote)
+      endfor | unlet quote
+
+      " { <CR> }
+      call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
+      call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
+
+      " { <Space> }
+      call lexima#add_rule({
+      \ 'filetype': ['javascript', 'yaml'],
+      \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
+      \})
+
+      " ,<Space>
+      call lexima#add_rule({
+      \ 'filetype': 'php',
+      \ 'at': '\%#', 'char': ',', 'input': ',<Space>'
+      \})
+      call lexima#add_rule({
+      \ 'filetype': 'php',
+      \ 'at': ', \%#', 'char' : '<Space>', 'input': ''
+      \})
+      call lexima#add_rule({
+      \ 'filetype': 'php',
+      \ 'at': ', \%#', 'char': '<Enter>', 'input': '<BS><Enter>'
+      \})
+
+      " Twig
+      " {{ <Space> }}
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '\(........\)\?{\%#}', 'char': '{', 'input': '{<Space>', 'input_after': '<Space>}'
+      \})
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '\(........\)\?{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
+      \})
+      " {# <Space> #}
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '\(........\)\?{\%#}', 'char': '#', 'input': '#<Space><Space>#<Left><Left>'
+      \})
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '\(........\)\?{# \%# #}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
+      \})
+      " {# <Space> #}
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '{\%#}', 'char': '%', 'input': '%<Space><Space>%<Left><Left>'
+      \})
+      call lexima#add_rule({
+      \ 'filetype': ['twig', 'html.twig'],
+      \ 'at': '{% \%# %}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
+      \})
+
+      " Attributes
+      call lexima#add_rule({
+      \ 'filetype': ['html', 'twig', 'html.twig', 'xml'],
+      \ 'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>'
+      \})
+
+      " /* */
+      call lexima#add_rule({
+      \ 'filetype': 'css',
+      \ 'at': '/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
+      \})
+    endfunction
+
+    call neobundle#untap()
   endif
 
   if neobundle#tap('switch.vim')
@@ -1288,7 +1339,7 @@
 
       Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
         \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
-        \ ? 'call <SID>removeColor()'
+        \ ? 'call s:removeColor()'
         \ : 'ColorHighlight'
 
       function! s:removeColor()
@@ -1318,7 +1369,7 @@
       \ 'filetype': 'css',
       \}
       for filetype in ['html', 'twig', 'twig.html']
-        call <SID>addContext(filetype, s:context_ft_css)
+        call s:addContext(filetype, s:context_ft_css)
       endfor | unlet filetype
 
       " Coffee script
@@ -1327,7 +1378,7 @@
       \ 'end':      '</script>',
       \ 'filetype': 'coffee',
       \}
-      call <SID>addContext('html', s:context_ft_coffee)
+      call s:addContext('html', s:context_ft_coffee)
 
       " JSX (React)
       let s:context_ft_jsx = {
@@ -1335,7 +1386,7 @@
       \ 'end':      '</script>',
       \ 'filetype': 'javascript',
       \}
-      call <SID>addContext('html', s:context_ft_jsx)
+      call s:addContext('html', s:context_ft_jsx)
     endfunction
 
     call neobundle#untap()
@@ -1495,13 +1546,14 @@
       \ setl nolist guicursor=a:blinkon0
         \| Autocmd InsertEnter,InsertLeave <buffer>
           \ setl nonu nornu nolist colorcolumn=
-    AutocmdFT unite call <SID>uniteMappings()
+    AutocmdFT unite call s:uniteMappings()
 
     function! s:uniteMappings()
       let b:unite = unite#get_current_unite()
 
       " Normal mode
       nmap <buffer> <BS> <Nop>
+      nmap <buffer> e <Nop>
       nmap <buffer> <C-k> <C-u>
       nmap <buffer> R     <Plug>(unite_redraw)
       nmap <buffer> <Tab> <Plug>(unite_insert_head)
@@ -1532,8 +1584,6 @@
     endfunction
 
     function! neobundle#hooks.on_source(bundle)
-      let g:unite_source_history_yank_enable = 0
-      let g:unite_source_rec_min_cache_files = 50
       let g:unite_source_buffer_time_format = '%H:%M '
       let g:unite_data_directory = $VIMCACHE.'/unite'
       if executable('ag')
@@ -1658,7 +1708,7 @@
   endif
 
   if neobundle#tap('unite-tag')
-    AutocmdFT php,javascript call <SID>uniteTagMappings()
+    AutocmdFT php,javascript call s:uniteTagMappings()
 
     function! s:uniteTagMappings()
       if !empty(&buftype) " just <empty> == normal buffer
@@ -1743,7 +1793,7 @@
       \| nnoremap <silent> <buffer> ;T :<C-u>GhcModTypeClear<CR>
 
     function! neobundle#hooks.on_source(bundle)
-      let g:ghcmod_open_quickfix_function = '<SID>ghcmodQuickfix'
+      let g:ghcmod_open_quickfix_function = 's:ghcmodQuickfix'
 
       function! s:ghcmodQuickfix()
         Unite quickfix -no-empty -silent
@@ -1764,6 +1814,19 @@
   let g:php_sql_query = 1
   let g:php_highlight_html = 1
   " Autocomplete
+  if neobundle#tap('padawan.vim') && neobundle#is_installed('padawan.vim')
+    call neobundle#config({'functions': 'padawan#Complete'})
+
+    function! neobundle#hooks.on_source(bundle)
+      if neobundle#is_installed('neocomplete.vim')
+        let g:neocomplete#force_omni_input_patterns = {
+        \ 'php': '\h\w*\|[^- \t]->\w*'
+        \}
+      endif
+    endfunction
+
+    call neobundle#untap()
+  endif
   if neobundle#tap('phpcomplete.vim')
     call neobundle#config({'functions': 'phpcomplete#CompletePHP'})
 
@@ -1924,7 +1987,7 @@
   if neobundle#tap('emmet-vim')
     call neobundle#config({'mappings': [['i', '<Plug>']]})
 
-    AutocmdFT html,twig,html.twig call <SID>emmetMappings()
+    AutocmdFT html,twig,html.twig call s:emmetMappings()
 
     function! s:emmetComplete()
       if pumvisible()
@@ -1981,7 +2044,7 @@
   endif
 
 " CSS
-  AutocmdFT scss setl filetype=css
+  Autocmd BufNewFile,BufRead *.scss setl filetype=css commentstring=/*%s*/
   " Indent
   AutocmdFT css setl nowrap | Indent 2
   " Syntax
@@ -2012,7 +2075,7 @@
     call neobundle#config({'filetypes': ['css', 'scss']})
 
     " https://github.com/rstacruz/vim-hyperstyle/blob/master/REFERENCE.md
-    Autocmd BufNewFile,BufRead *.{css,scss} call <SID>hyperstyleReset()
+    Autocmd BufNewFile,BufRead *.{css,scss} call s:hyperstyleReset()
 
     function! s:hyperstyleReset()
       let b:hyperstyle = 1
@@ -2566,6 +2629,7 @@
 
   " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
   nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
+  nnoremap <silent> ,yp :<C-u>let @*=fnamemodify(bufname('%'),':p')<CR>
 
   " [#*]: make # and * work in visual mode too
   vnoremap # y?<C-r>*<CR>
