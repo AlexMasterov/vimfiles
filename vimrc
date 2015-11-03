@@ -101,8 +101,8 @@
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
   AutocmdFT * Autocmd BufEnter,WinEnter <buffer> setl formatoptions-=ro
   " Toggle settings between modes
-  Autocmd InsertEnter * setl list colorcolumn=120
-  Autocmd InsertLeave * setl nolist colorcolumn=
+  Autocmd InsertEnter * setl list
+  Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
   " Autocmd BufHidden * call s:cleanBuffers()
@@ -201,6 +201,7 @@
     " Utils
     NeoBundle 'kopischke/vim-stay'
     NeoBundle 'wellle/targets.vim'
+    NeoBundleLazy 'whatyouhide/vim-lengthmatters'
     NeoBundleLazy 'gabesoft/vim-ags'
     NeoBundleLazy 'kshenoy/vim-signature'
     NeoBundleLazy 'Shougo/unite.vim'
@@ -262,6 +263,7 @@
     \}
 
     " Text objects
+    NeoBundleLazy 'tommcdo/vim-exchange'
     NeoBundleLazy 'kana/vim-textobj-user'
     NeoBundleLazy 'machakann/vim-textobj-delimited', {
     \ 'depends': 'kana/vim-textobj-user'
@@ -271,8 +273,8 @@
     \}
 
     " Haskell
-    " NeoBundleLazy 'itchyny/vim-haskell-indent'
-    NeoBundleLazy 'philopon/haskell-indent.vim'
+    NeoBundleLazy 'itchyny/vim-haskell-indent'
+    " NeoBundleLazy 'philopon/haskell-indent.vim'
     NeoBundleLazy 'enomsg/vim-haskellConcealPlus'
     NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal'
     NeoBundleLazy 'eagletmt/ghcmod-vim', {
@@ -489,6 +491,23 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-lengthmatters')
+    call neobundle#config({'commands': 'Lengthmatters'})
+
+    AutocmdFT php,javascript,haskell LengthmattersEnable
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:lengthmatters_on_by_default = 0
+      let g:lengthmatters_start_at_column = 101
+      let g:lengthmatters_excluded = [
+      \ 'vim', 'help', 'unite', 'vimfiler', 'undotree', 'qfreplace'
+      \]
+      call lengthmatters#highlight_link_to('ColorColumn')
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-signature')
     call neobundle#config({'commands': 'SignatureRefresh'})
 
@@ -513,7 +532,7 @@
       nnoremap <silent> <buffer> <S-]> :<C-u>silent! call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
     endfunction
 
-    AutocmdFT * Autocmd BufEnter <buffer> call s:signatureCleanUp()
+    AutocmdFT * Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
     function! s:signatureCleanUp()
       for map in ['[]', '[[', '["', '][', ']]', ']"']
         exe 'silent! nunmap <buffer> '. map
@@ -877,6 +896,21 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-exchange')
+    call neobundle#config({'mappings': [['n', '<Plug>(Exchange'], ['v', '<Plug>(Exchange)']]})
+
+    vmap <Tab> <Plug>(Exchange)
+    nmap ,x    <Plug>(Exchange)
+    nmap ,X    <Plug>(ExchangeLine)
+    nmap <C-x> <Plug>(ExchangeClear)
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:exchange_no_mappings = 1
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-easy-align')
     call neobundle#config({'mappings': [['nx', '<Plug>(EasyAlign)']]})
 
@@ -1124,20 +1158,6 @@
       call lexima#add_rule({
       \ 'filetype': ['javascript', 'yaml'],
       \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
-      \})
-
-      " ,<Space>
-      call lexima#add_rule({
-      \ 'filetype': 'php',
-      \ 'at': '\%#', 'char': ',', 'input': ',<Space>'
-      \})
-      call lexima#add_rule({
-      \ 'filetype': 'php',
-      \ 'at': ', \%#', 'char' : '<Space>', 'input': ''
-      \})
-      call lexima#add_rule({
-      \ 'filetype': 'php',
-      \ 'at': ', \%#', 'char': '<Enter>', 'input': '<BS><Enter>'
       \})
 
       " Twig
@@ -1448,10 +1468,11 @@
       " Completion patterns
       let g:neocomplete#sources#omni#input_patterns = {
       \ 'haskell':    '\h\w*\|\(import\|from\)\s',
-      \ 'php':        '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
       \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
       \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
-      \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+      \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
+      \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]',
+      \ 'html':       '<[^>]*'
       \}
     endfunction
 
