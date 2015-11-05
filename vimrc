@@ -47,7 +47,7 @@
     let dir = expand(a:dir, 1)
     if !isdirectory(dir)
       \ && (a:0 || input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
-      silent! call mkdir(iconv(dir, &encoding, &termencoding), 'p')
+      silent call mkdir(iconv(dir, &encoding, &termencoding), 'p')
     endif
   endfunction
 
@@ -59,17 +59,30 @@
     let @/=_s
   endfunction
 
-  function! s:cleanBuffers() abort
+  function! s:cleanBuffers(...) abort
+    let force = a:1 ==# '-f' ? 1 : 0
     redir => bufs
-      silent buffers
+      silent! buffers
     redir END
 
-    for ibuf in split(bufs, "\n")
-      let t = matchlist(ibuf, '\v^\s*(\d+)([^"]*)')
-      if t[2] !~# '[#a+]'
-        silent! exe 'bdelete' t[1]
+    let hidden = []
+    for buf in map(split(bufs, '\n'), 'split(v:val)')
+      let bufnr = buf[0] + 0
+      let flags = matchstr(join(buf[1:]), '^.*\ze\s\+"')
+      let mod = substitute(flags, '\s*', '', 'g')
+      let hide = mod ==# 'h' || mod ==# 'h+'
+          \ && (force || input(printf("\n%s not saved.\nDelete anyway? [Y]es, (N)o: ",
+            \ bufname(bufnr))) =~? '^y\%[es]$')
+      if hide
+        call add(hidden, bufnr)
       endif
     endfor
+
+    let saved = get(g:, 'bufcleaner_max_saved', 2)
+    let target = len(hidden) > saved ? join(hidden[0:-saved-1], ' ') : ''
+    if !empty(target)
+      silent! execute 'bwipeout!' target
+    endif
   endfunction
 
 " Commands
@@ -87,7 +100,7 @@
   " Strip trailing whitespace at the end of non-blank lines
   command! -bar -nargs=* -complete=file FixWhitespace f <args>|call s:trimWhiteSpace()
   " Clean up hidden buffers
-  command! -bar CleanBuffers call s:cleanBuffers()
+  command! -bar -nargs=? CleanBuffers call s:cleanBuffers(<f-args>)
   " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
@@ -105,7 +118,7 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
-  " Autocmd BufHidden * call s:cleanBuffers()
+  Autocmd BufHidden * CleanBuffers -f
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -154,7 +167,7 @@
 
   " Regexp engine (0=auto, 1=old, 2=NFA)
   if exists('&regexpengine')
-    set regexpengine=1
+    set regexpengine=0
   endif
 
 " Plugins
@@ -230,6 +243,7 @@
     NeoBundleLazy 'arecarn/crunch.vim', {
     \ 'depends': 'arecarn/selection.vim'
     \}
+    NeoBundleLazy 'tyru/current-func-info.vim'
     NeoBundleLazy 'thinca/vim-quickrun', {
     \ 'depends': 'Shougo/vimproc.vim'
     \}
@@ -498,7 +512,7 @@
 
     function! neobundle#hooks.on_source(bundle)
       let g:lengthmatters_on_by_default = 0
-      let g:lengthmatters_start_at_column = 101
+      let g:lengthmatters_start_at_column = 120
       let g:lengthmatters_excluded = [
       \ 'vim', 'help', 'unite', 'vimfiler', 'undotree', 'qfreplace'
       \]
@@ -654,6 +668,7 @@
     call neobundle#config({'mappings': [['n', '<Plug>(choosewin)']]})
 
     nmap - <Plug>(choosewin)
+    AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)
 
     function! neobundle#hooks.on_source(bundle)
       let g:choosewin_keymap = {
@@ -679,6 +694,11 @@
     " Disable `n` , `l` , `A`
     let g:targets_aiAI = 'ai I'
     let g:targets_nlNL = '  NL'
+  endif
+
+  if neobundle#tap('current-func-info.vim')
+    call neobundle#config({'functions': 'cfi#'})
+    call neobundle#untap()
   endif
 
   if neobundle#tap('vim-quickrun')
@@ -716,7 +736,8 @@
       \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen', 'args': '--level=psr2'
       \}
       let g:quickrun_config['php/phpunit'] = {
-      \ 'command': 'phpunit', 'exec': '%c %s %a', 'outputter': 'phpunit'
+      \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
+      \ 'args': printf('-c %s/preset/phpunit.xml.dist', $VIMFILES)
       \}
 
       " JavaScript
@@ -852,8 +873,6 @@
 
     AutocmdFT php,html.twig
       \  call s:altrMappings()
-      \| call altr#define('src/**/%.php', 'tests/**/%Test.php')
-      \| call altr#define('app/views/%.html.twig', 'src/**/Action/%.php')
 
     function! s:altrMappings()
       nmap <buffer> { <Plug>(altr-back)
@@ -899,10 +918,10 @@
   if neobundle#tap('vim-exchange')
     call neobundle#config({'mappings': [['n', '<Plug>(Exchange'], ['v', '<Plug>(Exchange)']]})
 
-    vmap <Tab> <Plug>(Exchange)
-    nmap ,x    <Plug>(Exchange)
-    nmap ,X    <Plug>(ExchangeLine)
-    nmap <C-x> <Plug>(ExchangeClear)
+    vmap <Tab>  <Plug>(Exchange)
+    nmap ,x     <Plug>(Exchange)
+    nmap ,X     <Plug>(ExchangeLine)
+    nmap ,<Tab> <Plug>(ExchangeClear)
 
     function! neobundle#hooks.on_source(bundle)
       let g:exchange_no_mappings = 1
@@ -2137,6 +2156,8 @@
   AutocmdFT yaml setl nowrap | Indent 4
 
 " XML
+  Autocmd BufNewFile,BufRead *.xml.* set filetype=xml
+  " Syntax
   AutocmdFT xml setl nowrap | Indent 4
   " Autocomplete
   AutocmdFT xml setl omnifunc=xmlcomplete#CompleteTags
@@ -2270,8 +2291,9 @@
   set laststatus=2
   " Format the statusline
   let &statusline =
-  \  "%1* %l%*.%c %L %*"
-  \. "%-0.60f "
+  \  " %3*%L%* %l%3*:%*%v %3*|%* "
+  \. "%-0.60t "
+  \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
   \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
   \. "%="
   \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
