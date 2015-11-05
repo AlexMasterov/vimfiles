@@ -2,7 +2,7 @@
 " File:         topos.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
 " Source:       https://github.com/AlexMasterov/vimfiles
-" Last Updated: 2015 Aug
+" Last Updated: 2015 Oct
 " Description:  GUI only
 
 hi clear
@@ -47,7 +47,7 @@ hi MatchParen           guifg=#2B2B2B   guibg=#FFE1CC   gui=NONE
 hi CursorLine           guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorLineNr         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
 hi CursorColumn         guifg=#2B2B2B   guibg=#E4F3FB   gui=NONE
-hi ColorColumn          guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE
+hi ColorColumn          guifg=#2B2B2B   guibg=#FAE5E4   gui=NONE
 hi SignColumn           guifg=#EEEEEE   guibg=#F6F7F7   gui=NONE
 
 hi DiffAdd              guifg=#2B2B2B   guibg=#F8FAFD   gui=NONE
@@ -105,6 +105,7 @@ hi PmenuThumb           guifg=#E0E5EE   guibg=#C0C5DD   gui=bold
 "---------------------------------------------------------------------------
 hi User1                guifg=#0000FF   guibg=#EEEEEE  gui=NONE
 hi User2                guifg=#D14000   guibg=#EEEEEE  gui=NONE
+hi User3                guifg=#93A1A1   guibg=#EEEEEE  gui=NONE
 
 " Syntax: https://github.com/mageekguy/php.vim
 hi phpDelimiter               guifg=#999999                   gui=NONE
@@ -217,6 +218,8 @@ hi twigTagDelim               guifg=#999999                   gui=NONE
 " Yaml
 "---------------------------------------------------------------------------
 hi yamlKey                    guifg=#0050B1                   gui=NONE
+hi yamlBlockMappingKey        guifg=#0050B1                   gui=NONE 
+hi yamlKeyValueDelimiter      guifg=#999999                   gui=NONE
 " hi yamlConstant               guifg=#CD7F32               gui=bold
 " hi yamlFlowIndicator          guifg=#999999               gui=NONE
 " hi yamlFlowMappingKey         guifg=#0050B1               gui=NONE
@@ -228,5 +231,7 @@ hi jsonString                 guifg=#2B2B2B                   gui=NONE
 hi jsonEscape                 guifg=#A67F59                   gui=NONE
 hi jsonBraces                 guifg=#999999                   gui=NONE
 hi jsonBoolean                guifg=#CD7F32                   gui=NONE
-hi jsonKeywordMatch           guifg=#A67F59   guibg=#FFF9F9   gui=NONE
+hi jsonKeywordMatch           guifg=#999999                   gui=NONE
 hi jsonKeywordRegion          guifg=#0050B1                   gui=NONE
+hi jsonKeyword                guifg=#0050B1                   gui=NONE 
+" hi jsonQuote                  guifg=#0050B1                   gui=NONE 
