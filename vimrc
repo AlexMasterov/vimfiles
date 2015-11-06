@@ -78,7 +78,7 @@
       endif
     endfor
 
-    let saved = get(g:, 'bufcleaner_max_saved', 2)
+    let saved = get(g:, 'bufcleaner_max_saved', 3)
     let target = len(hidden) > saved ? join(hidden[0:-saved-1], ' ') : ''
     if !empty(target)
       silent! execute 'bwipeout!' target
@@ -225,7 +225,6 @@
     NeoBundleLazy 'thinca/vim-qfreplace'
     NeoBundleLazy 'mattn/httpstatus-vim'
     NeoBundleLazy 'tsukkee/unite-tag'
-    NeoBundleLazy 'KabbAmine/zeavim.vim'
     NeoBundleLazy 'tpope/vim-characterize'
     NeoBundleLazy 'kana/vim-altr'
     NeoBundleLazy 'mbbill/undotree'
@@ -238,10 +237,6 @@
     NeoBundleLazy 'xolox/vim-misc'
     NeoBundleLazy 'xolox/vim-session', {
     \ 'depends': 'xolox/vim-misc'
-    \}
-    NeoBundleLazy 'arecarn/selection.vim'
-    NeoBundleLazy 'arecarn/crunch.vim', {
-    \ 'depends': 'arecarn/selection.vim'
     \}
     NeoBundleLazy 'tyru/current-func-info.vim'
     NeoBundleLazy 'thinca/vim-quickrun', {
@@ -264,7 +259,6 @@
     NeoBundleLazy 'triglav/vim-visual-increment'
     NeoBundleLazy 'AndrewRadev/switch.vim'
     NeoBundleLazy 'kana/vim-smartchr'
-    NeoBundleLazy 'romgrk/replace.vim'
     NeoBundleLazy 'Shougo/context_filetype.vim'
     NeoBundleLazy 'Shougo/neoinclude.vim'
     NeoBundleLazy 'Shougo/neco-syntax'
@@ -284,6 +278,20 @@
     \}
     NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
     \ 'depends': 'kana/vim-textobj-user'
+    \}
+    " Operators
+    NeoBundleLazy 'kana/vim-operator-user'
+    NeoBundleLazy 'kana/vim-operator-replace', {
+    \ 'depends': 'kana/vim-operator-user'
+    \}
+    NeoBundleLazy 'rhysd/vim-operator-surround', {
+    \ 'depends': 'kana/vim-operator-user'
+    \}
+    NeoBundleLazy 'tyru/operator-reverse.vim', {
+    \ 'depends': 'kana/vim-operator-user'
+    \}
+    NeoBundleLazy 'kusabashira/vim-operator-eval', {
+    \ 'depends': 'kana/vim-operator-user'
     \}
 
     " Haskell
@@ -354,59 +362,6 @@
 
 " Bundle settings
 "---------------------------------------------------------------------------
-  if neobundle#tap('crunch.vim')
-    call neobundle#config({
-    \ 'mappings': [['n', '<Plug>(crunch-operator'], ['x', '<Plug>(visual-crunch-operator)']],
-    \ 'commands': 'Crunch'
-    \})
-
-    nmap ;c <Plug>(crunch-operator)
-    nmap ;C <Plug>(crunch-operator-line)
-    xmap ;c <Plug>(visual-crunch-operator)
-    " ,c: toggle crunch append
-    nnoremap <silent> ,c
-      \ :<C-u>let g:crunch_result_type_append = !get(g:, 'crunch_result_type_append', 0)<CR>
-        \:echo ' Crunch append: '. (g:crunch_result_type_append == 1 ? 'On' : 'Off')<CR>
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:crunch_result_type_append = get(g:, 'crunch_result_type_append', 0)
-    endfunction
-
-    call neobundle#untap()
-  endif
-
-  if neobundle#tap('selection.vim')
-    call neobundle#config({'augroup': 'SELECTION_MODE'})
-
-    function! neobundle#hooks.on_post_source(bundle)
-      augroup SELECTION_MODE
-        autocmd!
-      augroup END
-      augroup! SELECTION_MODE
-    endfunction
-
-    call neobundle#untap()
-  endif
-
-  if neobundle#tap('zeavim.vim')
-    call neobundle#config({
-    \ 'mappings': [['n', '<Plug>Zeavim'], ['n', '<Plug>ZVKey'], ['v', '<Plug>ZVVisSelection']],
-    \})
-
-    nmap ,z <Plug>Zeavim
-    vmap ,z <Plug>ZVVisSelection
-    nmap ,Z <Plug>ZVKeyword
-    nmap ,1 <Plug>ZVKeyDocset
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:zv_disable_mapping = 1
-      let g:zv_lazy_docset_list = ['PHP', 'JavaScript', 'HTML', 'CSS']
-      let g:zv_zeal_directory = s:is_windows ? 'zeal' : '/usr/bin/zeal'
-    endfunction
-
-    call neobundle#untap()
-  endif
-
   if neobundle#tap('vim-ags')
     call neobundle#config({'commands': ['Ags']})
 
@@ -1345,17 +1300,6 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('replace.vim')
-    call neobundle#config({'mappings': [['nv', '<Plug>ReplaceOperator'], ['nv', '<Plug>ExchangeOperator']]})
-
-    nmap R <Plug>ReplaceOperator
-    vmap R <Plug>ReplaceOperator
-    nmap X <Plug>ExchangeOperator
-    vmap X <Plug>ExchangeOperator
-
-    call neobundle#untap()
-  endif
-
   if neobundle#tap('vim-textobj-delimited')
     call neobundle#config({'mappings': ['vid', 'viD', 'vad', 'vaD']})
     call neobundle#untap()
@@ -1363,6 +1307,42 @@
 
   if neobundle#tap('vim-textobj-xmlattr')
     call neobundle#config({'mappings': ['vix', 'vax']})
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-operator-replace')
+    call neobundle#config({'mappings': [['nv', '<Plug>(operator-replace)']]})
+
+    nmap R <Plug>(operator-replace)
+    vmap R <Plug>(operator-replace)
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-operator-surround')
+    call neobundle#config({'mappings': [['v', '<Plug>(operator-surround-']]})
+
+    vmap sa <Plug>(operator-surround-append)
+    vmap sd <Plug>(operator-surround-delete)
+    vmap sr <Plug>(operator-surround-replace)
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('operator-reverse.vim')
+    call neobundle#config({'mappings': [['v', '<Plug>(operator-reverse-']]})
+
+    vmap <silent> sw <Plug>(operator-reverse-text)
+    vmap <silent> sl <Plug>(operator-reverse-lines)
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-operator-eval')
+    call neobundle#config({'mappings': [['v', '<Plug>(operator-eval-']]})
+
+    vmap <silent> se <Plug>(operator-eval-vim)
+
     call neobundle#untap()
   endif
 
@@ -2206,10 +2186,7 @@
   endif
 
 " Vim
-  AutocmdFT vim Indent 2
-  AutocmdFT vim setl iskeyword+=:
-  " Auto reload VimScript
-  " AutocmdFT vim Autocmd BufWritePost,FileWritePost <buffer> source <afile>
+  AutocmdFT vim setl iskeyword+=: | Indent 2
 
 " GUI
 "---------------------------------------------------------------------------
@@ -2219,8 +2196,8 @@
         " winsize 176 34 | winpos 492 326
     endif
     set guioptions=ac
-    set guicursor=n-v:blinkon0  " turn off blinking the cursor
-    set linespace=3             " extra spaces between rows
+    set guicursor=n-v-c:blinkon0  " turn off blinking the cursor
+    set linespace=3               " extra spaces between rows
 
     " Font
     if s:is_windows
@@ -2291,7 +2268,7 @@
   set laststatus=2
   " Format the statusline
   let &statusline =
-  \  " %3*%L%* %l%3*:%*%v %3*|%* "
+  \  " %3*%L%* %l%3*:%*%v "
   \. "%-0.60t "
   \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
   \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
