@@ -46,7 +46,7 @@
   function! MakeDir(dir, ...) abort
     let dir = expand(a:dir, 1)
     if !isdirectory(dir)
-      \ && (a:0 || input(printf('"%s" does not exist. Create? [y/n]', dir)) =~? '^y\%[es]$')
+      \ && (a:0 || input(printf('"%s" does not exist. Create? [yes/no]', dir)) =~? '^y\%[es]$')
       silent call mkdir(iconv(dir, &encoding, &termencoding), 'p')
     endif
   endfunction
@@ -71,7 +71,7 @@
       let flags = matchstr(join(buf[1:]), '^.*\ze\s\+"')
       let mod = substitute(flags, '\s*', '', 'g')
       let hide = mod ==# 'h' || mod ==# 'h+'
-          \ && (force || input(printf("\n%s not saved.\nDelete anyway? [Y]es, (N)o: ",
+          \ && (force || input(printf("\n%s not saved.\nDelete anyway? [yes/no]: ",
             \ bufname(bufnr))) =~? '^y\%[es]$')
       if hide
         call add(hidden, bufnr)
@@ -104,7 +104,7 @@
   " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
-  command! -bar -nargs=0 GoldenRatio execute 'vertical resize' &columns * 5 / 8
+  command! -bar -nargs=0 GoldenRatio exe 'vertical resize' &columns * 5 / 8
 
 " Events
 "---------------------------------------------------------------------------
@@ -214,11 +214,13 @@
     " Utils
     NeoBundle 'kopischke/vim-stay'
     NeoBundle 'wellle/targets.vim'
+    NeoBundleLazy 'tpope/vim-repeat'
     NeoBundleLazy 'whatyouhide/vim-lengthmatters'
     NeoBundleLazy 'gabesoft/vim-ags'
     NeoBundleLazy 'kshenoy/vim-signature'
     NeoBundleLazy 'Shougo/unite.vim'
     NeoBundleLazy 'Shougo/unite-outline'
+    NeoBundleLazy 'Shougo/junkfile.vim'
     NeoBundleLazy 'osyo-manga/unite-vimpatches'
     NeoBundleLazy 'osyo-manga/unite-quickfix'
     NeoBundleLazy 'osyo-manga/unite-filetype'
@@ -244,16 +246,18 @@
     \}
 
     " Edit
-    NeoBundleLazy 'tyru/caw.vim'
     NeoBundleLazy 'kana/vim-smartword'
     NeoBundleLazy 't9md/vim-smalls'
     NeoBundleLazy 'cohama/lexima.vim'
+    NeoBundleLazy 'tyru/caw.vim'
+    NeoBundleLazy 'tpope/vim-surround'
     NeoBundleLazy 'habamax/vim-skipit'
     NeoBundleLazy 'gcmt/wildfire.vim'
     NeoBundleLazy 'saihoooooooo/glowshi-ft.vim'
     NeoBundleLazy 'junegunn/vim-easy-align'
     NeoBundleLazy 'AndrewRadev/sideways.vim'
     NeoBundleLazy 'osyo-manga/vim-jplus'
+    NeoBundleLazy 'osyo-manga/vim-over'
     NeoBundleLazy 'AndrewRadev/splitjoin.vim'
     NeoBundleLazy 'jakobwesthoff/argumentrewrap'
     NeoBundleLazy 'triglav/vim-visual-increment'
@@ -296,7 +300,6 @@
 
     " Haskell
     NeoBundleLazy 'itchyny/vim-haskell-indent'
-    " NeoBundleLazy 'philopon/haskell-indent.vim'
     NeoBundleLazy 'enomsg/vim-haskellConcealPlus'
     NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal'
     NeoBundleLazy 'eagletmt/ghcmod-vim', {
@@ -531,9 +534,9 @@
 
     " ;[dD]: open vimfiler explrer
     nnoremap <silent> ;d
-      \ :<C-u>VimFiler -split -toggle -invisible -project -no-quit<CR>
+      \ :<C-u>VimFiler -split -invisible -project -no-quit<CR>
     nnoremap <silent> ;D
-      \ :<C-u>VimFiler -split -toggle -invisible -project -force-quit<CR>
+      \ :<C-u>VimFiler -split -invisible -project -force-quit<CR>
     " Shift-Tab: jump to vimfiler window
     nnoremap <silent> <Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
 
@@ -634,13 +637,37 @@
       let g:choosewin_label_align = 'left'
       let g:choosewin_blink_on_land = 0
       let g:choosewin_color_other = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
-      let g:choosewin_color_shade = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
+      " let g:choosewin_color_shade = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
       let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}
       let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}
       let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}
       let g:choosewin_color_overlay = g:choosewin_color_label
       let g:choosewin_color_overlay_current = g:choosewin_color_label_current
     endfunction
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-repeat')
+    call neobundle#config({
+    \ 'mappings': '<Plug>(Repeat',
+    \ 'functions': ['repeat#set', 'repeat#wrap']
+    \})
+
+    " break hasmapto()
+    nnoremap ,<F-10> <Plug>(RepeatUndo)
+    nnoremap ,<F-11> <Plug>(RepeatUndoLine)
+    nnoremap ,<F-12> <Plug>(RepeatRedo)
+
+    nnoremap <silent> <expr> u
+      \ printf(':call repeat#wrap(%s, %d)<CR>:call cursor(%d, %d)<CR>',
+        \ string('u'), v:count, getcurpos()[1], getcurpos()[4])
+    nnoremap <silent> <expr> U
+      \ printf(':call repeat#wrap(%s, %d)<CR>:call cursor(%d, %d)<CR>',
+        \ string('U'), v:count, getcurpos()[1], getcurpos()[4])
+    nnoremap <silent> <expr> <C-R>
+      \ printf(':call repeat#wrap(%s, %d)<CR>:call cursor(%d, %d)<CR>',
+        \ string('\<Lt>C-R>'), v:count, getcurpos()[1], getcurpos()[4])
 
     call neobundle#untap()
   endif
@@ -908,7 +935,7 @@
   endif
 
   if neobundle#tap('vim-brightest')
-    call neobundle#config({'filetypes': ['php', 'javascript']})
+    call neobundle#config({'commands': 'Brightest'})
 
     AutocmdFT php,javascript
       \ nnoremap <silent> <buffer> ,v :<C-u>BrightestToggle<CR>
@@ -917,30 +944,32 @@
     Autocmd Syntax php,javascript
       \ hi BrightestCursorLine guifg=#2B2B2B guibg=#EDE5F4 gui=NONE
 
+    let s:brightest_ignore_syntax_def = [
+    \ 'None', 'Normal', 'Comment', 'Type', 'Keyword', 'Delimiter',
+    \ 'Conditional', 'Statement', 'Constant', 'Number', 'Operator'
+    \]
+
+    " PHP
+    AutocmdFT php BrightestDisable
+      \| let b:brightest_ignore_syntax_list = [
+      \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',
+      \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags', 'phpOperator'
+      \] + s:brightest_ignore_syntax_def
+
+    " JavaScript
+    AutocmdFT javascript BrightestDisable
+      \| let b:brightest_ignore_syntax_list = [
+      \ '', 'javascriptVariable', 'javaScriptBraces', 'javaScriptParens', 'javascriptReturn', 'javascriptBlock',
+      \ 'javascriptFuncCallArg', 'javascriptArrowFuncDef', 'javascriptDotNotation', 'javascriptOperator',
+      \ 'javaScriptRegexpString', 'javascriptObjectLiteral', 'javascriptArray', 'javaScriptBoolean'
+      \] + s:brightest_ignore_syntax_def
+
     function! neobundle#hooks.on_source(bundle)
       let g:brightest#enable_filetypes = {'_': 0}
       let g:brightest#enable_filetypes.php = 1
       let g:brightest#enable_filetypes.javascript = 1
       let g:brightest#enable_highlight_all_window = 0
       let g:brightest#highlight = {'group': 'BrightestCursorLine', 'priority': -1}
-
-      let s:brightest_ignore_syntax_def = [
-      \ 'None', 'Normal', 'Comment', 'Type', 'Keyword', 'Delimiter',
-      \ 'Conditional', 'Statement', 'Constant', 'Number', 'Operator'
-      \]
-
-      " PHP
-      AutocmdFT php let b:brightest_ignore_syntax_list = [
-        \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',
-        \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags', 'phpOperator'
-        \] + s:brightest_ignore_syntax_def
-
-      " JavaScript
-      AutocmdFT javascript let b:brightest_ignore_syntax_list = [
-        \ '', 'javascriptVariable', 'javaScriptBraces', 'javaScriptParens', 'javascriptReturn', 'javascriptBlock',
-        \ 'javascriptFuncCallArg', 'javascriptArrowFuncDef', 'javascriptDotNotation', 'javascriptOperator',
-        \ 'javaScriptRegexpString', 'javascriptObjectLiteral', 'javascriptArray', 'javaScriptBoolean'
-        \] + s:brightest_ignore_syntax_def
     endfunction
 
     call neobundle#untap()
@@ -981,10 +1010,13 @@
       let g:caw_no_default_keymappings = 1
       let g:caw_i_skip_blank_line = 1
 
-      nmap <expr> q v:count >= 2
-        \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle)%dl', (v:count-1), col('.'))
+      nmap <silent> <expr> q v:count >= 2
+        \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle):call cursor(%d, %d)<CR>',
+          \ (v:count-1), getcurpos()[1], getcurpos()[4])
         \ : '<Plug>(caw:i:toggle)'
-      xmap <expr> q printf('<Plug>(caw:i:toggle)%dl', col('.'))
+      xmap <silent> <expr> q
+        \ printf('<Plug>(caw:i:toggle):call cursor(%d, %d)<CR>', getcurpos()[1], getcurpos()[4])
+
       nmap ,q <Plug>(caw:jump:comment-prev)
       nmap ,w <Plug>(caw:jump:comment-next)
       nmap ,a <Plug>(caw:a:toggle)
@@ -1001,6 +1033,14 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-over')
+    call neobundle#config({'commands': 'OverCommandLine'})
+
+    nnoremap <silent> ;/ :<C-u>OverCommandLine<CR>
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-jplus')
     call neobundle#config({'mappings': [['nv', '<Plug>']]})
 
@@ -1010,6 +1050,13 @@
     vmap ,j <Plug>(jplus-input)
     nmap ,J <Plug>(jplus-getchar)
     vmap ,J <Plug>(jplus-getchar)
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:jplus#config = get(g:, 'jplus#config', {})
+      let g:jplus#config = {
+      \ 'php': {'delimiter_format': ''}
+      \}
+    endfunction
 
     call neobundle#untap()
   endif
@@ -1109,13 +1156,6 @@
           \})
       endfor | unlet pair
 
-      " Delete whole pair
-      for pa in ['()', '[]', '{}', '<>']
-        let epa = escape(pa, '[]')
-        call lexima#add_rule({'char': '<BS>','at': epa[0].'\s\+'.epa[1].'\%#', 'input': '<C-o>di'.pa[0]})
-        call lexima#add_rule({'char': '<BS>', 'at': epa.'\%#', 'input': '<BS><BS>'})
-      endfor | unlet pa
-
       " Quotes
       for quote in ['"', "'"]
         call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
@@ -1123,6 +1163,12 @@
         call lexima#add_rule({'char': '<BS>', 'at': '\(.......\)\?'. quote .'\%#'. quote, 'delete': 1})
         call s:disable_lexima_inside_regexp(quote)
       endfor | unlet quote
+
+      " Comma
+      call lexima#add_rule({
+      \ 'filetype': ['php', 'javascript'],
+      \ 'at': '\%#', 'char': ',', 'input': "<C-r>=smartchr#loop(', ', ',')<CR>"
+      \})
 
       " { <CR> }
       call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
@@ -1166,13 +1212,13 @@
       " Attributes
       call lexima#add_rule({
       \ 'filetype': ['html', 'twig', 'html.twig', 'xml'],
-      \ 'char': '=', 'at': '\(........\)\?<.\+\%#', 'input': '=""<Left>'
+      \ 'at': '\(........\)\?<.\+\%#', 'char': '=', 'input': '=""<Left>'
       \})
 
       " /* */
       call lexima#add_rule({
       \ 'filetype': 'css',
-      \ 'at': '/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
+      \ 'at': '\(........\)\?/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
       \})
     endfunction
 
@@ -1212,9 +1258,9 @@
     \ ['and', 'or'],
     \ ['public', 'protected', 'private'],
     \ ['extends', 'implements'],
+    \ ['string ', 'int ', 'array '],
     \ ['use', 'namespace'],
     \ ['var_dump', 'print_r'],
-    \ ['array', 'string'],
     \ ['include', 'require'], ['include_once', 'require_once'],
     \ ['$_GET', '$_POST', '$_REQUEST'],
     \ {
@@ -1224,6 +1270,10 @@
     \ {
     \   '\[[''"]\(\k\+\)[''"]\]': '->\1',
     \   '\->\(\k\+\)': '[''\1'']'
+    \},
+    \ {
+    \   '\array(\(.\{-}\))': '[\1]',
+    \   '\[\(.\{-}\)]': '\array(\1)',
     \}
     \]
 
@@ -1342,6 +1392,26 @@
     call neobundle#config({'mappings': [['v', '<Plug>(operator-eval-']]})
 
     vmap <silent> se <Plug>(operator-eval-vim)
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-surround')
+    call neobundle#config({'mappings': [['n', '<Plug>Csurround']]})
+
+    nmap ,I <Plug>Csurround
+    nmap ,' ,Iw'
+    nmap ," ,Iw"
+    nmap ,( ,Iw(
+    nmap ,) ,Iw)
+    nmap ,{ ,Iw{
+    nmap ,} ,Iw}
+    nmap ,[ ,Iw[
+    nmap ,] ,Iw]
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:surround_no_mappings = 1
+    endfunction
 
     call neobundle#untap()
   endif
@@ -1727,6 +1797,19 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('junkfile.vim')
+    call neobundle#config({'unite_sources': ['junkfile', 'junkfile/new']})
+
+    nnoremap ,sj :<C-u>JunkfileOpen<CR>
+    nnoremap <silent> ,sJ :<C-u>Unite junkfile/new junkfile -split<CR>
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:junkfile#directory = $VIMFILES.'/cache/junkfile'
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('unite-tag')
     AutocmdFT php,javascript call s:uniteTagMappings()
 
@@ -1770,10 +1853,6 @@
 " Haskell
   " Indent
   AutocmdFT haskell setl nowrap | Indent 4 |
-  if neobundle#tap('haskell-indent.vim')
-    call neobundle#config({'filetypes': 'haskell'})
-    call neobundle#untap()
-  endif
   if neobundle#tap('vim-haskell-indent')
     call neobundle#config({'filetypes': 'haskell'})
     call neobundle#untap()
@@ -1992,6 +2071,12 @@
   " Syntax
   if neobundle#tap('html5.vim')
     call neobundle#config({'filetypes': ['html', 'twig', 'html.twig']})
+
+    function! neobundle#hooks.on_source(bundle)
+      hi link htmlError    htmlTag
+      hi link htmlTagError htmlTag
+    endfunction
+
     call neobundle#untap()
   endif
   if neobundle#tap('MatchTag')
@@ -2429,7 +2514,7 @@
   "-----------------------------------------------------------------------
   " <Space>1-9: jumps to a tab number
   for n in range(1, 9)
-    exe printf('nnoremap <silent> <Space>%d %dgt', n, n)
+    exe printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
   endfor | unlet n
   " <Space>a: previous tab
   nnoremap <silent> <Space>a :<C-u>tabprev<CR>
@@ -2572,8 +2657,6 @@
   " Ctrl-[jk]: scroll up/down
   xnoremap <C-j> <C-d>
   xnoremap <C-k> <C-u>
-  " .: repeat command for each line
-  vnoremap . :normal .<CR>
   " @: repeat macro for each line
   vnoremap @ :normal @
   " [yY]: keep cursor position when yanking
