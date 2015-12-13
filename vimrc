@@ -275,21 +275,18 @@
     \ 'on_func': 'quickrun#',
     \ 'on_cmd': 'QuickRun'
     \}
-    " vim-quickrun: outputters
-    let b:quickrun_config = {
-    \ 'script_type': 'outputter',
-    \ 'rtp': $VIMFILES.'/bundle/quickrun-bundle',
-    \ 'on_source': 'vim-quickrun'
-    \}
-    NeoBundleLazy 'gist:4bcb307e2ef4085daa84', extend(b:quickrun_config, {
-    \ 'directory': 'quickrun-rebuffer/autoload/quickrun'
-    \})
-    NeoBundleLazy 'gist:f5403bed728ccf1d09a0', extend(b:quickrun_config, {
-    \ 'directory': 'quickrun-reopen/autoload/quickrun'
-    \})
-    NeoBundleLazy 'gist:32b0a3723da7ee75e583', extend(b:quickrun_config, {
-    \ 'directory': 'quickrun-phpunit/autoload/quickrun'
-    \})
+    " vim-quickrun bundles
+    function! QuickrunBundle(bundle, type)
+      return {
+      \ 'directory': 'quickrun-'. a:bundle .'/autoload/quickrun',
+      \ 'rtp': $VIMFILES.'/bundle/quickrun-'. a:bundle,
+      \ 'script_type': a:type,
+      \ 'on_source': 'vim-quickrun'
+      \}
+    endfunction
+    NeoBundleLazy 'gist:4bcb307e2ef4085daa84', QuickrunBundle('rebuffer', 'outputter')
+    NeoBundleLazy 'gist:f5403bed728ccf1d09a0', QuickrunBundle('reopen', 'outputter')
+    NeoBundleLazy 'gist:32b0a3723da7ee75e583', QuickrunBundle('phpunit', 'outputter')
 
     " Edit
     NeoBundleLazy 'kana/vim-smartword', {
@@ -351,7 +348,7 @@
     NeoBundleLazy 'Shougo/neocomplete.vim', {
     \ 'disabled': !has('lua'),
     \ 'depends': [
-    \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax', 
+    \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax',
     \   'Shougo/neoinclude.vim', 'Shougo/neopairs.vim'
     \ ],
     \ 'on_i': 1
@@ -793,7 +790,7 @@
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
 
     Autocmd BufEnter,WinEnter runner:*
-      \ let &l:statusline = ' ' | setl nonu nornu nolist colorcolumn= 
+      \ let &l:statusline = ' ' | setl nonu nornu nolist colorcolumn=
 
     function! s:quickrunType(type, ...) abort
       let g:quickrun_config = get(g:, 'quickrun_config', {})
@@ -1446,6 +1443,9 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
+      call neocomplete#custom#source('_', 'converters',
+      \ ['converter_add_paren', 'converter_remove_overlap', 'converter_delimiter', 'converter_abbr']
+      \)
 
       " Sources
       let g:neocomplete#sources = {
@@ -1463,8 +1463,7 @@
       \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
       \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
       \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
-      \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]',
-      \ 'html':       '<[^>]*'
+      \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
       \}
     endfunction
 
@@ -1912,7 +1911,6 @@
   endif
 
 " HTML
-  Autocmd BufNewFile,BufRead *.{tag} set filetype=javascript syntax=html
   AutocmdFT html Indent 2
   AutocmdFT html iabbrev <buffer> & &amp;
   " Syntax
@@ -1983,7 +1981,7 @@
   " Syntax
   AutocmdFT twig setl commentstring={#<!--%s-->#}
   if neobundle#tap('twig.vim')
-    AutocmdFT twig runtime! syntax/html.vim
+    Autocmd Syntax twig runtime! syntax/html.vim
 
     call neobundle#untap()
   endif
@@ -2152,7 +2150,7 @@
   set laststatus=2
   " Format the statusline
   let &statusline =
-  \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\ %)%*"
+  \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
   \. "%l%3*:%*%v "
   \. "%-0.60t "
   \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
@@ -2530,7 +2528,10 @@
   nnoremap ( F(
 
   " #: keep search pattern at the center of the screen
-  nnoremap <silent># #zz
+  " nnoremap <silent> # #zz
+
+  " #: jump to alternate buffer
+  nnoremap <silent> # <C-^>
 
   " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
   nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
