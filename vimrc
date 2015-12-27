@@ -511,19 +511,23 @@
     NeoBundleLazy 'ekalinin/Dockerfile.vim', {
     \ 'on_path': 'Dockerfile$'
     \}
-
-    " NeoBundleCheck
-    NeoBundleSaveCache
   endfunction
 
   call neobundle#begin($VIMFILES.'/bundle')
-  if neobundle#load_cache()
+  if neobundle#load_cache(expand('<sfile>'))
     call s:cacheBundles()
+
+    NeoBundleSaveCache
   endif
   call neobundle#end()
 
   filetype plugin indent on
   if !exists('g:syntax_on')| syntax on |endif
+
+  if !has('vim_starting')
+    " Installation check
+    NeoBundleCheck
+  endif
 
 " Bundle settings
 "---------------------------------------------------------------------------
@@ -666,7 +670,7 @@
     endfunction
 
     " Vimfiler tuning
-    AutocmdFT vimfiler let b:vimfiler.statusline = ' '
+    AutocmdFT vimfiler let &l:statusline = ' '
     Autocmd BufEnter,WinEnter vimfiler:*
       \ setl cursorline nonu nornu nolist cursorline colorcolumn=
     Autocmd BufLeave,WinLeave vimfiler:* setl nocursorline
@@ -711,7 +715,7 @@
       let g:unite_kind_file_use_trashbox = s:is_windows
 
       let g:vimfiler_ignore_pattern =
-        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|vendor\|node_modules\)$'
+        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|vendor\|node_modules\)$'
 
       " Icons
       let g:vimfiler_file_icon = ' '
@@ -822,6 +826,10 @@
       \ 'outputter/buffer/filetype': 'json',
       \ 'outputter/buffer/running_mark': '...'
       \}
+      let g:quickrun_config['javascript/formatter'] = {
+      \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+      \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
+      \}
 
       " CSS
       let g:quickrun_config['css/formatter'] = {
@@ -906,7 +914,7 @@
       \ 'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
       \ 'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0},
       \ ';': {'pattern': ':', 'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1},
-      \ '=': {'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-]*=[#?]\?\|[-=]>\|<[-=]', 'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0}
+      \ '=': {'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]', 'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0}
       \}
     endfunction
 
@@ -1370,35 +1378,19 @@
       let g:context_filetype#search_offset = 500
 
       function! s:addContext(filetype, rule)
-        let context_ft_def = context_filetype#default_filetypes()
-        let g:context_filetype#filetypes[a:filetype] = add(context_ft_def.html, a:rule)
+        let context_ft_def = get(context_filetype#default_filetypes(), a:filetype, [])
+        let g:context_filetype#filetypes[a:filetype] = add(context_ft_def, a:rule)
       endfunction
 
       " CSS
       let s:context_ft_css = {
-      \ 'start':    '<style>',
+      \ 'start':    '<script\%( [^>]*\)\?>',
       \ 'end':      '</style>',
-      \ 'filetype': 'css',
+      \ 'filetype': 'css'
       \}
       for filetype in ['html', 'twig']
         call s:addContext(filetype, s:context_ft_css)
       endfor | unlet filetype
-
-      " Coffee script
-      let s:context_ft_coffee = {
-      \ 'start':    '<script\%( [^>]*\)\? type="text/coffee"\%( [^>]*\)\?>',
-      \ 'end':      '</script>',
-      \ 'filetype': 'coffee',
-      \}
-      call s:addContext('html', s:context_ft_coffee)
-
-      " JSX (React.js)
-      let s:context_ft_jsx = {
-      \ 'start':    '<script\%( [^>]*\)\? type="text/jsx"\%( [^>]*\)\?>',
-      \ 'end':      '</script>',
-      \ 'filetype': 'javascript',
-      \}
-      call s:addContext('html', s:context_ft_jsx)
     endfunction
 
     call neobundle#untap()
@@ -2528,10 +2520,10 @@
   nnoremap ( F(
 
   " #: keep search pattern at the center of the screen
-  " nnoremap <silent> # #zz
+  nnoremap <silent> # #zz
 
   " #: jump to alternate buffer
-  nnoremap <silent> # <C-^>
+  " nnoremap <silent> # <C-^>
 
   " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
   nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
