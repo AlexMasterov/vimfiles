@@ -1,4 +1,4 @@
-" .vimrc / 2015 Dec.
+" .vimrc / 2016 Yan.
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -66,8 +66,7 @@
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
   command! -bar -nargs=* Indent
     \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
-  command! -nargs=* FontSize
-    \ let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
+  command! -nargs=* FontSize let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
   command! -nargs=* Mkdir call MakeDir(<f-args>)
   " Strip trailing whitespace at the end of non-blank lines
   command! -bar -nargs=* -complete=file FixWhitespace f <args>|call s:trimWhiteSpace()
@@ -174,115 +173,115 @@
     NeoBundleFetch 'Shougo/neobundle.vim'
     " Local plugins for doing development
     NeoBundle 'dotvim', {
-    \ 'type': 'none',
-    \ 'base': expand('$VIMFILES/dev')
-    \}
-    NeoBundle 'gist:10e5ac169ba9617fe431', {
-    \ 'name': 'tabline.vim',
-    \ 'script_type': 'plugin'
-    \}
+      \ 'type': 'none',
+      \ 'base': expand('$VIMFILES/dev')
+      \}
+    NeoBundle 'gist:da64501bb2f20893737d', {
+      \ 'name': 'tabline.vim',
+      \ 'script_type': 'plugin'
+      \}
     NeoBundleLazy 'gist:da5cd633829166d9fac9', {
-    \ 'name': 'hiddenBuffersLimit.vim',
-    \ 'script_type': 'plugin',
-    \ 'on_cmd': 'CleanBuffers'
-    \}
+      \ 'name': 'hiddenBuffersLimit.vim',
+      \ 'script_type': 'plugin',
+      \ 'on_cmd': 'CleanBuffers'
+      \}
     NeoBundleLazy 'ternjs.vim', {
-    \ 'type': 'none',
-    \ 'base': expand('$VIMFILES/dev'),
-    \ 'on_func': 'ternjs#Complete',
-    \ 'on_cmd': ['TernjsRun', 'TernjsStop']
-    \}
+      \ 'type': 'none',
+      \ 'base': expand('$VIMFILES/dev'),
+      \ 'on_func': 'ternjs#Complete',
+      \ 'on_cmd': ['TernjsRun', 'TernjsStop']
+      \}
 
     NeoBundleLazy 'Shougo/vimproc.vim', {
-    \ 'build': {
-    \   'mac':     'make -f make_mac.mak',
-    \   'unix':    'make -f make_unix.mak',
-    \   'windows': 'tools\\update-dll-mingw'
-    \}}
+      \ 'build': {
+      \   'mac':     'make -f make_mac.mak',
+      \   'unix':    'make -f make_unix.mak',
+      \   'windows': 'tools\\update-dll-mingw'
+      \}}
 
     " Utils
     NeoBundle 'kopischke/vim-stay'
     NeoBundle 'wellle/targets.vim'
     NeoBundleLazy 'osyo-manga/vim-reanimate', {
-    \ 'on_unite': ['reanimate', 'reanimate_load', 'reanimate_save', 'reanimate_new_save']
-    \}
+      \ 'on_unite': ['reanimate', 'reanimate_load', 'reanimate_save', 'reanimate_new_save']
+      \}
     NeoBundleLazy 'tpope/vim-repeat', {
-    \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']],
-    \ 'on_func': 'repeat#'
-    \}
+      \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']],
+      \ 'on_func': 'repeat#'
+      \}
     NeoBundleLazy 'whatyouhide/vim-lengthmatters', {
-    \ 'on_cmd': 'Lengthmatters'
-    \}
+      \ 'on_cmd': 'Lengthmatters'
+      \}
     NeoBundleLazy 'gabesoft/vim-ags', {
-    \ 'on_cmd': 'Ags'
-    \}
+      \ 'on_cmd': 'Ags'
+      \}
     NeoBundleLazy 'kshenoy/vim-signature', {
-    \ 'on_cmd': 'SignatureRefresh'
-    \}
+      \ 'on_cmd': 'SignatureRefresh'
+      \}
     NeoBundleLazy 'Shougo/unite.vim', {
-    \ 'pre_cmd': 'Unite',
-    \ 'on_cmd': [
-    \   {'name': ['Unite', 'UniteResume'], 'complete': 'customlist,unite#complete#source'},
-    \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
-    \]}
+      \ 'pre_cmd': 'Unite',
+      \ 'on_cmd': [
+      \   {'name': ['Unite', 'UniteResume'], 'complete': 'customlist,unite#complete#source'},
+      \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
+      \]}
     NeoBundleLazy 'Shougo/unite-outline'
     NeoBundleLazy 'osyo-manga/unite-vimpatches'
     NeoBundleLazy 'osyo-manga/unite-quickfix'
     NeoBundleLazy 'osyo-manga/unite-filetype'
     NeoBundleLazy 'tsukkee/unite-tag'
     NeoBundleLazy 'thinca/vim-qfreplace', {
-    \ 'on_ft': 'unite'
-    \}
+      \ 'on_ft': 'unite'
+      \}
     NeoBundleLazy 'Shougo/junkfile.vim', {
-    \ 'on_unite': ['junkfile', 'junkfile/new']
-    \}
+      \ 'on_unite': ['junkfile', 'junkfile/new']
+      \}
     NeoBundleLazy 'mattn/httpstatus-vim', {
-    \ 'on_unite': 'httpstatus'
-    \}
+      \ 'on_unite': 'httpstatus'
+      \}
     NeoBundleLazy 'Shougo/neomru.vim', {
-    \ 'on_unite': ['neomru/file', 'neomru/directory'],
-    \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload']
-    \}
+      \ 'on_unite': ['neomru/file', 'neomru/directory'],
+      \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload']
+      \}
     NeoBundleLazy 'tpope/vim-characterize', {
-    \ 'on_map': [['nx', '<Plug>(characterize)']]
-    \}
+      \ 'on_map': [['nx', '<Plug>(characterize)']]
+      \}
     NeoBundleLazy 'kana/vim-altr', {
-    \ 'on_func': 'altr#define',
-    \ 'on_map': '<Plug>(altr-'
-    \}
+      \ 'on_func': 'altr#define',
+      \ 'on_map': '<Plug>(altr-'
+      \}
     NeoBundleLazy 'mbbill/undotree', {
-    \ 'on_cmd': 'UndotreeToggle'
-    \}
+      \ 'on_cmd': 'UndotreeToggle'
+      \}
     NeoBundleLazy 't9md/vim-choosewin', {
-    \ 'on_map': [['n', '<Plug>(choosewin)']]
-    \}
+      \ 'on_map': [['n', '<Plug>(choosewin)']]
+      \}
     NeoBundleLazy 'Shougo/vimfiler.vim', {
-    \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir']
-    \}
+      \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir']
+      \}
     NeoBundleLazy 'tpope/vim-projectionist', {
-    \ 'on_func': 'ProjectionistDetect'
-    \}
+      \ 'on_func': 'ProjectionistDetect'
+      \}
     NeoBundleLazy 'lilydjwg/colorizer', {
-    \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear']
-    \}
+      \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear']
+      \}
     NeoBundleLazy 'osyo-manga/vim-brightest', {
-    \ 'on_cmd': 'Brightest'
-    \}
+      \ 'on_cmd': 'Brightest'
+      \}
 
     NeoBundleLazy 'thinca/vim-quickrun', {
-    \ 'depends': 'Shougo/vimproc.vim',
-    \ 'on_map': [['n', '<Plug>(quickrun)']],
-    \ 'on_func': 'quickrun#',
-    \ 'on_cmd': 'QuickRun'
-    \}
+      \ 'depends': 'Shougo/vimproc.vim',
+      \ 'on_map': [['n', '<Plug>(quickrun)']],
+      \ 'on_func': 'quickrun#',
+      \ 'on_cmd': 'QuickRun'
+      \}
     " vim-quickrun bundles
     function! QuickrunBundle(bundle, type)
       return {
-      \ 'directory': 'quickrun-'. a:bundle .'/autoload/quickrun',
-      \ 'rtp': $VIMFILES.'/bundle/quickrun-'. a:bundle,
-      \ 'script_type': a:type,
-      \ 'on_source': 'vim-quickrun'
-      \}
+        \ 'directory': 'quickrun-'. a:bundle .'/autoload/quickrun',
+        \ 'rtp': $VIMFILES.'/bundle/quickrun-'. a:bundle,
+        \ 'script_type': a:type,
+        \ 'on_source': 'vim-quickrun'
+        \}
     endfunction
     NeoBundleLazy 'gist:4bcb307e2ef4085daa84', QuickrunBundle('rebuffer', 'outputter')
     NeoBundleLazy 'gist:f5403bed728ccf1d09a0', QuickrunBundle('reopen', 'outputter')
@@ -290,227 +289,226 @@
 
     " Edit
     NeoBundleLazy 'kana/vim-smartword', {
-    \ 'on_map': [['nv', '<Plug>(smartword-']]
-    \}
+      \ 'on_map': [['nv', '<Plug>(smartword-']]
+      \}
     NeoBundleLazy 't9md/vim-smalls', {
-    \ 'on_map': [['n', '<Plug>(smalls']]
-    \}
+      \ 'on_map': [['n', '<Plug>(smalls']]
+      \}
     NeoBundleLazy 'tyru/caw.vim', {
-    \ 'on_map': [['nv', '<Plug>(caw:']]
-    \}
+      \ 'on_map': [['nv', '<Plug>(caw:']]
+      \}
     NeoBundleLazy 'cohama/lexima.vim', {
-    \ 'on_i': 1
-    \}
+      \ 'on_i': 1
+      \}
     NeoBundleLazy 'tpope/vim-surround', {
-    \ 'on_map': [['n', '<Plug>Csurround']]
-    \}
+      \ 'on_map': [['n', '<Plug>Csurround']]
+      \}
     NeoBundleLazy 'habamax/vim-skipit', {
-    \ 'on_map': [['i', '<Plug>Skip']]
-    \}
+      \ 'on_map': [['i', '<Plug>Skip']]
+      \}
     NeoBundleLazy 'gcmt/wildfire.vim', {
-    \ 'on_map': '<Plug>(wildfire-'
-    \}
+      \ 'on_map': '<Plug>(wildfire-'
+      \}
     NeoBundleLazy 'saihoooooooo/glowshi-ft.vim', {
-    \ 'on_map': '<Plug>(glowshi-'
-    \}
+      \ 'on_map': '<Plug>(glowshi-'
+      \}
     NeoBundleLazy 'junegunn/vim-easy-align', {
-    \ 'on_map': [['nx', '<Plug>(EasyAlign)']]
-    \}
+      \ 'on_map': [['nx', '<Plug>(EasyAlign)']]
+      \}
     NeoBundleLazy 'AndrewRadev/sideways.vim', {
-    \ 'on_cmd': 'Sideways'
-    \}
+      \ 'on_cmd': 'Sideways'
+      \}
     NeoBundleLazy 'osyo-manga/vim-jplus', {
-    \ 'on_map': [['nv', '<Plug>']]
-    \}
+      \ 'on_map': [['nv', '<Plug>']]
+      \}
     NeoBundleLazy 'osyo-manga/vim-over', {
-    \ 'on_cmd': 'OverCommandLine'
-    \}
+      \ 'on_cmd': 'OverCommandLine'
+      \}
     NeoBundleLazy 'AndrewRadev/splitjoin.vim', {
-    \ 'on_cmd': 'SplitjoinSplit'
-    \}
+      \ 'on_cmd': 'SplitjoinSplit'
+      \}
     NeoBundleLazy 'jakobwesthoff/argumentrewrap', {
-    \ 'on_func': 'argumentrewrap#RewrapArguments'
-    \}
+      \ 'on_func': 'argumentrewrap#RewrapArguments'
+      \}
     NeoBundleLazy 'triglav/vim-visual-increment', {
-    \ 'on_map': [['x', '<Plug>Visual']]
-    \}
+      \ 'on_map': [['x', '<Plug>Visual']]
+      \}
     NeoBundleLazy 'AndrewRadev/switch.vim', {
-    \ 'on_func': 'switch#Switch',
-    \ 'on_cmd': 'Switch'
-    \}
+      \ 'on_func': 'switch#Switch',
+      \ 'on_cmd': 'Switch'
+      \}
     NeoBundleLazy 'kana/vim-smartchr', {
-    \ 'on_func': 'smartchr#loop'
-    \}
+      \ 'on_func': 'smartchr#loop'
+      \}
     NeoBundleLazy 'Shougo/context_filetype.vim'
     NeoBundleLazy 'Shougo/neoinclude.vim'
     NeoBundleLazy 'Shougo/neco-syntax'
     NeoBundleLazy 'Shougo/neopairs.vim'
     NeoBundleLazy 'Shougo/neocomplete.vim', {
-    \ 'disabled': !has('lua'),
-    \ 'depends': [
-    \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax',
-    \   'Shougo/neoinclude.vim', 'Shougo/neopairs.vim'
-    \ ],
-    \ 'on_i': 1
-    \}
+      \ 'disabled': !has('lua'),
+      \ 'depends': [
+      \   'Shougo/context_filetype.vim', 'Shougo/neco-syntax',
+      \   'Shougo/neoinclude.vim', 'Shougo/neopairs.vim'
+      \ ],
+      \ 'on_i': 1
+      \}
     NeoBundleLazy 'SirVer/ultisnips', {
-    \ 'disabled': !has('python'),
-    \ 'on_func': 'UltiSnips#',
-    \ 'on_i': 1
-    \}
+      \ 'disabled': !has('python'),
+      \ 'on_func': 'UltiSnips#',
+      \ 'on_i': 1
+      \}
 
     " Text objects
     NeoBundleLazy 'kana/vim-textobj-user'
     NeoBundleLazy 'machakann/vim-textobj-delimited', {
-    \ 'depends': 'kana/vim-textobj-user',
-    \ 'on_map': ['vid', 'viD', 'vad', 'vaD']
-    \}
+      \ 'depends': 'kana/vim-textobj-user',
+      \ 'on_map': ['vid', 'viD', 'vad', 'vaD']
+      \}
     NeoBundleLazy 'whatyouhide/vim-textobj-xmlattr', {
-    \ 'depends': 'kana/vim-textobj-user',
-    \ 'on_map': ['vix', 'vax']
-    \}
+      \ 'depends': 'kana/vim-textobj-user',
+      \ 'on_map': ['vix', 'vax']
+      \}
     NeoBundleLazy 'tommcdo/vim-exchange', {
-    \ 'on_map': [['nv', '<Plug>(Exchange']]
-    \}
+      \ 'on_map': [['nv', '<Plug>(Exchange']]
+      \}
 
     " Operators
     NeoBundleLazy 'kana/vim-operator-user'
     NeoBundleLazy 'kana/vim-operator-replace', {
-    \ 'depends': 'kana/vim-operator-user',
-    \ 'on_map': [['nv', '<Plug>(operator-replace)']]
-    \}
+      \ 'depends': 'kana/vim-operator-user',
+      \ 'on_map': [['nv', '<Plug>(operator-replace)']]
+      \}
     NeoBundleLazy 'rhysd/vim-operator-surround', {
-    \ 'depends': 'kana/vim-operator-user',
-    \ 'on_map': [['v', '<Plug>(operator-surround-']]
-    \}
+      \ 'depends': 'kana/vim-operator-user',
+      \ 'on_map': [['v', '<Plug>(operator-surround-']]
+      \}
     NeoBundleLazy 'tyru/operator-reverse.vim', {
-    \ 'depends': 'kana/vim-operator-user',
-    \ 'on_map': [['v', '<Plug>(operator-reverse-']]
-    \}
+      \ 'depends': 'kana/vim-operator-user',
+      \ 'on_map': [['v', '<Plug>(operator-reverse-']]
+      \}
     NeoBundleLazy 'kusabashira/vim-operator-eval', {
-    \ 'depends': 'kana/vim-operator-user',
-    \ 'on_map': [['v', '<Plug>(operator-eval-']]
-    \}
+      \ 'depends': 'kana/vim-operator-user',
+      \ 'on_map': [['v', '<Plug>(operator-eval-']]
+      \}
+    NeoBundleLazy 'haya14busa/vim-operator-flashy', {
+      \ 'depends': 'kana/vim-operator-user',
+      \ 'on_map': [['n', '<Plug>(operator-flashy)']]
+      \}
 
     " Haskell
     NeoBundleLazy 'itchyny/vim-haskell-indent', {
-    \ 'on_ft': 'haskell'
-    \}
+      \ 'on_ft': 'haskell'
+      \}
     NeoBundleLazy 'enomsg/vim-haskellConcealPlus', {
-    \ 'on_ft': 'haskell'
-    \}
+      \ 'on_ft': 'haskell'
+      \}
     NeoBundleLazy 'Twinside/vim-syntax-haskell-cabal', {
-    \ 'on_path': '\.cabal$'
-    \}
+      \ 'on_path': '\.cabal$'
+      \}
     NeoBundleLazy 'eagletmt/ghcmod-vim', {
-    \ 'disabled': !executable('ghc-mod'),
-    \ 'on_cmd': ['GhcModCheck', 'GhcModLint', 'GhcModCheckAndLintAsync']
-    \}
+      \ 'disabled': !executable('ghc-mod'),
+      \ 'on_cmd': ['GhcModCheck', 'GhcModLint', 'GhcModCheckAndLintAsync']
+      \}
     NeoBundleLazy 'eagletmt/neco-ghc', {
-    \ 'disabled': !executable('ghc-mod'),
-    \ 'on_func': 'necoghc#omnifunc'
-    \}
+      \ 'disabled': !executable('ghc-mod'),
+      \ 'on_func': 'necoghc#omnifunc'
+      \}
 
     " PHP
     NeoBundleLazy '2072/PHP-Indenting-for-VIm', {
-    \ 'on_ft': 'php'
-    \}
+      \ 'on_ft': 'php'
+      \}
     NeoBundleLazy 'shawncplus/phpcomplete.vim', {
-    \ 'on_func': 'phpcomplete#CompletePHP'
-    \}
+      \ 'on_func': 'phpcomplete#CompletePHP'
+      \}
     NeoBundleLazy 'tobyS/vmustache'
     NeoBundleLazy 'tobyS/pdv', {
-    \ 'depends': 'tobyS/vmustache',
-    \ 'on_func': 'pdv#'
-    \}
+      \ 'depends': 'tobyS/vmustache',
+      \ 'on_func': 'pdv#'
+      \}
     NeoBundleLazy 'mkusher/padawan.vim', {
-    \ 'type': 'none',
-    \ 'on_func': 'padawan#Complete'
-    \}
+      \ 'type': 'none',
+      \ 'on_func': 'padawan#Complete'
+      \}
     " NeoBundleLazy 'joonty/vdebug', {
-    " \ 'on_ft': 'php'
-    " \}
+    "   \ 'on_ft': 'php'
+    "   \}
 
     " JavaScript
     NeoBundleLazy 'othree/yajs.vim', {
-    \ 'on_ft': 'javascript'
-    \}
+      \ 'on_ft': 'javascript'
+      \}
     NeoBundleLazy 'othree/es.next.syntax.vim', {
-    \ 'on_ft': 'javascript'
-    \}
+      \ 'on_ft': 'javascript'
+      \}
     NeoBundleLazy 'gavocanov/vim-js-indent', {
-    \ 'on_ft': 'javascript'
-    \}
+      \ 'on_ft': 'javascript'
+      \}
     NeoBundleLazy 'heavenshell/vim-jsdoc', {
-    \ 'on_map': [['n', '<Plug>(jsdoc)']]
-    \}
+      \ 'on_map': [['n', '<Plug>(jsdoc)']]
+      \}
 
     " HTML
     NeoBundleLazy 'alvan/vim-closetag'
     NeoBundleLazy 'gregsexton/MatchTag', {
-    \ 'on_ft': ['html', 'twig', 'xml']
-    \}
+      \ 'on_ft': ['html', 'twig', 'xml']
+      \}
     NeoBundleLazy 'othree/html5.vim', {
-    \ 'on_ft': ['html', 'twig']
-    \}
+      \ 'on_ft': ['html', 'twig']
+      \}
     NeoBundleLazy 'mattn/emmet-vim', {
-    \ 'on_map': [['i', '<Plug>(emmet-']]
-    \}
+      \ 'on_map': [['i', '<Plug>(emmet-']]
+      \}
 
     " Twig
     NeoBundle 'https://raw.githubusercontent.com/qbbr/vim-twig/master/syntax/twig.vim', {
-    \ 'script_type': 'syntax',
-    \}
+      \ 'script_type': 'syntax',
+      \}
     NeoBundleLazy 'tokutake/twig-indent', {
-    \ 'on_path': ['\.twig$', '\.html.twig$']
-    \}
+      \ 'on_path': ['\.twig$', '\.html.twig$']
+      \}
 
     " CSS
     NeoBundleLazy 'JulesWang/css.vim', {
-    \ 'on_ft': 'css'
-    \}
+      \ 'on_ft': 'css'
+      \}
     NeoBundleLazy 'hail2u/vim-css3-syntax', {
-    \ 'on_ft': 'css'
-    \}
+      \ 'on_ft': 'css'
+      \}
     NeoBundleLazy 'npacker/vim-css3complete', {
-    \ 'frozen': 1,
-    \ 'functions': 'csscomplete#CompleteCSS'
-    \}
+      \ 'frozen': 1,
+      \ 'functions': 'csscomplete#CompleteCSS'
+      \}
     NeoBundleLazy 'rstacruz/vim-hyperstyle', {
-    \ 'frozen': 1,
-    \ 'on_map': [['i', '<Plug>(hyperstyle']]
-    \}
+      \ 'frozen': 1,
+      \ 'on_map': [['i', '<Plug>(hyperstyle']]
+      \}
 
     " JSON
     NeoBundleLazy 'elzr/vim-json', {
-    \ 'on_ft': 'json'
-    \}
-
+      \ 'on_ft': 'json'
+      \}
     " SQL
     NeoBundleLazy 'shmup/vim-sql-syntax', {
-    \ 'on_path': '\.sql$',
-    \ 'on_ft': 'php',
-    \}
-
+      \ 'on_path': '\.sql$',
+      \ 'on_ft': 'php',
+      \}
     " Postgres
     NeoBundleLazy 'exu/pgsql.vim', {
-    \ 'on_path': '\.pgsql$'
-    \}
-
+      \ 'on_path': '\.pgsql$'
+      \}
     " Nginx
     NeoBundleLazy 'yaroot/vim-nginx', {
-    \ 'on_ft': 'nginx'
-    \}
-
+      \ 'on_ft': 'nginx'
+      \}
     " CSV
     NeoBundleLazy 'chrisbra/csv.vim', {
-    \ 'on_path': '\.csv$'
-    \}
-
+      \ 'on_path': '\.csv$'
+      \}
     " Docker
     NeoBundleLazy 'ekalinin/Dockerfile.vim', {
-    \ 'on_path': 'Dockerfile$'
-    \}
+      \ 'on_path': 'Dockerfile$'
+      \}
   endfunction
 
   call neobundle#begin($VIMFILES.'/bundle')
@@ -523,11 +521,6 @@
 
   filetype plugin indent on
   if !exists('g:syntax_on')| syntax on |endif
-
-  if !has('vim_starting')
-    " Installation check
-    NeoBundleCheck
-  endif
 
 " Bundle settings
 "---------------------------------------------------------------------------
@@ -595,8 +588,8 @@
     function! neobundle#hooks.on_source(bundle)
       let g:lengthmatters_on_by_default = 0
       let g:lengthmatters_excluded = [
-      \ 'vim', 'help', 'unite', 'vimfiler', 'undotree', 'qfreplace'
-      \]
+        \ 'vim', 'help', 'unite', 'vimfiler', 'undotree', 'qfreplace'
+        \]
       call lengthmatters#highlight_link_to('ColorColumn')
     endfunction
 
@@ -613,7 +606,7 @@
         \ :<C-u>call signature#mark#Toggle('next')<CR>:call signature#sign#ToggleDummy('remove')<CR>
       nnoremap <silent> <buffer> <S-BS>
         \ :<C-u>call signature#mark#ToggleAtLine()<CR>:call signature#sign#ToggleDummy('remove')<CR>
-      nnoremap <silent> <buffer> \ :<C-u>call signature#Input()<CR>
+      nnoremap <silent> <buffer> \ :<C-u>call signature#utils#Input()<CR>
       nnoremap <silent> <buffer> <Del>   :<C-u>call signature#mark#Purge('line')<CR>
       nnoremap <silent> <buffer> <S-Del> :<C-u>call signature#mark#Purge('all')<CR>
       nnoremap <silent> <buffer> <C-Del> :<C-u>call signature#marker#Purge()<CR>
@@ -653,15 +646,13 @@
   if neobundle#tap('vimfiler.vim')
     " ;[dD]: open vimfiler explrer
     nnoremap <silent> ;d
-      \ :<C-u>VimFiler -split -toggle -invisible -no-quit<CR>
-    nnoremap <silent> ;D
-      \ :<C-u>VimFiler -split -toggle -invisible -project -force-quit<CR>
+      \ :<C-u>VimFiler -split -invisible -create -no-quit<CR>
     " Shift-Tab: jump to vimfiler window
     nnoremap <silent> <Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
 
     function! s:jumpToVimfiler()
       if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
-        wincmd W
+        wincmd p
       else
         for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
           exe winnr . 'wincmd w'
@@ -726,12 +717,12 @@
 
       " Default profile
       let s:vimfiler_default = {
-      \ 'safe': 0,
-      \ 'parent': 0,
-      \ 'explorer': 1,
-      \ 'winwidth': 26,
-      \ 'winminwidth': 16
-      \}
+        \ 'safe': 0,
+        \ 'parent': 0,
+        \ 'explorer': 1,
+        \ 'winwidth': 26,
+        \ 'winminwidth': 16
+        \}
       call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
     endfunction
 
@@ -744,9 +735,9 @@
 
     function! neobundle#hooks.on_source(bundle)
       let g:choosewin_keymap = {
-      \ '0': 'win_land', 'q': 'tab_close', "\<Space>": 'previous',
-      \ 'h': 'tab_prev', 'l': 'tab_next', 'j': 'tab_prev', 'k': 'tab_next'
-      \}
+        \ '0': 'win_land', 'q': 'tab_close', "\<Space>": 'previous',
+        \ 'h': 'tab_prev', 'l': 'tab_next', 'j': 'tab_prev', 'k': 'tab_next'
+        \}
       let g:choosewin_label = 'WERABC'
       let g:choosewin_label_align = 'left'
       let g:choosewin_blink_on_land = 0
@@ -796,59 +787,61 @@
     Autocmd BufEnter,WinEnter runner:*
       \ let &l:statusline = ' ' | setl nonu nornu nolist colorcolumn=
 
-    function! s:quickrunType(type, ...) abort
+    function! s:quickrunType(type) abort
       let g:quickrun_config = get(g:, 'quickrun_config', {})
       let g:quickrun_config[&filetype] = {'type': printf('%s/%s', &filetype, a:type)}
-      call quickrun#run('-'.a:type)
+      call quickrun#run(printf('-%s', a:type))
     endfunction
 
     function! neobundle#hooks.on_source(bundle)
       let g:quickrun_config = get(g:, 'quickrun_config', {})
       let g:quickrun_config._ = {
-      \ 'outputter': 'null',
-      \ 'runner': 'vimproc',
-      \ 'runner/vimproc/updatetime': 30
-      \}
+        \ 'outputter': 'null',
+        \ 'runner': 'vimproc',
+        \ 'runner/vimproc/updatetime': 30
+        \}
 
       " PHP
       let g:quickrun_config['php/csfixer'] = {
-      \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen', 'args': '--level=psr2'
-      \}
+        \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen',
+        \ 'args': '--level=psr2'
+        \}
       let g:quickrun_config['php/phpunit'] = {
-      \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
-      \ 'args': printf('-c %s/preset/phpunit.xml.dist', $VIMFILES)
-      \}
+        \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
+        \ 'args': printf('-c %s/preset/phpunit.xml.dist', $VIMFILES)
+        \}
 
       " JavaScript
       let g:quickrun_config['javascript/nodejs'] = {
-      \ 'command': 'node', 'exec': '%c %a %s', 'outputter': 'buffer',
-      \ 'outputter/buffer/name': 'runner:nodejs',
-      \ 'outputter/buffer/filetype': 'json',
-      \ 'outputter/buffer/running_mark': '...'
-      \}
+        \ 'command': 'node', 'exec': '%c %a %s', 'outputter': 'buffer',
+        \ 'outputter/buffer/name': 'runner:nodejs',
+        \ 'outputter/buffer/filetype': 'json',
+        \ 'outputter/buffer/running_mark': '...'
+        \}
       let g:quickrun_config['javascript/formatter'] = {
-      \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-      \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
-      \}
+        \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+        \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
+        \}
 
       " CSS
       let g:quickrun_config['css/formatter'] = {
-      \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
-      \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
-      \}
+        \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
+        \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
+        \}
 
       " HTML
       let g:quickrun_config['html/formatter'] = {
-      \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
-      \ 'args': '--indent-size 2 --unformatted script'
-      \}
+        \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
+        \ 'args': '--indent-size 2 --unformatted script'
+        \}
       " Twig
       let g:quickrun_config['twig/formatter'] = g:quickrun_config['html/formatter']
 
       " JSON
       let g:quickrun_config['json/formatter'] = {
-      \ 'command': 'js-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer', 'args': '--indent-size 2'
-      \}
+        \ 'command': 'js-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
+        \ 'args': '--indent-size 2'
+        \}
     endfunction
 
     call neobundle#untap()
@@ -907,15 +900,15 @@
     function! neobundle#hooks.on_source(bundle)
       let g:easy_align_ignore_groups = ['Comment', 'String']
       let g:easy_align_delimiters = {
-      \ '>': {'pattern': '>>\|=>\|>' },
-      \ '/': {'pattern': '//\+\|/\*\|\*/', 'delimiter_align': 'l', 'ignore_groups': ['^\(.\(Comment\)\@!\)*$']},
-      \ ']': {'pattern': '[[\]]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-      \ ')': {'pattern': '[()]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-      \ 'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
-      \ 'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0},
-      \ ';': {'pattern': ':', 'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1},
-      \ '=': {'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]', 'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0}
-      \}
+        \ '>': {'pattern': '>>\|=>\|>' },
+        \ ']': {'pattern': '[[\]]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
+        \ ')': {'pattern': '[()]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
+        \ 'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
+        \ 'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0},
+        \ ';': {'pattern': ':', 'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1},
+        \ '/': {'pattern': '//\+\|/\*\|\*/', 'delimiter_align': 'l', 'ignore_groups': ['^\(.\(Comment\)\@!\)*$']},
+        \ '=': {'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]', 'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0}
+        \}
     endfunction
 
     call neobundle#untap()
@@ -930,24 +923,24 @@
       \ hi BrightestCursorLine guifg=#2B2B2B guibg=#EDE5F4 gui=NONE
 
     let s:brightest_ignore_syntax_def = [
-    \ 'None', 'Normal', 'Comment', 'Type', 'Keyword', 'Delimiter',
-    \ 'Conditional', 'Statement', 'Constant', 'Number', 'Operator'
-    \]
+      \ 'None', 'Normal', 'Comment', 'Type', 'Keyword', 'Delimiter',
+      \ 'Conditional', 'Statement', 'Constant', 'Number', 'Operator'
+      \]
 
     " PHP
     AutocmdFT php BrightestDisable
       \| let b:brightest_ignore_syntax_list = [
-      \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',
-      \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags', 'phpOperator'
-      \] + s:brightest_ignore_syntax_def
+        \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',
+        \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags', 'phpOperator'
+        \] + s:brightest_ignore_syntax_def
 
     " JavaScript
     AutocmdFT javascript BrightestDisable
       \| let b:brightest_ignore_syntax_list = [
-      \ '', 'javascriptVariable', 'javaScriptBraces', 'javaScriptParens', 'javascriptReturn', 'javascriptBlock',
-      \ 'javascriptFuncCallArg', 'javascriptArrowFuncDef', 'javascriptDotNotation', 'javascriptOperator',
-      \ 'javaScriptRegexpString', 'javascriptObjectLiteral', 'javascriptArray', 'javaScriptBoolean'
-      \] + s:brightest_ignore_syntax_def
+        \ '', 'javascriptVariable', 'javaScriptBraces', 'javaScriptParens', 'javascriptReturn', 'javascriptBlock',
+        \ 'javascriptFuncCallArg', 'javascriptArrowFuncDef', 'javascriptDotNotation', 'javascriptOperator',
+        \ 'javaScriptRegexpString', 'javascriptObjectLiteral', 'javascriptArray', 'javaScriptBoolean'
+        \] + s:brightest_ignore_syntax_def
 
     function! neobundle#hooks.on_source(bundle)
       let g:brightest#enable_filetypes = {'_': 0}
@@ -976,9 +969,9 @@
 
     function! neobundle#hooks.on_source(bundle)
       let g:wildfire_objects = {
-      \ '*': split("iw iW i' i\" i) a) a] a}"),
-      \ 'html,twig,xml': ["at"]
-      \}
+        \ '*': split("iw iW i' i\" i) a) a] a}"),
+        \ 'html,twig,xml': ["at"]
+        \}
     endfunction
 
     call neobundle#untap()
@@ -1014,6 +1007,14 @@
     nnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/
     xnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/\%V
 
+    function! neobundle#hooks.on_source(bundle)
+      let g:over_command_line_key_mappings = {
+        \ "\<C-c>": "\<Esc>",
+        \ "\<C-j>": "\<CR>"
+        \}
+      let g:over#command_line#paste_escape_chars = '\\/.*$^~'
+    endfunction
+
     call neobundle#untap()
   endif
 
@@ -1028,8 +1029,8 @@
     function! neobundle#hooks.on_source(bundle)
       let g:jplus#config = get(g:, 'jplus#config', {})
       let g:jplus#config = {
-      \ 'php': {'delimiter_format': ''}
-      \}
+        \ 'php': {'delimiter_format': ''}
+        \}
     endfunction
 
     call neobundle#untap()
@@ -1041,43 +1042,52 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-smartword')
+    for char in split('w e b ge')
+      exe printf('nmap %s <Plug>(smartword-%s)', char, char)
+      exe printf('vmap %s <Plug>(smartword-%s)', char, char)
+    endfor | unlet char
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-smalls')
     nmap s <Plug>(smalls)
     nmap ,f <Plug>(smalls-excursion)
 
     function! neobundle#hooks.on_source(bundle)
       let g:smalls_highlight = {
-      \ 'SmallsCandidate':  [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
-      \ 'SmallsCurrent':    [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
-      \ 'SmallsJumpTarget': [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-      \ 'SmallsPos':        [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-      \ 'SmallsCli':        [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
-      \}
+        \ 'SmallsCandidate':  [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
+        \ 'SmallsCurrent':    [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
+        \ 'SmallsJumpTarget': [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+        \ 'SmallsPos':        [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
+        \ 'SmallsCli':        [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
+        \}
       call smalls#keyboard#cli#extend_table({
-      \ "\<S-Space>": 'do_excursion',
-      \ "\<C-o>":     'do_excursion',
-      \ "\<C-i>":     'do_excursion',
-      \ "\<C-j>":     'do_excursion',
-      \ "\<C-k>":     'do_excursion',
-      \ "\<C-l>":     'do_cancel',
-      \ "\<C-c>":     'do_cancel',
-      \ "\q":         'do_cancel',
-      \ "\`":         'do_cancel'
-      \})
+        \ "\<S-Space>": 'do_excursion',
+        \ "\<C-o>":     'do_excursion',
+        \ "\<C-i>":     'do_excursion',
+        \ "\<C-j>":     'do_excursion',
+        \ "\<C-k>":     'do_excursion',
+        \ "\<C-l>":     'do_cancel',
+        \ "\<C-c>":     'do_cancel',
+        \ "\q":         'do_cancel',
+        \ "\`":         'do_cancel'
+        \})
       call smalls#keyboard#excursion#extend_table({
-      \ "\Q": 'do_cancel',
-      \ "\o": 'do_set',
-      \ "\`": 'do_set',
-      \ "\p": 'do_jump'
-      \})
+        \ "\Q": 'do_cancel',
+        \ "\o": 'do_set',
+        \ "\`": 'do_set',
+        \ "\p": 'do_jump'
+        \})
     endfunction
 
     call neobundle#untap()
   endif
 
   if neobundle#tap('glowshi-ft.vim')
-    map f <Plug>(glowshi-ft-f)
-    map F <Plug>(glowshi-ft-F)
+    map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(glowshi-ft-f)" : "\<Plug>(glowshi-ft-F)"
+    map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(glowshi-ft-f)" : "\<Plug>(glowshi-ft-F)"
 
     function! neobundle#hooks.on_source(bundle)
       let g:glowshi_ft_no_default_key_mappings = 1
@@ -1116,8 +1126,8 @@
       " Fix pair completion
       for pair in ['()', '[]']
           call lexima#add_rule({
-          \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
-          \})
+            \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
+            \})
       endfor | unlet pair
 
       " Quotes
@@ -1134,50 +1144,50 @@
 
       " { <Space> }
       call lexima#add_rule({
-      \ 'filetype': ['javascript', 'yaml'],
-      \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
-      \})
+        \ 'filetype': ['javascript', 'yaml'],
+        \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
+        \})
 
       " Twig
       " {{ <Space> }}
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '\(........\)\?{\%#}', 'char': '{', 'input': '{<Space>', 'input_after': '<Space>}'
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '\(........\)\?{\%#}', 'char': '{', 'input': '{<Space>', 'input_after': '<Space>}'
+        \})
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '\(........\)\?{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '\(........\)\?{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
+        \})
       " {# <Space> #}
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '\(........\)\?{\%#}', 'char': '#', 'input': '#<Space><Space>#<Left><Left>'
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '\(........\)\?{\%#}', 'char': '#', 'input': '#<Space><Space>#<Left><Left>'
+        \})
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '\(........\)\?{# \%# #}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '\(........\)\?{# \%# #}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
+        \})
       " {# <Space> #}
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '{\%#}', 'char': '%', 'input': '%<Space><Space>%<Left><Left>'
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '{\%#}', 'char': '%', 'input': '%<Space><Space>%<Left><Left>'
+        \})
       call lexima#add_rule({
-      \ 'filetype': 'twig',
-      \ 'at': '{% \%# %}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
-      \})
+        \ 'filetype': 'twig',
+        \ 'at': '{% \%# %}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
+        \})
 
       " Attributes
       call lexima#add_rule({
-      \ 'filetype': ['html', 'twig', 'xml', 'javascript'],
-      \ 'at': '\(........\)\?<.\+\%#', 'char': '=', 'input': '=""<Left>'
-      \})
+        \ 'filetype': ['html', 'twig', 'xml', 'javascript'],
+        \ 'at': '\(........\)\?<.\+\%#', 'char': '=', 'input': '=""<Left>'
+        \})
 
       " /* */
       call lexima#add_rule({
-      \ 'filetype': 'css',
-      \ 'at': '\(........\)\?/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
-      \})
+        \ 'filetype': 'css',
+        \ 'at': '\(........\)\?/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
+        \})
     endfunction
 
     call neobundle#untap()
@@ -1191,96 +1201,99 @@
 
     let g:switch_mapping = ''
     let g:switch_def_quotes = {
-    \ '''\(.\{-}\)''': '"\1"',
-    \ '"\(.\{-}\)"':  '''\1''',
-    \ '`\(.\{-}\)`':  '''\1'''
-    \}
+      \ '''\(.\{-}\)''': '"\1"',
+      \ '"\(.\{-}\)"':  '''\1''',
+      \ '`\(.\{-}\)`':  '''\1'''
+      \}
     let g:switch_def_camelcase = {
-    \ '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-    \ '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-    \ '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
-    \ '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-    \ '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
-    \}
+      \ '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+      \ '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+      \ '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
+      \ '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+      \ '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
+      \}
 
     " PHP
-    AutocmdFT php
-    \ let b:switch_custom_definitions = [
-    \ ['prod', 'dev', 'test'],
-    \ ['&&', '||'],
-    \ ['and', 'or'],
-    \ ['public', 'protected', 'private'],
-    \ ['extends', 'implements'],
-    \ ['string ', 'int ', 'array '],
-    \ ['use', 'namespace'],
-    \ ['var_dump', 'print_r'],
-    \ ['include', 'require'], ['include_once', 'require_once'],
-    \ ['$_GET', '$_POST', '$_REQUEST'],
-    \ {
-    \   '\([^=]\)===\([^=]\)': '\1==\2',
-    \   '\([^=]\)==\([^=]\)': '\1===\2'
-    \},
-    \ {
-    \   '\[[''"]\(\k\+\)[''"]\]': '->\1',
-    \   '\->\(\k\+\)': '[''\1'']'
-    \},
-    \ {
-    \   '\array(\(.\{-}\))': '[\1]',
-    \   '\[\(.\{-}\)]': '\array(\1)',
-    \}
-    \]
+    AutocmdFT php let b:switch_custom_definitions = [
+      \ ['prod', 'dev', 'test'],
+      \ ['&&', '||'],
+      \ ['and', 'or'],
+      \ ['public', 'protected', 'private'],
+      \ ['extends', 'implements'],
+      \ ['string ', 'int ', 'array '],
+      \ ['use', 'namespace'],
+      \ ['var_dump', 'print_r'],
+      \ ['include', 'require'], ['include_once', 'require_once'],
+      \ ['$_GET', '$_POST', '$_REQUEST'],
+      \ {
+      \   '\([^=]\)===\([^=]\)': '\1==\2',
+      \   '\([^=]\)==\([^=]\)': '\1===\2'
+      \ },
+      \ {
+      \   '\[[''"]\(\k\+\)[''"]\]': '->\1',
+      \   '\->\(\k\+\)': '[''\1'']'
+      \ },
+      \ {
+      \   '\array(\(.\{-}\))': '[\1]',
+      \   '\[\(.\{-}\)]': '\array(\1)'
+      \ }
+      \]
 
     " JavaScript
-    AutocmdFT javascript
-    \ let b:switch_custom_definitions = [
-    \ ['left', 'right'], ['top', 'bottom'], ['get', 'set'],
-    \ ['<', '>'], ['==', '===']
-    \]
+    AutocmdFT javascript let b:switch_custom_definitions = [
+      \ ['get', 'set'],
+      \ ['var', 'const', 'let'],
+      \ ['<', '>'], ['==', '!=', '==='],
+      \ ['left', 'right'], ['top', 'bottom'],
+      \ ['getElementById', 'getElementByClassName'],
+      \ {
+      \   '\function\s*(\(.\{-}\))': '(\1) =>'
+      \ }
+      \]
 
     " HTML
-    AutocmdFT html,twig
-    \ let b:switch_custom_definitions = [
-    \ ['h1', 'h2', 'h3'],
-    \ ['png', 'jpg', 'gif'],
-    \ ['id=', 'class=', 'style='],
-    \ {
-    \   '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
-    \   '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
-    \},
-    \ {
-    \   '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
-    \   '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
-    \}
-    \]
+    AutocmdFT html,twig let b:switch_custom_definitions = [
+      \ ['h1', 'h2', 'h3'],
+      \ ['png', 'jpg', 'gif'],
+      \ ['id=', 'class=', 'style='],
+      \ {
+      \   '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
+      \   '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
+      \ },
+      \ {
+      \   '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
+      \   '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
+      \ }
+      \]
 
     " CSS
-    AutocmdFT css
-    \ let b:switch_custom_definitions = [
-    \ ['border-top', 'border-bottom'],
-    \ ['border-left', 'border-right'],
-    \ ['border-left-width', 'border-right-width'],
-    \ ['border-top-width', 'border-bottom-width'],
-    \ ['border-left-style', 'border-right-style'],
-    \ ['border-top-style', 'border-bottom-style'],
-    \ ['margin-left', 'margin-right'],
-    \ ['margin-top', 'margin-bottom'],
-    \ ['padding-left', 'padding-right'],
-    \ ['padding-top', 'padding-bottom'],
-    \ ['margin', 'padding'],
-    \ ['height', 'width'],
-    \ ['min-width', 'max-width'],
-    \ ['min-height', 'max-height'],
-    \ ['transition', 'animation'],
-    \ ['absolute', 'relative', 'fixed'],
-    \ ['overflow', 'overflow-x', 'overflow-y'],
-    \ ['before', 'after'],
-    \ ['none', 'block'],
-    \ ['left', 'right'],
-    \ ['top', 'bottom'],
-    \ ['em', 'px', '%'],
-    \ ['bold', 'normal'],
-    \ ['hover', 'active']
-    \]
+    AutocmdFT css let b:switch_custom_definitions = [
+      \ ['border-top', 'border-bottom'],
+      \ ['border-left', 'border-right'],
+      \ ['border-left-width', 'border-right-width'],
+      \ ['border-top-width', 'border-bottom-width'],
+      \ ['border-left-style', 'border-right-style'],
+      \ ['border-top-style', 'border-bottom-style'],
+      \ ['margin-left', 'margin-right'],
+      \ ['margin-top', 'margin-bottom'],
+      \ ['padding-left', 'padding-right'],
+      \ ['padding-top', 'padding-bottom'],
+      \ ['margin', 'padding'],
+      \ ['height', 'width'],
+      \ ['min-width', 'max-width'],
+      \ ['min-height', 'max-height'],
+      \ ['transition', 'animation'],
+      \ ['absolute', 'relative', 'fixed'],
+      \ ['inline', 'inline-block', 'block', 'flex'],
+      \ ['overflow', 'overflow-x', 'overflow-y'],
+      \ ['before', 'after'],
+      \ ['none', 'block'],
+      \ ['left', 'right'],
+      \ ['top', 'bottom'],
+      \ ['em', 'px', '%'],
+      \ ['bold', 'normal'],
+      \ ['hover', 'active']
+      \]
 
     call neobundle#untap()
   endif
@@ -1326,6 +1339,18 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-operator-flashy')
+    nmap y <Plug>(operator-flashy)
+    nmap Y <Plug>(operator-flashy)$
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:operator#flashy#group = 'Visual'
+      let g:operator#flashy#flash_time = 280
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-operator-eval')
     vmap <silent> se <Plug>(operator-eval-vim)
 
@@ -1334,15 +1359,10 @@
 
   if neobundle#tap('vim-surround')
     nmap ,I <Plug>Csurround
-    nmap ,' ,Iw'
-    nmap ,` ,Iw`
-    nmap ," ,Iw"
-    nmap ,( ,Iw(
-    nmap ,) ,Iw)
-    nmap ,{ ,Iw{
-    nmap ,} ,Iw}
-    nmap ,[ ,Iw[
-    nmap ,] ,Iw]
+
+    for char in split("' ` \" ( ) { } [ ]")
+      exe printf('nmap ,%s ,Iw%s', char, char)
+    endfor | unlet char
 
     function! neobundle#hooks.on_source(bundle)
       let g:surround_no_mappings = 1
@@ -1355,8 +1375,8 @@
     let s:color_codes_ft = 'css,html,twig'
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
       \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
-      \ ? 'call s:removeColor()'
-      \ : 'ColorHighlight'
+        \ ? 'call s:removeColor()'
+        \ : 'ColorHighlight'
 
     function! s:removeColor()
       if !exists('#Colorizer')| return |endif
@@ -1384,10 +1404,10 @@
 
       " CSS
       let s:context_ft_css = {
-      \ 'start':    '<script\%( [^>]*\)\?>',
-      \ 'end':      '</style>',
-      \ 'filetype': 'css'
-      \}
+        \ 'start':    '<script\%( [^>]*\)\?>',
+        \ 'end':      '</style>',
+        \ 'filetype': 'css'
+        \}
       for filetype in ['html', 'twig']
         call s:addContext(filetype, s:context_ft_css)
       endfor | unlet filetype
@@ -1435,28 +1455,28 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
-      call neocomplete#custom#source('_', 'converters',
-      \ ['converter_add_paren', 'converter_remove_overlap', 'converter_delimiter', 'converter_abbr']
-      \)
+      " call neocomplete#custom#source('_', 'converters',
+        " \ ['converter_add_paren', 'converter_remove_overlap', 'converter_delimiter', 'converter_abbr']
+        " \)
 
       " Sources
       let g:neocomplete#sources = {
-      \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
-      \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
-      \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
-      \ 'css':        ['omni', 'file/include', 'ultisnips'],
-      \ 'html':       ['omni', 'file/include', 'ultisnips'],
-      \ 'twig':       ['omni', 'file/include', 'ultisnips']
-      \}
+        \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
+        \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
+        \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
+        \ 'css':        ['omni', 'file/include', 'ultisnips'],
+        \ 'html':       ['omni', 'file/include', 'ultisnips'],
+        \ 'twig':       ['omni', 'file/include', 'ultisnips']
+        \}
 
       " Completion patterns
       let g:neocomplete#sources#omni#input_patterns = {
-      \ 'haskell':    '\h\w*\|\(import\|from\)\s',
-      \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
-      \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
-      \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
-      \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
-      \}
+        \ 'haskell':    '\h\w*\|\(import\|from\)\s',
+        \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
+        \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
+        \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
+        \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
+        \}
     endfunction
 
     call neobundle#untap()
@@ -1560,13 +1580,13 @@
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
 
       " Insert mode
-      imap <buffer> <C-e>   <C-o>A
-      imap <buffer> <C-a>   <Plug>(unite_move_head)
-      imap <buffer> <C-j>   <Plug>(unite_move_left)
-      imap <buffer> <C-l>   <Plug>(unite_move_right)
-      imap <buffer> <Tab>   <Plug>(unite_insert_leave)
-      imap <buffer> <C-j>   <Plug>(unite_select_next_line)
-      imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
+      imap <buffer> <C-e> <C-o>A
+      imap <buffer> <C-a> <Plug>(unite_move_head)
+      imap <buffer> <C-j> <Plug>(unite_move_left)
+      imap <buffer> <C-l> <Plug>(unite_move_right)
+      imap <buffer> <Tab> <Plug>(unite_insert_leave)
+      imap <buffer> <C-j> <Plug>(unite_select_next_line)
+      imap <buffer> <C-k> <Plug>(unite_select_previous_line)
       imap <buffer> <expr> <C-h>  col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <BS>   col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <S-BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_word)" : ""
@@ -1582,33 +1602,33 @@
         let g:unite_source_grep_encoding = 'utf-8'
         let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
         let g:unite_source_rec_async_command = [
-        \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
-        \]
+          \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
+          \]
       endif
 
       " Default profile
       let s:unite_default = {
-      \ 'winheight': 20,
-      \ 'direction': 'botright',
-      \ 'prompt_direction': 'bellow',
-      \ 'cursor_line_time': '0.0',
-      \ 'short_source_names': 1,
-      \ 'hide_source_names': 1,
-      \ 'hide_icon': 0,
-      \ 'marked_icon': '+',
-      \ 'prompt': '>',
-      \ 'wipe': 1
-      \}
+        \ 'winheight': 20,
+        \ 'direction': 'botright',
+        \ 'prompt_direction': 'bellow',
+        \ 'cursor_line_time': '0.0',
+        \ 'short_source_names': 1,
+        \ 'hide_source_names': 1,
+        \ 'hide_icon': 0,
+        \ 'marked_icon': '+',
+        \ 'prompt': '>',
+        \ 'wipe': 1
+        \}
       " Grep profile
       let s:unite_grep = {
-      \ 'winheight': 20
-      \}
+        \ 'winheight': 20
+        \}
       " Quickfix profile
       let s:unite_quickfix = {
-      \ 'winheight': 16,
-      \ 'no_quit': 1,
-      \ 'keep_focus': 1
-      \}
+        \ 'winheight': 16,
+        \ 'no_quit': 1,
+        \ 'keep_focus': 1
+        \}
 
       " Custom profiles
       call unite#custom#profile('default', 'context', s:unite_default)
@@ -1619,12 +1639,12 @@
       call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
 
       Autocmd Syntax unite
-      \  hi link uniteStatusHead             StatusLine
-      \| hi link uniteStatusNormal           StatusLine
-      \| hi link uniteStatusMessage          StatusLine
-      \| hi link uniteStatusSourceNames      StatusLine
-      \| hi link uniteStatusSourceCandidates User1
-      \| hi link uniteStatusLineNR           User2
+        \  hi link uniteStatusHead             StatusLine
+        \| hi link uniteStatusNormal           StatusLine
+        \| hi link uniteStatusMessage          StatusLine
+        \| hi link uniteStatusSourceNames      StatusLine
+        \| hi link uniteStatusSourceCandidates User1
+        \| hi link uniteStatusLineNR           User2
     endfunction
 
     call neobundle#untap()
@@ -1790,8 +1810,8 @@
     function! neobundle#hooks.on_source(bundle)
       if neobundle#is_installed('neocomplete.vim')
         let g:neocomplete#force_omni_input_patterns = {
-        \ 'php': '\h\w*\|[^- \t]->\w*'
-        \}
+          \ 'php': '\h\w*\|[^- \t]->\w*'
+          \}
       endif
     endfunction
 
@@ -1804,11 +1824,11 @@
       let g:phpcomplete_search_tags_for_variables = 1
       let g:phpcomplete_complete_for_unknown_classes = 0
       let g:phpcomplete_remove_function_extensions = [
-      \ 'apache', 'dba', 'dbase', 'odbc', 'msql', 'mssql'
-      \]
+        \ 'apache', 'dba', 'dbase', 'odbc', 'msql', 'mssql'
+        \]
       let g:phpcomplete_remove_constant_extensions = [
-      \ 'ms_sql_server_pdo', 'msql', 'mssql'
-      \]
+        \ 'ms_sql_server_pdo', 'msql', 'mssql'
+        \]
     endfunction
 
     call neobundle#untap()
@@ -1826,26 +1846,40 @@
   endif
   " vDebug (for xDebug)
   if neobundle#tap('vdebug')
-    function! neobundle#hooks.on_source(bundle)
-      let g:vdebug_options = {
-      \ 'port': 9001,
-      \ 'server': '10.10.78.16',
-      \ 'on_close': 'detach',
-      \ 'break_on_open': 1,
-      \ 'debug_window_level': 0,
-      \ 'watch_window_style': 'compact',
-      \ 'path_maps': {'/www': 'D:/Vagrant/projects'},
-      \}
-      let g:vdebug_features = {
-      \ 'max_depth': 2048,
-      \ 'max_children': 128
-      \}
+    AutocmdFT php call s:vdebugMappings()
 
+    function! s:vdebugMappings()
+      nnoremap <silent> <buffer> ,d      :<C-u>python debugger.run()<CR>
+      vnoremap <silent> <buffer> ,d      :<C-u>python debugger.handle_visual_eval()<CR>
+      nnoremap <silent> <buffer> ,,      :<C-u>python debugger.set_breakpoint()<CR>
+      nnoremap <silent> <buffer> <Left>  :<C-u>python debugger.step_over()<CR>
+      nnoremap <silent> <buffer> <Right> :<C-u>python debugger.step_into()<CR>
+      nnoremap <silent> <buffer> <Up>    :<C-u>python debugger.step_out()<CR>
+    endfunction
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:vdebug_keymap = {}
+      let g:vdebug_options = {
+        \ 'port': 9001,
+        \ 'server': '10.10.78.16',
+        \ 'on_close': 'detach',
+        \ 'break_on_open': 1,
+        \ 'debug_window_level': 0,
+        \ 'watch_window_style': 'compact',
+        \ 'path_maps': {'/www': 'D:/Lab/backend'},
+        \}
+      let g:vdebug_features = {
+        \ 'max_depth': 2048,
+        \ 'max_children': 128
+        \}
+
+      Autocmd BufNewFile,BufRead Debugger*
+        \ let &l:statusline = ' ' | setl nornu nonu
       Autocmd Syntax php
-      \  hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
-      \| hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
-      \| hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
-      \| hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+        \  hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
+        \| hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
+        \| hi DbgBreakptLine guifg=#2B2B2B guibg=#FDCCD9 gui=NONE
+        \| hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
     endfunction
 
     call neobundle#untap()
@@ -1870,9 +1904,9 @@
       endfunction
 
       Autocmd Syntax javascript
-      \  hi link javascriptReserved  Normal
-      \| hi link javascriptInvalidOp Normal
-      \| call s:yajsJsxSyntax()
+        \  hi link javascriptReserved  Normal
+        \| hi link javascriptInvalidOp Normal
+        \| call s:yajsJsxSyntax()
     endfunction
 
     call neobundle#untap()
@@ -1986,10 +2020,9 @@
   AutocmdFT css setl iskeyword+=-,%
   if neobundle#tap('css.vim')
     function! neobundle#hooks.on_source(bundle)
-      Autocmd Syntax css
-      \  hi link cssError Normal
-      \| hi link cssBraceError Normal
-      \| hi link cssDeprecated Normal
+      hi link cssError Normal
+      hi link cssBraceError Normal
+      hi link cssDeprecated Normal
     endfunction
 
     call neobundle#untap()
@@ -2003,9 +2036,9 @@
       let b:hyperstyle = 1
       let b:hyperstyle_semi = ' '
 
-      for key in ['<BS>', '<CR>', '<Tab>', '<Space>', ';', ':']
-        exe printf('silent! iunmap <buffer> %s', key)
-      endfor | unlet key
+      for char in split("<BS> <CR> <Tab> <Space> ; :")
+        exe printf('silent! iunmap <buffer> %s', char)
+      endfor | unlet char
 
       imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete('<Tab>')<CR>
       imap <buffer> <expr> <Space>
@@ -2046,8 +2079,8 @@
   if neobundle#tap('vim-sql-syntax')
     function! neobundle#hooks.on_source(bundle)
       Autocmd Syntax php
-      \  hi link sqlStatement phpStatement
-      \| hi link sqlKeyword   phpOperator
+        \  hi link sqlStatement phpStatement
+        \| hi link sqlKeyword   phpOperator
     endfunction
 
     call neobundle#untap()
@@ -2142,17 +2175,17 @@
   set laststatus=2
   " Format the statusline
   let &statusline =
-  \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
-  \. "%l%3*:%*%v "
-  \. "%-0.60t "
-  \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
-  \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
-  \. "%="
-  \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
-  \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
-  \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
-  \. "%(%{&fileencoding == '' ? &encoding : &fileencoding}\ %)"
-  \. "%2*%(%Y\ %)%*"
+    \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
+    \. "%l%3*:%*%v "
+    \. "%-0.60t "
+    \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
+    \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
+    \. "%="
+    \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
+    \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
+    \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
+    \. "%(%{&fileencoding == '' ? &encoding : &fileencoding}\ %)"
+    \. "%2*%(%Y\ %)%*"
 
   " Status-line functions
   function! BufModified()
@@ -2161,7 +2194,8 @@
 
   function! FileSize()
     let size = &encoding ==# &fileencoding || &fileencoding ==# ''
-        \ ? line2byte(line('$') + 1) - 1 : getfsize(expand('%:p'))
+      \ ? line2byte(line('$') + 1) - 1
+      \ : getfsize(expand('%:p'))
     return size <= 0 ? '' :
       \ size < 1024 ? size.'B' : (size / 1024).'K'
   endfunction
@@ -2241,8 +2275,6 @@
   nnoremap <A-l> >>><Esc>
   " Q: auto indent text
   nnoremap Q ==
-  " Y: yank line
-  nnoremap Y y$
   " @: record macros
   nnoremap @ q
   " Ctrl-[jk]: scroll up/down
@@ -2375,9 +2407,9 @@
     \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
     \ : ':<C-u>close!<CR>'
   " <Space>s: split window horizontaly
-  nnoremap <silent> <Space>s :<C-u>split<CR>
+  nnoremap <silent> <expr> <Space>s ':<C-u>'. (v:count == 0 ? '' : v:count) .'split<CR>'
   " <Space>S: split window verticaly
-  nnoremap <silent> <Space>S :<C-u>vertical split<CR>
+  nnoremap <silent> <expr> <Space>S ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
 
   " Unbinds
   map <F1> <Nop>
