@@ -462,7 +462,7 @@
 
     " Twig
     NeoBundle 'https://raw.githubusercontent.com/qbbr/vim-twig/master/syntax/twig.vim', {
-      \ 'script_type': 'syntax',
+      \ 'script_type': 'syntax'
       \}
     NeoBundleLazy 'tokutake/twig-indent', {
       \ 'on_path': ['\.twig$', '\.html.twig$']
@@ -475,8 +475,7 @@
     NeoBundleLazy 'hail2u/vim-css3-syntax', {
       \ 'on_ft': 'css'
       \}
-    NeoBundleLazy 'npacker/vim-css3complete', {
-      \ 'frozen': 1,
+    NeoBundleLazy 'othree/csscomplete.vim', {
       \ 'functions': 'csscomplete#CompleteCSS'
       \}
     NeoBundleLazy 'rstacruz/vim-hyperstyle', {
@@ -1004,12 +1003,13 @@
   endif
 
   if neobundle#tap('vim-over')
-    nnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/
-    xnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/\%V
+    nnoremap <silent> ;/ :<C-u>OverCommandLine<CR>%s/
+    xnoremap <silent> ;/ :<C-u>OverCommandLine<CR>%s/\%V
 
     function! neobundle#hooks.on_source(bundle)
       let g:over_command_line_key_mappings = {
         \ "\<C-c>": "\<Esc>",
+        \ "\<C-l>": "\<Esc>",
         \ "\<C-j>": "\<CR>"
         \}
       let g:over#command_line#paste_escape_chars = '\\/.*$^~'
@@ -1422,7 +1422,7 @@
     inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
     " Ctrl-d: select the previous match OR delete till start of line
     inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
-    " " Ctrl-k: select the next match OR delete to end of line
+    " Ctrl-k: select the next match OR delete to end of line
     inoremap <expr> <C-k> pumvisible() ? "\<C-p>" : col('.') == col('$') ? "\<C-k>" : "\<C-o>D"
 
     function! s:neoComplete(key)
@@ -1455,9 +1455,9 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
-      " call neocomplete#custom#source('_', 'converters',
-        " \ ['converter_add_paren', 'converter_remove_overlap', 'converter_delimiter', 'converter_abbr']
-        " \)
+      call neocomplete#custom#source('_', 'converters',
+        \ ['converter_add_paren', 'converter_remove_overlap', 'converter_delimiter', 'converter_abbr']
+        \)
 
       " Sources
       let g:neocomplete#sources = {
@@ -1475,8 +1475,11 @@
         \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
         \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
         \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
-        \ 'css':        '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]'
         \}
+      call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
+        \ 'html,twig', '<\|\s[[:alnum:]-]*')
+      call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
+        \ 'css,scss,sass', '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]')
     endfunction
 
     call neobundle#untap()
@@ -1493,7 +1496,6 @@
         let isBackspace = getline('.')[curPos-2] =~ '\s' ? 1 : 0
         let isStartLine = curPos <= 1 ? 1 : 0
         let isText = curPos <= lineLength ? 1 : 0
-
         if isText && !isStartLine && !isBackspace
           return UltiSnips#ExpandSnippet()
         endif
