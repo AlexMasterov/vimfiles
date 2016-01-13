@@ -16,7 +16,7 @@
     set nocompatible  " be improved
   endif
   if s:is_windows
-    set shellslash
+    setg shellslash
   endif
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
@@ -83,7 +83,7 @@
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  Autocmd BufEnter,WinEnter * setl formatoptions-=ro
+  Autocmd BufEnter,WinEnter * setg formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -92,19 +92,19 @@
 
 " Encoding
 "---------------------------------------------------------------------------
-  set encoding=utf-8
+  setg encoding=utf-8
   scriptencoding utf-8
 
   if s:is_windows && has('multi_byte')
-    setglobal fileencodings=utf-8,cp1251
-    set termencoding=cp850  " cmd.exe uses cp850
+    setg fileencodings=utf-8,cp1251
+    setg termencoding=cp850  " cmd.exe uses cp850
   else
-    set termencoding=       " same as 'encoding'
+    setg termencoding=       " same as 'encoding'
   endif
 
   " Default fileformat
-  set fileformat=unix
-  set fileformats=unix,dos,mac
+  setg fileformat=unix
+  setg fileformats=unix,dos,mac
 
   " Open in UTF-8
   command! -bar -bang -nargs=? -complete=file Utf8 edit<bang> ++enc=utf-8 <args>
@@ -129,15 +129,15 @@
   endif
 
   " Russian keyboard
-  set iskeyword=@,48-57,_,192-255
-  set keymap=russian-jcukenwin
+  setg iskeyword=@,48-57,_,192-255
+  setg keymap=russian-jcukenwin
   if has('multi_byte')
-    set iminsert=0 imsearch=0
+    setg iminsert=0 imsearch=0
   endif
 
   " Regexp engine (0=auto, 1=old, 2=NFA)
   if exists('&regexpengine')
-    set regexpengine=1
+    setg regexpengine=1
   endif
 
 " Plugins
@@ -162,7 +162,7 @@
     if !isdirectory($NEOBUNDLE)
       call s:installNeoBundle($NEOBUNDLE)
     endif
-    set runtimepath=$VIMFILES,$VIMRUNTIME,$NEOBUNDLE
+    setg runtimepath=$VIMFILES,$VIMRUNTIME,$NEOBUNDLE
   endif
   let g:neobundle#types#git#clone_depth = 1
   let g:neobundle#install_max_processes =
@@ -200,9 +200,11 @@
       \}}
 
     " Utils
+    NeoBundle 'cohama/agit.vim'
     NeoBundle 'kopischke/vim-stay'
     NeoBundle 'wellle/targets.vim'
     NeoBundleLazy 'osyo-manga/vim-reanimate', {
+      \ 'on_cmd': ['ReanimateSaveInput'],
       \ 'on_unite': ['reanimate', 'reanimate_load', 'reanimate_save', 'reanimate_new_save']
       \}
     NeoBundleLazy 'tpope/vim-repeat', {
@@ -462,6 +464,7 @@
 
     " Twig
     NeoBundle 'https://raw.githubusercontent.com/qbbr/vim-twig/master/syntax/twig.vim', {
+      \ 'frozen': 1,
       \ 'script_type': 'syntax'
       \}
     NeoBundleLazy 'tokutake/twig-indent', {
@@ -481,6 +484,16 @@
     NeoBundleLazy 'rstacruz/vim-hyperstyle', {
       \ 'frozen': 1,
       \ 'on_map': [['i', '<Plug>(hyperstyle']]
+      \}
+
+    " SVG
+    NeoBundleLazy 'aur-archive/vim-svg', {
+      \ 'on_path': '\.svg$',
+      \ 'on_ft': 'svg'
+      \}
+    NeoBundleLazy 'jasonshell/vim-svg-indent', {
+      \ 'on_path': '\.svg$',
+      \ 'on_ft': 'svg'
       \}
 
     " JSON
@@ -758,17 +771,6 @@
     let g:targets_nlNL = '  NL'
   endif
 
-  if neobundle#tap('vim-reanimate')
-    nnoremap <silent> ,sl :<C-u>Unite reanimate -default-action=reanimate_load<CR>
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:reanimate_save_dir = $VIMFILES.'/session'
-      let g:reanimate_sessionoptions = 'curdir,folds,help,localoptions,slash,tabpages,winsize'
-    endfunction
-
-    call neobundle#untap()
-  endif
-
   if neobundle#tap('vim-quickrun')
     nmap ;q <Plug>(quickrun)
     nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
@@ -874,7 +876,7 @@
 
     function! neobundle#hooks.on_source(bundle)
       " CTRL+A and CTRL+X works also for letters
-      set nrformats+=alpha
+      setg nrformats+=alpha
     endfunction
 
     call neobundle#untap()
@@ -1418,7 +1420,7 @@
 
   if neobundle#tap('neocomplete.vim')
     " Tab: completion
-    inoremap <silent> <Tab> <C-r>=<SID>neoComplete('<Tab>')<CR>
+    inoremap <silent> <Tab> <C-r>=<SID>neoComplete("\<Tab>")<CR>
     inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
     " Ctrl-d: select the previous match OR delete till start of line
     inoremap <expr> <C-j> pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
@@ -1461,6 +1463,7 @@
 
       " Sources
       let g:neocomplete#sources = {
+        \ '_':          ['buffer', 'file/include'],
         \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
@@ -1479,14 +1482,14 @@
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'html,twig', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'css,scss,sass', '\w*\|\w\+[-:;)]\?\s\+\%(\h\w*\)\?\|[@!]')
+        \ 'css,scss,sass', '^\s\+\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
 
     call neobundle#untap()
   endif
 
   if neobundle#tap('ultisnips')
-    inoremap <silent> ` <C-r>=<SID>ultiComplete('`')<CR>
+    inoremap <silent> ` <C-r>=<SID>ultiComplete("\`")<CR>
     xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
 
@@ -1503,8 +1506,8 @@
       return a:key
     endfunction
 
-    AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
+    AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
 
     function! neobundle#hooks.on_source(bundle)
       let g:UltiSnipsEnableSnipMate = 0
@@ -1689,7 +1692,7 @@
 
   if neobundle#tap('unite-outline')
     " ;o: outline
-    nnoremap <silent> ;o :<C-u>Unite outline -winheight=16 -silent<CR>
+    nnoremap <silent> ;o :<C-u>Unite outline -toggle -winheight=16 -silent<CR>
 
     call neobundle#untap()
   endif
@@ -1748,13 +1751,49 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('vim-reanimate')
+    nnoremap <silent> ,sa :<C-u>ReanimateSaveInput<CR>
+    nnoremap <silent> ,sl :<C-u>Unite reanimate -buffer-name=reanimate<CR>
+
+    command! -nargs=0 ReanimateSaveWithTimeStamp
+      \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
+
+    Autocmd VimLeavePre * ReanimateSaveWithTimeStamp
+    AutocmdFT unite call s:reanimateMappings()
+
+    function! s:reanimateMappings()
+      let b:unite = unite#get_current_unite()
+      if b:unite.buffer_name ==# 'reanimate'
+        " Normal mode
+        nmap <silent> <buffer> <expr> <CR> unite#do_action('reanimate_load')
+        nmap <silent> <buffer> <expr> o    unite#do_action('reanimate_load')
+        nmap <silent> <buffer> <expr> s    unite#do_action('reanimate_save')
+        nmap <silent> <buffer> <expr> r    unite#do_action('reanimate_rename')
+        nmap <silent> <buffer> <expr> t    unite#do_action('reanimate_switch')
+        nmap <silent> <buffer> <expr> S    unite#do_action('reanimate_new_save')
+        nmap <silent> <buffer> <expr> n    unite#do_action('reanimate_new_save')
+      endif
+    endfunction
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:reanimate_event_disables = {
+        \ '_': {'reanimate_confirm': 1}
+        \}
+      let g:reanimate_default_category = 'project'
+      let g:reanimate_save_dir = $VIMFILES.'/session'
+      let g:reanimate_sessionoptions = 'curdir,folds,help,localoptions,slash,tabpages,winsize'
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-qfreplace')
     " qfreplace tuning
     AutocmdFT qfreplace
       \  call feedkeys("\<CR>\<Esc>")
       \| setl nonu nornu colorcolumn= laststatus=0
       \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
-      \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2
+      \| Autocmd BufLeave,BufDelete <buffer> setg laststatus=2
       \| Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
 
     call neobundle#untap()
@@ -1888,7 +1927,7 @@
   endif
 
 " JavaScript
-  Autocmd BufNewFile,BufRead *.{jsx,es6} set filetype=javascript
+  Autocmd BufNewFile,BufRead *.{jsx,es6} setl filetype=javascript
   " Indent
   AutocmdFT javascript setl nowrap textwidth=80 | Indent 2
   " Syntax
@@ -2042,7 +2081,9 @@
         exe printf('silent! iunmap <buffer> %s', char)
       endfor | unlet char
 
-      imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete('<Tab>')<CR>
+      if exists('*neoComplete')
+        imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete("\<Tab>")<CR>
+      endif
       imap <buffer> <expr> <Space>
         \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
     endfunction
@@ -2071,7 +2112,7 @@
   AutocmdFT yaml setl nowrap | Indent 4
 
 " XML
-  Autocmd BufNewFile,BufRead *.xml.* set filetype=xml
+  Autocmd BufNewFile,BufRead *.xml.* setl filetype=xml
   " Syntax
   AutocmdFT xml setl nowrap | Indent 4
   " Autocomplete
@@ -2104,21 +2145,21 @@
         winsize 190 34 | winpos 492 326
         " winsize 176 34 | winpos 492 326
     endif
-    set guioptions=ac
-    set guicursor=n-v-c:blinkon0  " turn off blinking the cursor
-    set linespace=3               " extra spaces between rows
+    setg guioptions=ac
+    setg guicursor=n-v-c:blinkon0  " turn off blinking the cursor
+    setg linespace=3               " extra spaces between rows
 
     " Font
     if s:is_windows
-      set guifont=Droid_Sans_Mono:h10,Consolas:h11
+      setg guifont=Droid_Sans_Mono:h10,Consolas:h11
     else
-      set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
+      setg guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
     endif
   endif
 
   " DirectWrite
   if s:is_windows && has('directx')
-    set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    setg renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
   endif
 
 " View
@@ -2128,53 +2169,53 @@
   " Reload the colorscheme whenever we write the file
   exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
 
-  set shortmess=aoOtTIc
-  set formatoptions-=ro        " don't auto insert a comment when using O/o for a newline
-  set number relativenumber    " show the line number
-  set nocursorline             " highlight the current line
-  set hidden                   " allows the closing of buffers without saving
-  set switchbuf=useopen,split  " orders to open the buffer
-  set showtabline=1            " always show the tab pages
-  set noequalalways            " resize windows as little as possible
-  set winminheight=0
-  set splitbelow splitright
+  setg shortmess=aoOtTIc
+  setg formatoptions-=ro        " don't auto insert a comment when using O/o for a newline
+  set number relativenumber     " show the line number
+  setg nocursorline             " highlight the current line
+  setg hidden                   " allows the closing of buffers without saving
+  setg switchbuf=useopen,split  " orders to open the buffer
+  setg showtabline=1            " always show the tab pages
+  setg noequalalways            " resize windows as little as possible
+  setg winminheight=0
+  setg splitbelow splitright
 
   " Wrapping
   if exists('+breakindent')
-    set wrap                         " wrap long lines
-    set linebreak                    " wrap without line breaks
-    set breakindent                  " wrap lines, taking indentation into account
-    set breakindentopt=shift:4       " indent broken lines
-    set breakat=\ \ ;:,!?            " break point for linebreak
-    set textwidth=0                  " do not wrap text
-    set display+=lastline            " easy browse last line with wrap text
-    set whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
+    setg wrap                         " wrap long lines
+    setg linebreak                    " wrap without line breaks
+    setg breakindent                  " wrap lines, taking indentation into account
+    setg breakindentopt=shift:4       " indent broken lines
+    setg breakat=\ \ ;:,!?            " break point for linebreak
+    setg textwidth=0                  " do not wrap text
+    setg display+=lastline            " easy browse last line with wrap text
+    setg whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
   else
-    set nowrap
+    setg nowrap
   endif
 
   " Fold
-  set nofoldenable
+  setg nofoldenable
   " Diff
-  set diffopt=iwhite,vertical
+  setg diffopt=iwhite,vertical
 
   " Highlight invisible symbols
-  set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
+  setg nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
   " Avoid showing trailing whitespace when in Insert mode
   let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
   Autocmd InsertEnter * exe 'setl listchars+=trail:'. s:trailchar
   Autocmd InsertLeave * exe 'setl listchars-=trail:'. s:trailchar
 
   " Title-line
-  set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
+  setg title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
 
   " Command-line
-  set cmdheight=1
-  set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
-  set wildmenu wildmode=longest,full
+  setg cmdheight=1
+  setg noshowmode   " don't show the mode ('-- INSERT --') at the bottom
+  setg wildmenu wildmode=longest,full
 
   " Status-line
-  set laststatus=2
+  setg laststatus=2
   " Format the statusline
   let &statusline =
     \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
@@ -2183,6 +2224,7 @@
     \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
+    \. "%3*%(%{exists('*reanimate#is_saved()') ? reanimate#last_point() : 'noSAVE'}\ %)%*"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
@@ -2208,39 +2250,39 @@
 
 " Edit
 "---------------------------------------------------------------------------
-  set report=0           " reporting number of lines changes
-  set lazyredraw         " don't redraw while executing macros
-  set nostartofline      " avoid moving cursor to BOL when jumping around
-  set virtualedit=all    " allows the cursor position past true end of line
-  " set clipboard=unnamed  " use * register for copy-paste
+  setg report=0           " reporting number of lines changes
+  setg lazyredraw         " don't redraw while executing macros
+  setg nostartofline      " avoid moving cursor to BOL when jumping around
+  setg virtualedit=all    " allows the cursor position past true end of line
+  " setg clipboard=unnamed  " use * register for copy-paste
 
   " Keymapping timeout (mapping / keycode)
-  set notimeout ttimeoutlen=100
+  setg notimeout ttimeoutlen=100
 
   " Indent
-  set cindent          " smart indenting for c-like code
-  set autoindent       " indent at the same level of the previous line
-  set shiftround       " indent multiple of shiftwidth
-  set expandtab        " spaces instead of tabs
-  set tabstop=2        " number of spaces per tab for display
-  set shiftwidth=2     " number of spaces per tab in insert mode
-  set softtabstop=2    " number of spaces when indenting
-  set nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
+  setg cindent          " smart indenting for c-like code
+  setg autoindent       " indent at the same level of the previous line
+  setg shiftround       " indent multiple of shiftwidth
+  setg expandtab        " spaces instead of tabs
+  setg tabstop=2        " number of spaces per tab for display
+  setg shiftwidth=2     " number of spaces per tab in insert mode
+  setg softtabstop=2    " number of spaces when indenting
+  setg nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
   " Backspacing setting
-  set backspace=indent,eol,start
+  setg backspace=indent,eol,start
 
   " Search
-  set hlsearch         " highlight search results
-  set incsearch        " find as you type search
-  set ignorecase
-  set smartcase
-  set magic            " change the way backslashes are used in search patterns
-  set gdefault         " flag 'g' by default for replacing
+  setg hlsearch         " highlight search results
+  setg incsearch        " find as you type search
+  setg ignorecase
+  setg smartcase
+  setg magic            " change the way backslashes are used in search patterns
+  setg gdefault         " flag 'g' by default for replacing
 
   " Autocomplete
-  set complete=.
-  set completeopt=longest
-  set pumheight=14
+  setglobal complete=.
+  setglobal completeopt=longest
+  setglobal pumheight=14
   " Syntax complete if nothing else available
   Autocmd BufEnter,WinEnter * if &omnifunc == ''| setl omnifunc=syntaxcomplete#Complete |endif
 
