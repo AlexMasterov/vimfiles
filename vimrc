@@ -83,7 +83,7 @@
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  Autocmd BufEnter,WinEnter * setg formatoptions-=ro
+  Autocmd BufEnter,WinEnter * setl formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -1039,7 +1039,7 @@
   endif
 
   if neobundle#tap('splitjoin.vim')
-    nmap <silent> S :<C-u>SplitjoinSplit<CR>
+    nmap <silent> S :<C-u>SplitjoinSplit<CR><CR><Esc>
 
     call neobundle#untap()
   endif
@@ -1755,10 +1755,10 @@
     nnoremap <silent> ,sa :<C-u>ReanimateSaveInput<CR>
     nnoremap <silent> ,sl :<C-u>Unite reanimate -buffer-name=reanimate<CR>
 
-    command! -nargs=0 ReanimateSaveWithTimeStamp
-      \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
+    " command! -nargs=0 ReanimateSaveWithTimeStamp
+    "   \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
 
-    Autocmd VimLeavePre * ReanimateSaveWithTimeStamp
+    " Autocmd VimLeavePre * ReanimateSaveWithTimeStamp
     AutocmdFT unite call s:reanimateMappings()
 
     function! s:reanimateMappings()
@@ -1782,6 +1782,31 @@
       let g:reanimate_default_category = 'project'
       let g:reanimate_save_dir = $VIMFILES.'/session'
       let g:reanimate_sessionoptions = 'curdir,folds,help,localoptions,slash,tabpages,winsize'
+
+      function! s:deleteNoActiveBuffers()
+        " https://gist.github.com/AlexMasterov/da5cd633829166d9fac9
+        if exists(':CleanBuffers')| CleanBuffers |endif
+      endfunction
+
+      " Custom events
+      let s:event = {'name': 'user_event'}
+
+      function! s:event.load_pre_post(...)
+        wall | tabnew | call s:deleteNoActiveBuffers() | tabonly
+      endfunction
+
+      function! s:event.save_pre(...)
+        try
+          argd * | call s:deleteNoActiveBuffers()
+        catch
+        endtry
+      endfunction
+
+      function! s:event.save(...)
+        echom printf(' Reanimate saved (%s)', strftime('%Y/%m/%d %H:%M:%S'))
+      endfunction
+
+      call reanimate#hook(s:event) | unlet s:event
     endfunction
 
     call neobundle#untap()
@@ -2145,21 +2170,21 @@
         winsize 190 34 | winpos 492 326
         " winsize 176 34 | winpos 492 326
     endif
-    setg guioptions=ac
-    setg guicursor=n-v-c:blinkon0  " turn off blinking the cursor
-    setg linespace=3               " extra spaces between rows
+    set guioptions=ac
+    set guicursor=n-v-c:blinkon0  " turn off blinking the cursor
+    set linespace=3               " extra spaces between rows
 
     " Font
     if s:is_windows
-      setg guifont=Droid_Sans_Mono:h10,Consolas:h11
+      set guifont=Droid_Sans_Mono:h10,Consolas:h11
     else
-      setg guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
+      set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
     endif
   endif
 
   " DirectWrite
   if s:is_windows && has('directx')
-    setg renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
   endif
 
 " View
@@ -2215,7 +2240,7 @@
   setg wildmenu wildmode=longest,full
 
   " Status-line
-  setg laststatus=2
+  set laststatus=2
   " Format the statusline
   let &statusline =
     \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
@@ -2224,7 +2249,7 @@
     \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
-    \. "%3*%(%{exists('*reanimate#is_saved()') ? reanimate#last_point() : 'noSAVE'}\ %)%*"
+    \. "%3*%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)%*"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
@@ -2246,6 +2271,11 @@
 
   function! SignatureMarksIndent()
     return exists('b:sig_marks') && len(b:sig_marks) > 0 ? repeat(' ', 4) : ' '
+  endfunction
+
+  function! ReanimateIsSaved()
+    return exists('*reanimate#is_saved()') && reanimate#is_saved()
+      \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : 'noSAVE'
   endfunction
 
 " Edit
