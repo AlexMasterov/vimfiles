@@ -119,6 +119,7 @@
     call MakeDir($VIMCACHE, 1)
     call MakeDir($VIMCACHE.'/tmp', 1)
     set directory=$VIMCACHE/tmp
+    set noswapfile
     " Undo
     call MakeDir($VIMFILES.'/undo', 1)
     set undofile
@@ -130,10 +131,10 @@
   endif
 
   " Russian keyboard
-  setg iskeyword=@,48-57,_,192-255
-  setg keymap=russian-jcukenwin
+  set iskeyword=@,48-57,_,192-255
+  set keymap=russian-jcukenwin
   if has('multi_byte')
-    setg iminsert=0 imsearch=0
+    set iminsert=0 imsearch=0
   endif
 
   " Regexp engine (0=auto, 1=old, 2=NFA)
@@ -436,6 +437,9 @@
     " NeoBundleLazy 'joonty/vdebug', {
     "   \ 'on_ft': 'php'
     "   \}
+    NeoBundleLazy 'jwalton512/vim-blade', {
+      \ 'on_path': '\.blade.php$'
+      \}
 
     " JavaScript
     NeoBundleLazy 'othree/yajs.vim', {
@@ -454,7 +458,7 @@
     " HTML
     NeoBundleLazy 'alvan/vim-closetag'
     NeoBundleLazy 'gregsexton/MatchTag', {
-      \ 'on_ft': ['html', 'twig', 'xml']
+      \ 'on_ft': ['html', 'xml', 'twig', 'blade']
       \}
     NeoBundleLazy 'othree/html5.vim', {
       \ 'on_ft': ['html', 'twig']
@@ -539,6 +543,10 @@
 "---------------------------------------------------------------------------
   if neobundle#tap('hiddenBuffersLimit.vim')
     Autocmd BufHidden * CleanBuffers -f
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:bufcleaner_max_saved = 9
+    endfunction
 
     call neobundle#untap()
   endif
@@ -744,6 +752,7 @@
 
   if neobundle#tap('vim-choosewin')
     nmap - <Plug>(choosewin)
+
     AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)
 
     function! neobundle#hooks.on_source(bundle)
@@ -1031,7 +1040,7 @@
   endif
 
   if neobundle#tap('caw.vim')
-    nmap <silent> <expr> q v:count >= 2
+    nmap <silent> <expr> q v:count > 1
       \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle):call cursor(%d, %d)<CR>',
         \ (v:count-1), getcurpos()[1], getcurpos()[4])
       \ : '<Plug>(caw:i:toggle)'
@@ -2067,8 +2076,8 @@
     call neobundle#untap()
   endif
   if neobundle#tap('MatchTag')
-    Autocmd Syntax twig runtime! ftplugin/html.vim
     Autocmd Syntax xml runtime! ftplugin/xml.vim
+    Autocmd Syntax twig,blade runtime! ftplugin/html.vim
 
     call neobundle#untap()
   endif
@@ -2126,6 +2135,33 @@
   AutocmdFT twig setl commentstring={#<!--%s-->#}
   if neobundle#tap('twig.vim')
     Autocmd Syntax twig runtime! syntax/html.vim
+    Autocmd Syntax twig
+      \  hi twigVariable  guifg=#2B2B2B gui=bold
+      \| hi twigStatement guifg=#008080 gui=NONE
+      \| hi twigOperator  guifg=#999999 gui=NONE
+      \| hi link twigBlockName twigVariable
+      \| hi link twigVarDelim  twigOperator
+      \| hi link twigTagDelim  twigOperator
+    call neobundle#untap()
+  endif
+
+" Blade
+  Autocmd BufNewFile,BufRead *.blade.php setl filetype=blade commentstring={{--%s--}}
+  " Indent
+  AutocmdFT blade Indent 2
+  " Syntax
+  if neobundle#tap('vim-blade')
+    function! neobundle#hooks.on_source(bundle)
+      Autocmd Syntax blade
+        \  hi bladeEcho          guifg=#2B2B2B gui=bold
+        \| hi bladeKeyword       guifg=#008080 gui=NONE
+        \| hi bladePhpParenBlock guifg=#999999 gui=NONE
+        \| hi link bladeDelimiter phpParent
+      " Reset SQL syntax
+      Autocmd Syntax blade
+        \  hi link sqlStatement phpString
+        \| hi link sqlKeyword   phpString
+    endfunction
 
     call neobundle#untap()
   endif
@@ -2169,10 +2205,10 @@
   endif
 
 " JSON
-  Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json | Indent 2
+  Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json
   " Indent
   AutocmdFT json
-    \ Autocmd BufEnter,WinEnter <buffer> setl formatoptions+=2l
+    \ Autocmd BufEnter,WinEnter <buffer> setl formatoptions+=2l | Indent 2
   " Syntax
   if neobundle#tap('vim-json')
     AutocmdFT json
@@ -2433,13 +2469,16 @@
   " gv: last selected text operator
   onoremap gv :<C-u>normal! gv<CR>
 
-  " ,<Space>: remove spaces at the end of lines
-  nnoremap <silent> ,<Space> :<C-u>FixWhitespace<CR>
   " Ctrl-c: old clear highlight after search
   nnoremap <silent> <C-c> :nohl<CR>:let @/=""<CR>
   " [N]+Enter: jump to a line number or mark
   nnoremap <silent> <expr> <Enter> v:count ?
     \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
+
+  if exists(':FixWhitespace')
+    " ,<Space>: remove spaces at the end of lines
+    nnoremap <silent> ,<Space> :<C-u>FixWhitespace<CR>
+  endif
 
   " Files
   "-----------------------------------------------------------------------
@@ -2545,11 +2584,11 @@
   " Text objects
   " vi
   for char in split("' \" ` ( [ { <")
-    exe printf('nnoremap ;%s <Esc>vi%s', char, char)
+    exe printf('nmap ;%s <Esc>vi%s', char, char)
   endfor | unlet char
   " va
   for char in split(") ] } >")
-    exe printf('nnoremap ;%s <Esc>va%s', char, char)
+    exe printf('nmap ;%s <Esc>va%s', char, char)
   endfor | unlet char
 
   " Unbinds
@@ -2557,6 +2596,7 @@
   " map K <Nop>
   map ZZ <Nop>
   map ZQ <Nop>
+  map ' <Nop>
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -2580,7 +2620,7 @@
   " Shift-Enter: break line above
   inoremap <S-CR> <C-m>
   " jj: fast Esc
-  inoremap <expr> j getline('.')[getcurpos()[4]-2] ==# 'j' ? "\<BS>\<Esc>`^" : 'j'
+  inoremap <expr> j getline('.')[getcurpos()[4]-2] ==# 'j' ? "\<BS>\<Esc>`^" : "\j"
   " Ctrl-l: fast Esc
   inoremap <C-l> <Esc>`^
   " Ctrl-c: old fast Esc
@@ -2596,7 +2636,7 @@
   " Alt-q: change language
   inoremap <A-q> <C-^>
   " qq: smart fast Esc
-  imap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : 'q'
+  imap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : "\q"
 
 " Visual mode
 "---------------------------------------------------------------------------
