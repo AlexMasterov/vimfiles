@@ -83,7 +83,7 @@
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  Autocmd BufEnter,WinEnter * setl formatoptions-=ro
+  AutocmdFT * Autocmd BufEnter,WinEnter <buffer> setl formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -117,7 +117,8 @@
     set viminfo+=n$VIMFILES/viminfo
     " Cache
     call MakeDir($VIMCACHE, 1)
-    set noswapfile
+    call MakeDir($VIMCACHE.'/tmp', 1)
+    set directory=$VIMCACHE/tmp
     " Undo
     call MakeDir($VIMFILES.'/undo', 1)
     set undofile
@@ -162,6 +163,7 @@
     if !isdirectory($NEOBUNDLE)
       call s:installNeoBundle($NEOBUNDLE)
     endif
+    let $VIMRUNTIME = substitute($VIMRUNTIME, '[\\/]\+', '/', 'g')
     setg runtimepath=$VIMFILES,$VIMRUNTIME,$NEOBUNDLE
   endif
   let g:neobundle#types#git#clone_depth = 1
@@ -200,7 +202,6 @@
       \}}
 
     " Utils
-    NeoBundle 'cohama/agit.vim'
     NeoBundle 'kopischke/vim-stay'
     NeoBundle 'wellle/targets.vim'
     NeoBundleLazy 'osyo-manga/vim-reanimate', {
@@ -228,8 +229,8 @@
       \]}
     NeoBundleLazy 'Shougo/unite-outline'
     NeoBundleLazy 'osyo-manga/unite-vimpatches'
-    NeoBundleLazy 'osyo-manga/unite-quickfix'
     NeoBundleLazy 'osyo-manga/unite-filetype'
+    NeoBundleLazy 'chemzqm/unite-location'
     NeoBundleLazy 'tsukkee/unite-tag'
     NeoBundleLazy 'thinca/vim-qfreplace', {
       \ 'on_ft': 'unite'
@@ -551,7 +552,7 @@
   endif
 
   if neobundle#tap('vim-characterize')
-    nmap ,c <Plug>(characterize)
+    nmap ,C <Plug>(characterize)
 
     call neobundle#untap()
   endif
@@ -632,8 +633,8 @@
 
     AutocmdFT * Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
     function! s:signatureCleanUp()
-      for map in ['[]', '[[', '["', '][', ']]', ']"']
-        exe 'silent! nunmap <buffer> '. map
+      for char in split('[] ][ [[ ]] [" ]"')
+        exe 'silent! nunmap <buffer> '. char
       endfor
     endfunction
 
@@ -776,7 +777,7 @@
     nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
     AutocmdFT php
-      \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('csfixer')<CR>
+      \  nnoremap <silent> <buffer> ,c :<C-u>call <SID>quickrunType('csfixer')<CR>
       \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
 
     AutocmdFT javascript,html,twig,css,json
@@ -784,6 +785,7 @@
 
     AutocmdFT javascript
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
+      \| nnoremap <silent> <buffer> ,c :<C-u>call <SID>quickrunType('lint')<CR>
 
     Autocmd BufEnter,WinEnter runner:*
       \ let &l:statusline = ' ' | setl nonu nornu nolist colorcolumn=
@@ -823,6 +825,10 @@
         \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
         \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
         \}
+      let g:quickrun_config['javascript/lint'] = {
+        \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'eslint',
+        \ 'args': printf('-c %s/preset/.eslintrc --no-color -f compact', $VIMFILES)
+        \}
 
       " CSS
       let g:quickrun_config['css/formatter'] = {
@@ -843,6 +849,52 @@
         \ 'command': 'js-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
         \ 'args': '--indent-size 2'
         \}
+
+      " Temporary
+      let s:eslint = {'name': 'eslint', 'kind': 'outputter'}
+
+      function! s:eslint.output(data, session) abort
+        let self.result = a:data
+      endfunction
+
+      function! s:eslint.finish(session) abort
+        if a:session.exit_code == 0 " if NO error
+          echo ' No errors'
+          return
+        endif
+
+        let data = split(self.result, "\n")
+        let errors = join(data[:-3], "\n")
+        let errorMessage = data[-1:][0]
+
+        echo printf(' %s ', errorMessage)
+
+        set errorformat=%f:\ line\ %l\\,\ col\ %c\\,\ %m
+
+        lgetexpr errors
+        Unite location_list
+        redraw
+      endfunction
+
+      call quickrun#module#register(s:eslint, 1) | unlet s:eslint
+    endfunction
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-gita') "{{{
+    nnoremap <silent> ,gs :<C-u>Gita status<CR>
+    nnoremap <silent> ,gc :<C-u>Gita commit<CR>
+    nnoremap <silent> ,ga :<C-u>Gita commit --amend<CR>
+    nnoremap <silent> ,gd :<C-u>Gita diff<CR>
+    nnoremap <silent> ,gb :<C-u>Gita browse<CR>
+    nnoremap <silent> ,gl :<C-u>Gita blame<CR>
+
+    AutocmdFT gita*
+      \ let &l:statusline = ' ' | setl nonu nornu
+
+    function! neobundle#hooks.on_source(bundle)
+      let gita#features#commit#enable_default_mappings = 0
     endfunction
 
     call neobundle#untap()
@@ -1377,10 +1429,10 @@
     let s:color_codes_ft = 'css,html,twig'
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
       \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
-        \ ? 'call s:removeColor()'
+        \ ? 'call s:removeColorizerEvent()'
         \ : 'ColorHighlight'
 
-    function! s:removeColor()
+    function! s:removeColorizerEvent()
       if !exists('#Colorizer')| return |endif
       augroup Colorizer
         autocmd!
@@ -1539,9 +1591,9 @@
     nnoremap <silent> ;g :<C-u>Unite grep:. -no-split -auto-preview<CR>
     " ;s: search
     nnoremap <silent> ;s
-      \ :<C-u>Unite line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert<CR>
+      \ :<C-u>Unite line:all -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert<CR>
     nnoremap <silent> ;S
-      \ :<C-u>Unite line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert -no-smartcase<CR>
+      \ :<C-u>Unite line:all -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert -no-smartcase<CR>
     " *: search keyword under the cursor
     nnoremap <silent> *
       \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe<CR>
@@ -1637,8 +1689,8 @@
 
       " Custom profiles
       call unite#custom#profile('default', 'context', s:unite_default)
-      call unite#custom#profile('source/grep', 'context', s:unite_grep)
-      call unite#custom#profile('source/quickfix', 'context', s:unite_quickfix)
+      call unite#custom#profile('grep', 'context', s:unite_grep)
+      call unite#custom#profile('quickfix', 'context', s:unite_quickfix)
       " Custom filters
       call unite#custom#source('file_rec/async', 'max_candidates', 40)
       call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
@@ -1656,10 +1708,10 @@
   endif
 
   if neobundle#tap('neomru.vim')
-    " ;w: open recently-opened files
+    " ;w: open recently-opened files in project
     nnoremap <silent> ;w
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_project_files', 'matcher_hide_current_file'])<CR>
-    " ;W: open recently-opened directories
+    " ;W: open recently-opened files
     nnoremap <silent> ;W
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
 
@@ -1803,7 +1855,7 @@
       endfunction
 
       function! s:event.save(...)
-        echom printf(' Reanimate saved (%s)', strftime('%Y/%m/%d %H:%M:%S'))
+        echom printf(' Session saved (%s)', strftime('%Y/%m/%d %H:%M:%S'))
       endfunction
 
       call reanimate#hook(s:event) | unlet s:event
@@ -1959,20 +2011,20 @@
   if neobundle#tap('yajs.vim')
     function! neobundle#hooks.on_post_source(bundle)
       function! s:yajsJsxSyntax()
-        syn include @XMLSyntax syntax/xml.vim
-        syn region jsxRegion contains=@XMLSyntax,jsxRegion,jsBlock,javascriptBlock
+        syntax include @XMLSyntax syntax/xml.vim
+        syntax region jsxRegion contains=@XMLSyntax,jsxRegion,jsBlock,javascriptBlock
           \ start=+<\@<!<\z([a-zA-Z][a-zA-Z0-9:\-.]*\)+ skip=+<!--\_.\{-}-->+
           \ end=+</\z1\_\s\{-}>+ end=+/>+
           \ keepend extend
-        syn region xmlString contained start=+{+ end=++ contains=jsBlock,javascriptBlock
-        syn cluster jsExpression add=jsxRegion
-        syn cluster javascriptNoReserved add=jsxRegion
+        syntax region xmlString contained start=+{+ end=++ contains=jsBlock,javascriptBlock
+        syntax cluster jsExpression add=jsxRegion
+        syntax cluster javascriptNoReserved add=jsxRegion
       endfunction
 
       Autocmd Syntax javascript
-        \  hi link javascriptReserved  Normal
+        \  call s:yajsJsxSyntax()
+        \| hi link javascriptReserved  Normal
         \| hi link javascriptInvalidOp Normal
-        \| call s:yajsJsxSyntax()
     endfunction
 
     call neobundle#untap()
@@ -1989,7 +2041,7 @@
   endif
   " JSDoc
   if neobundle#tap('vim-jsdoc')
-    AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)
+    AutocmdFT javascript nmap <buffer> ,C <Plug>(jsdoc)
 
     function! neobundle#hooks.on_source(bundle)
       let g:jsdoc_enable_es6 = 1
@@ -2118,9 +2170,11 @@
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json | Indent 2
+  " Indent
+  AutocmdFT json
+    \ Autocmd BufEnter,WinEnter <buffer> setl formatoptions+=2l
   " Syntax
   if neobundle#tap('vim-json')
-    AutocmdFT json setl formatoptions+=2l
     AutocmdFT json
       \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
         \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
@@ -2128,6 +2182,10 @@
     function! neobundle#hooks.on_source(bundle)
       let g:vim_json_warnings = 0
       let g:vim_json_syntax_concealcursor = 'n'
+
+      Autocmd Syntax json
+        \  syntax match jsonComment "//.\{-}$"
+        \| hi link jsonComment Comment
     endfunction
 
     call neobundle#untap()
@@ -2195,7 +2253,6 @@
   exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
 
   setg shortmess=aoOtTIc
-  setg formatoptions-=ro        " don't auto insert a comment when using O/o for a newline
   set number relativenumber     " show the line number
   setg nocursorline             " highlight the current line
   setg hidden                   " allows the closing of buffers without saving
@@ -2448,12 +2505,12 @@
 
   " Windows
   "-----------------------------------------------------------------------
-  for s in ['h', 'j', 'k', 'l']
+  for char in split('h j k l')
     " <Space>[hjkl]: jump to a window
-    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', s, s)
+    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', char, char)
     " <Space>[HJKL]: move the current window
-    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', toupper(s), toupper(s))
-  endfor | unlet s
+    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', toupper(char), toupper(char))
+  endfor | unlet char
   " <Space>w: next window
   nnoremap <silent> <Space>w :<C-u>wincmd w<CR>
   " <Space>W: previous window
@@ -2484,6 +2541,16 @@
   nnoremap <silent> <expr> <Space>s ':<C-u>'. (v:count == 0 ? '' : v:count) .'split<CR>'
   " <Space>S: split window verticaly
   nnoremap <silent> <expr> <Space>S ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
+
+  " Text objects
+  " vi
+  for char in split("' \" ` ( [ { <")
+    exe printf('nnoremap ;%s <Esc>vi%s', char, char)
+  endfor | unlet char
+  " va
+  for char in split(") ] } >")
+    exe printf('nnoremap ;%s <Esc>va%s', char, char)
+  endfor | unlet char
 
   " Unbinds
   map <F1> <Nop>
@@ -2655,3 +2722,12 @@
   nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
   " Ctrl-d: duplicate line
   vnoremap <C-d> :t'><CR>
+
+  inoremap <A-'> <Esc>ci'
+  inoremap <A-"> <Esc>ci"
+  inoremap <A-(> <Esc>ci(
+  inoremap <A-{> <Esc>ci{
+  inoremap <A-[> <Esc>ci[
+  inoremap <A-o> <Esc>o
+  inoremap <A-a> <Esc>O
+  inoremap <A-$> <Esc>d$
