@@ -216,9 +216,6 @@
     NeoBundleLazy 'whatyouhide/vim-lengthmatters', {
       \ 'on_cmd': 'Lengthmatters'
       \}
-    NeoBundleLazy 'gabesoft/vim-ags', {
-      \ 'on_cmd': 'Ags'
-      \}
     NeoBundleLazy 'kshenoy/vim-signature', {
       \ 'on_cmd': 'SignatureRefresh'
       \}
@@ -531,7 +528,6 @@
   call neobundle#begin($VIMFILES.'/bundle')
   if neobundle#load_cache(expand('<sfile>'))
     call s:cacheBundles()
-
     NeoBundleSaveCache
   endif
   call neobundle#end()
@@ -551,14 +547,6 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('vim-ags')
-    function! neobundle#hooks.on_source(bundle)
-      let g:ags_no_stats = 1
-    endfunction
-
-    call neobundle#untap()
-  endif
-
   if neobundle#tap('vim-characterize')
     nmap ,C <Plug>(characterize)
 
@@ -568,7 +556,7 @@
   if neobundle#tap('undotree')
     nnoremap <silent> ,u :<C-u>call <SID>undotreeMyToggle()<CR>
 
-    AutocmdFT diff,undotree setl nornu nonu colorcolumn=
+    AutocmdFT diff,undotree setl nonu nornu colorcolumn=
 
     function! neobundle#hooks.on_source(bundle)
       let g:undotree_WindowLayout = 4
@@ -786,7 +774,7 @@
     nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
     AutocmdFT php
-      \  nnoremap <silent> <buffer> ,c :<C-u>call <SID>quickrunType('csfixer')<CR>
+      \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('csfixer')<CR>
       \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
 
     AutocmdFT javascript,html,twig,css,json
@@ -1188,9 +1176,9 @@
 
       " Fix pair completion
       for pair in ['()', '[]']
-          call lexima#add_rule({
-            \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
-            \})
+        call lexima#add_rule({
+          \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
+          \})
       endfor | unlet pair
 
       " Quotes
@@ -1202,8 +1190,8 @@
       endfor | unlet quote
 
       " { <CR> }
-      call lexima#add_rule({'char': '<CR>', 'at': '{\%#}', 'input_after': '<CR>'})
-      call lexima#add_rule({'char': '<CR>', 'at': '{\%#$', 'input_after': '<CR>}', 'filetype': []})
+      call lexima#add_rule({'at': '{\%#}', 'char': '<CR>', 'input_after': '<CR>'})
+      call lexima#add_rule({'at': '{\%#$', 'char': '<CR>', 'input_after': '<CR>}', 'filetype': []})
 
       " { <Space> }
       call lexima#add_rule({
@@ -1242,7 +1230,7 @@
 
       " Attributes
       call lexima#add_rule({
-        \ 'filetype': ['html', 'twig', 'xml', 'javascript'],
+        \ 'filetype': ['html', 'xml', 'javascript', 'twig', 'blade'],
         \ 'at': '\(........\)\?<.\+\%#', 'char': '=', 'input': '=""<Left>'
         \})
 
@@ -1471,7 +1459,7 @@
         \ 'end':      '</style>',
         \ 'filetype': 'css'
         \}
-      for filetype in ['html', 'twig']
+      for filetype in split('html twig')
         call s:addContext(filetype, s:context_ft_css)
       endfor | unlet filetype
     endfunction
@@ -1541,7 +1529,7 @@
         \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
         \}
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'html,twig', '<\|\s[[:alnum:]-]*')
+        \ 'html,twig,blade', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'css,scss,sass', '^\s\+\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
@@ -1567,8 +1555,9 @@
       return a:key
     endfunction
 
-    Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
     AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
+    AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+    Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
 
     function! neobundle#hooks.on_source(bundle)
       let g:UltiSnipsEnableSnipMate = 0
@@ -1719,17 +1708,17 @@
   if neobundle#tap('neomru.vim')
     " ;w: open recently-opened files in project
     nnoremap <silent> ;w
-      \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_project_files', 'matcher_hide_current_file'])<CR>
+      \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])<CR>
     " ;W: open recently-opened files
     nnoremap <silent> ;W
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
+
+    Autocmd BufLeave,WinLeave,VimLeavePre * NeoMRUSave
 
     function! s:openMRU(matchers)
       call unite#custom#source('neomru/file', 'matchers', a:matchers)
       Unite neomru/file -toggle
     endfunction
-
-    Autocmd BufLeave,VimLeavePre * NeoMRUSave
 
     function! neobundle#hooks.on_source(bundle)
       let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
@@ -1950,12 +1939,12 @@
       let g:phpcomplete_parse_docblock_comments = 0
       let g:phpcomplete_search_tags_for_variables = 1
       let g:phpcomplete_complete_for_unknown_classes = 0
-      let g:phpcomplete_remove_function_extensions = [
-        \ 'apache', 'dba', 'dbase', 'odbc', 'msql', 'mssql'
-        \]
-      let g:phpcomplete_remove_constant_extensions = [
-        \ 'ms_sql_server_pdo', 'msql', 'mssql'
-        \]
+      let g:phpcomplete_remove_function_extensions = [split(
+        \ 'apache,dba,dbase,odbc,msql,mssql',
+        \ ',')]
+      let g:phpcomplete_remove_constant_extensions = [split(
+        \ 'ms_sql_server_pdo,msql,mssql',
+        \ ',')]
     endfunction
 
     call neobundle#untap()
@@ -2001,7 +1990,7 @@
         \}
 
       Autocmd BufNewFile,BufRead Debugger*
-        \ let &l:statusline = ' ' | setl nornu nonu
+        \ let &l:statusline = ' ' | setl nonu nornu
       Autocmd Syntax php
         \  hi DbgCurrentLine guifg=#2B2B2B guibg=#D2FAC1 gui=NONE
         \| hi DbgCurrentSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
@@ -2134,14 +2123,17 @@
   " Syntax
   AutocmdFT twig setl commentstring={#<!--%s-->#}
   if neobundle#tap('twig.vim')
-    Autocmd Syntax twig runtime! syntax/html.vim
-    Autocmd Syntax twig
-      \  hi twigVariable  guifg=#2B2B2B gui=bold
-      \| hi twigStatement guifg=#008080 gui=NONE
-      \| hi twigOperator  guifg=#999999 gui=NONE
-      \| hi link twigBlockName twigVariable
-      \| hi link twigVarDelim  twigOperator
-      \| hi link twigTagDelim  twigOperator
+    function! neobundle#hooks.on_post_source(bundle)
+      Autocmd Syntax twig runtime! syntax/html.vim
+      Autocmd Syntax twig
+        \  hi twigVariable  guifg=#2B2B2B gui=bold
+        \| hi twigStatement guifg=#008080 gui=NONE
+        \| hi twigOperator  guifg=#999999 gui=NONE
+        \| hi link twigBlockName twigVariable
+        \| hi link twigVarDelim  twigOperator
+        \| hi link twigTagDelim  twigOperator
+    endfunction
+
     call neobundle#untap()
   endif
 
@@ -2151,7 +2143,7 @@
   AutocmdFT blade Indent 2
   " Syntax
   if neobundle#tap('vim-blade')
-    function! neobundle#hooks.on_source(bundle)
+    function! neobundle#hooks.on_post_source(bundle)
       Autocmd Syntax blade
         \  hi bladeEcho          guifg=#2B2B2B gui=bold
         \| hi bladeKeyword       guifg=#008080 gui=NONE
@@ -2582,6 +2574,7 @@
   nnoremap <silent> <expr> <Space>S ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
 
   " Text objects
+  "-----------------------------------------------------------------------
   " vi
   for char in split("' \" ` ( [ { <")
     exe printf('nmap ;%s <Esc>vi%s', char, char)
