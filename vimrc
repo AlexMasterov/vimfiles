@@ -180,8 +180,8 @@
       \ 'base': expand('$VIMFILES/dev')
       \}
     NeoBundle 'gist:da64501bb2f20893737d', {
-      \ 'name': 'tabline.vim',
-      \ 'script_type': 'plugin'
+        \ 'name': 'tabline.vim',
+        \ 'script_type': 'plugin'
       \}
     NeoBundleLazy 'gist:da5cd633829166d9fac9', {
       \ 'name': 'hiddenBuffersLimit.vim',
@@ -292,8 +292,18 @@
     NeoBundleLazy 'kana/vim-smartword', {
       \ 'on_map': [['nv', '<Plug>(smartword-']]
       \}
-    NeoBundleLazy 't9md/vim-smalls', {
-      \ 'on_map': [['n', '<Plug>(smalls']]
+    NeoBundleLazy 'easymotion/vim-easymotion', {
+      \ 'on_map': [['nv', '<Plug>(easymotion-']],
+      \ 'on_cmd': 'EasyMotionWordsBeginningWithChar'
+      \}
+    NeoBundleLazy 'haya14busa/incsearch.vim', {
+      \ 'on_func': 'incsearch#go'
+      \}
+    NeoBundleLazy 'haya14busa/incsearch-easymotion.vim', {
+      \ 'depends': ['haya14busa/incsearch.vim', 'easymotion/vim-easymotion']
+      \}
+    NeoBundleLazy 'osyo-manga/vim-anzu', {
+      \ 'on_map': [['nv', '<Plug>(anzu-']]
       \}
     NeoBundleLazy 'tyru/caw.vim', {
       \ 'on_map': [['nv', '<Plug>(caw:']]
@@ -310,9 +320,6 @@
     NeoBundleLazy 'gcmt/wildfire.vim', {
       \ 'on_map': '<Plug>(wildfire-'
       \}
-    NeoBundleLazy 'saihoooooooo/glowshi-ft.vim', {
-      \ 'on_map': '<Plug>(glowshi-'
-      \}
     NeoBundleLazy 'junegunn/vim-easy-align', {
       \ 'on_map': [['nx', '<Plug>(EasyAlign)']]
       \}
@@ -321,9 +328,6 @@
       \}
     NeoBundleLazy 'osyo-manga/vim-jplus', {
       \ 'on_map': [['nv', '<Plug>']]
-      \}
-    NeoBundleLazy 'osyo-manga/vim-over', {
-      \ 'on_cmd': 'OverCommandLine'
       \}
     NeoBundleLazy 'AndrewRadev/splitjoin.vim', {
       \ 'on_cmd': 'SplitjoinSplit'
@@ -467,6 +471,7 @@
     " Twig
     NeoBundle 'https://raw.githubusercontent.com/qbbr/vim-twig/master/syntax/twig.vim', {
       \ 'frozen': 1,
+      \ 'type': 'raw',
       \ 'script_type': 'syntax'
       \}
     NeoBundleLazy 'tokutake/twig-indent', {
@@ -596,9 +601,9 @@
 
     function! neobundle#hooks.on_source(bundle)
       let g:lengthmatters_on_by_default = 0
-      let g:lengthmatters_excluded = [
-        \ 'vim', 'help', 'unite', 'vimfiler', 'undotree', 'qfreplace'
-        \]
+      let g:lengthmatters_excluded = split(
+        \ 'vim help unite vimfiler undotree qfreplace'
+        \)
       call lengthmatters#highlight_link_to('ColorColumn')
     endfunction
 
@@ -606,9 +611,9 @@
   endif
 
   if neobundle#tap('vim-signature')
-    let s:signature_ignore_ft = 'unite,qfreplace,vimfiler'
+    let s:signature_ignore_ft = 'unite qfreplace vimfiler'
     AutocmdFT *
-      \ if index(split(s:signature_ignore_ft, ','), &filetype) == -1| call s:signatureMappings() |endif
+      \ if index(split(s:signature_ignore_ft), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings()
       nnoremap <silent> <buffer> <BS>
@@ -1053,17 +1058,35 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('vim-over')
-    nnoremap <silent> ;/ :<C-u>OverCommandLine<CR>%s/
-    xnoremap <silent> ;/ :<C-u>OverCommandLine<CR>%s/\%V
+  if neobundle#tap('incsearch.vim')
+    noremap <silent> <expr> /  incsearch#go(<SID>incsearchConfig())
+    noremap <silent> <expr> ?  incsearch#go(<SID>incsearchConfig({'command': '?'}))
+    noremap <silent> <expr> g/ incsearch#go(<SID>incsearchConfig({'is_stay': 1}))
+
+    function! s:incsearchConfig(...) abort
+      return incsearch#util#deepextend(deepcopy({
+        \ 'modules': [incsearch#config#easymotion#module({'overwin': 1})],
+        \ 'keymap': {
+        \   "\<CR>": '<Over>(easymotion)'
+        \ },
+        \ 'is_expr': 0
+        \}), get(a:, 1, {}))
+    endfunction
 
     function! neobundle#hooks.on_source(bundle)
-      let g:over_command_line_key_mappings = {
-        \ "\<C-c>": "\<Esc>",
-        \ "\<C-l>": "\<Esc>",
-        \ "\<C-j>": "\<CR>"
-        \}
-      let g:over#command_line#paste_escape_chars = '\\/.*$^~'
+      let g:incsearch#auto_nohlsearch = 1
+    endfunction
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-anzu')
+    nmap * <Plug>(anzu-star-with-echo)
+    nmap # <Plug>(anzu-sharp-with-echo)
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:anzu_status_format = '%p (%i/%l)'
+      nnoremap <silent> <C-c> :<C-u>let [&hlsearch, @/] = [0, ""]<CR>:AnzuClearSearchStatus<CR>
     endfunction
 
     call neobundle#untap()
@@ -1102,50 +1125,25 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('vim-smalls')
-    nmap s <Plug>(smalls)
-    nmap ,f <Plug>(smalls-excursion)
+  if neobundle#tap('vim-easymotion')
+    map s <Plug>(easymotion-s)
+    map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
+    map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
     function! neobundle#hooks.on_source(bundle)
-      let g:smalls_highlight = {
-        \ 'SmallsCandidate':  [['NONE', 'NONE', 'NONE'],['NONE', '#DDEECC', '#000000']],
-        \ 'SmallsCurrent':    [['NONE', 'NONE', 'NONE'],['bold', '#9DBAD7', '#000000']],
-        \ 'SmallsJumpTarget': [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-        \ 'SmallsPos':        [['NONE', 'NONE', 'NONE'],['NONE', '#FF7311', '#000000']],
-        \ 'SmallsCli':        [['NONE', 'NONE', 'NONE'],['bold', '#DDEECC', '#000000']]
-        \}
-      call smalls#keyboard#cli#extend_table({
-        \ "\<S-Space>": 'do_excursion',
-        \ "\<C-o>":     'do_excursion',
-        \ "\<C-i>":     'do_excursion',
-        \ "\<C-j>":     'do_excursion',
-        \ "\<C-k>":     'do_excursion',
-        \ "\<C-l>":     'do_cancel',
-        \ "\<C-c>":     'do_cancel',
-        \ "\q":         'do_cancel',
-        \ "\`":         'do_cancel'
-        \})
-      call smalls#keyboard#excursion#extend_table({
-        \ "\Q": 'do_cancel',
-        \ "\o": 'do_set',
-        \ "\`": 'do_set',
-        \ "\p": 'do_jump'
-        \})
-    endfunction
+      let g:EasyMotion_do_mapping = 0
+      let g:EasyMotion_space_jump_first = 1
+      let g:EasyMotion_disable_two_key_combo = 0
+      let g:EasyMotion_verbose = 0
+      let g:EasyMotion_do_shade = 0
+      let g:EasyMotion_hl_inc_cursor = get(g:, 'EasyMotion_hl_inc_cursor', 'EasyMotionIncCursor')
+      let g:EasyMotion_hl_group_shade = get(g:, 'EasyMotion_hl_group_shade', 'EasyMotionShade')
+      let g:EasyMotion_hl_group_target = get(g:, 'EasyMotion_hl_group_target', 'EasyMotionTarget')
 
-    call neobundle#untap()
-  endif
-
-  if neobundle#tap('glowshi-ft.vim')
-    map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(glowshi-ft-f)" : "\<Plug>(glowshi-ft-F)"
-    map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(glowshi-ft-f)" : "\<Plug>(glowshi-ft-F)"
-
-    function! neobundle#hooks.on_source(bundle)
-      let g:glowshi_ft_no_default_key_mappings = 1
-      let g:glowshi_ft_fix_key = '[\<NL>\o]'
-      let g:glowshi_ft_cancel_key = '\`'
-      let g:glowshi_ft_selected_hl_guibg = '#9DBAD7'
-      let g:glowshi_ft_candidates_hl_guibg = '#DDEECC'
+      hi EasyMotionShade     guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
+      hi EasyMotionTarget    guifg=#000000 guibg=#DDEECC gui=bold
+      hi EasyMotionIncSearch guifg=#FFFFFF guibg=#FF7311 gui=NONE
+      hi link EasyMotionIncCursor Cursor
     endfunction
 
     call neobundle#untap()
@@ -1423,9 +1421,9 @@
   endif
 
   if neobundle#tap('colorizer')
-    let s:color_codes_ft = 'css,html,twig'
+    let s:color_codes_ft = 'css html twig'
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
-      \ exe index(split(s:color_codes_ft, ','), &filetype) == -1
+      \ exe index(split(s:color_codes_ft), &filetype) == -1
         \ ? 'call s:removeColorizerEvent()'
         \ : 'ColorHighlight'
 
@@ -1593,7 +1591,7 @@
     nnoremap <silent> ;S
       \ :<C-u>Unite line:all -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert -no-smartcase<CR>
     " *: search keyword under the cursor
-    nnoremap <silent> *
+    nnoremap <silent> ;*
       \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe<CR>
 
      " ;r: resume search buffer
@@ -1939,12 +1937,12 @@
       let g:phpcomplete_parse_docblock_comments = 0
       let g:phpcomplete_search_tags_for_variables = 1
       let g:phpcomplete_complete_for_unknown_classes = 0
-      let g:phpcomplete_remove_function_extensions = [split(
-        \ 'apache,dba,dbase,odbc,msql,mssql',
-        \ ',')]
-      let g:phpcomplete_remove_constant_extensions = [split(
-        \ 'ms_sql_server_pdo,msql,mssql',
-        \ ',')]
+      let g:phpcomplete_remove_function_extensions = split(
+        \ 'apache dba dbase odbc msql mssql',
+        \)
+      let g:phpcomplete_remove_constant_extensions = split(
+        \ 'ms_sql_server_pdo msql mssql',
+        \)
     endfunction
 
     call neobundle#untap()
@@ -2333,6 +2331,7 @@
     \. "%-0.60t "
     \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
+    \. "%(%{exists('*anzu#search_status()') ? anzu#search_status() : ''}\ %)"
     \. "%="
     \. "%3*%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)%*"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
@@ -2461,8 +2460,8 @@
   " gv: last selected text operator
   onoremap gv :<C-u>normal! gv<CR>
 
-  " Ctrl-c: old clear highlight after search
-  nnoremap <silent> <C-c> :nohl<CR>:let @/=""<CR>
+  " Ctrl-c: clear highlight after search
+  nnoremap <silent> <C-c> :<C-u>let [&hlsearch, @/] = [0, ""]<CR>
   " [N]+Enter: jump to a line number or mark
   nnoremap <silent> <expr> <Enter> v:count ?
     \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
@@ -2725,19 +2724,13 @@
   " (: jump to previous pair
   nnoremap ( F(
 
-  " #: keep search pattern at the center of the screen
-  nnoremap <silent> # #zz
-
-  " #: jump to alternate buffer
-  " nnoremap <silent> # <C-^>
+  " [#*]: make # and * work in visual mode too
+  vnoremap # y?<C-r>*<CR>
+  vnoremap * y/<C-r>*<CR>
 
   " ,yn: copy file name to clipboard (foo/bar/foobar.c => foobar.c)
   nnoremap <silent> ,yn :<C-u>let @*=fnamemodify(bufname('%'),':p:t')<CR>
   nnoremap <silent> ,yp :<C-u>let @*=fnamemodify(bufname('%'),':p')<CR>
-
-  " [#*]: make # and * work in visual mode too
-  vnoremap # y?<C-r>*<CR>
-  vnoremap * y/<C-r>*<CR>
 
   " ,r: replace a word under cursor
   nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
