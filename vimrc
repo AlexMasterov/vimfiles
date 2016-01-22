@@ -439,7 +439,8 @@
     "   \ 'on_ft': 'php'
     "   \}
     NeoBundleLazy 'jwalton512/vim-blade', {
-      \ 'on_path': '\.blade.php$'
+      \ 'on_path': '\.blade.php$',
+      \ 'on_ft': 'php'
       \}
 
     " JavaScript
@@ -469,13 +470,15 @@
       \}
 
     " Twig
-    NeoBundle 'https://raw.githubusercontent.com/qbbr/vim-twig/master/syntax/twig.vim', {
-      \ 'frozen': 1,
-      \ 'type': 'raw',
-      \ 'script_type': 'syntax'
+    NeoBundleLazy 'gist:83fc49ab990284741754', {
+      \ 'name': 'twig.vim',
+      \ 'script_type': 'syntax',
+      \ 'on_path': ['\.twig$', '\.html.twig$'],
+      \ 'on_ft': 'twig'
       \}
     NeoBundleLazy 'tokutake/twig-indent', {
-      \ 'on_path': ['\.twig$', '\.html.twig$']
+      \ 'on_path': ['\.twig$', '\.html.twig$'],
+      \ 'on_ft': 'twig'
       \}
 
     " CSS
@@ -977,25 +980,24 @@
     Autocmd Syntax php,javascript
       \ hi BrightestCursorLine guifg=#2B2B2B guibg=#EDE5F4 gui=NONE
 
-    let s:brightest_ignore_syntax_def = [
-      \ 'None', 'Normal', 'Comment', 'Type', 'Keyword', 'Delimiter',
-      \ 'Conditional', 'Statement', 'Constant', 'Number', 'Operator'
-      \]
+    let s:brightest_ignore_syntax_def = split(
+      \ 'None Normal Comment Type Keyword Delimiter Conditional Statement Constant Number Operator'
+      \)
 
     " PHP
     AutocmdFT php BrightestDisable
-      \| let b:brightest_ignore_syntax_list = [
-        \ 'phpRegion', 'phpIf', 'phpDelimiter', 'phpBoolean', 'phpInteger', 'phpInclude',
-        \ 'phpStatement', 'phpEncapsulation', 'phpAnnotation', 'phpDocTags', 'phpOperator'
-        \] + s:brightest_ignore_syntax_def
+      \| let b:brightest_ignore_syntax_list = split(
+        \ 'phpRegion phpIf phpDelimiter phpBoolean phpInteger phpInclude',
+        \ 'phpStatement phpEncapsulation phpAnnotation phpDocTags phpOperator'
+        \) + s:brightest_ignore_syntax_def
 
     " JavaScript
     AutocmdFT javascript BrightestDisable
-      \| let b:brightest_ignore_syntax_list = [
-        \ '', 'javascriptVariable', 'javaScriptBraces', 'javaScriptParens', 'javascriptReturn', 'javascriptBlock',
-        \ 'javascriptFuncCallArg', 'javascriptArrowFuncDef', 'javascriptDotNotation', 'javascriptOperator',
-        \ 'javaScriptRegexpString', 'javascriptObjectLiteral', 'javascriptArray', 'javaScriptBoolean'
-        \] + s:brightest_ignore_syntax_def
+      \| let b:brightest_ignore_syntax_list = split(
+        \ ' javascriptVariable javaScriptBraces javaScriptParens javascriptReturn javascriptBlock',
+        \ 'javascriptFuncCallArg javascriptArrowFuncDef javascriptDotNotation javascriptOperator',
+        \ 'javaScriptRegexpString javascriptObjectLiteral javascriptArray javaScriptBoolean'
+        \) + s:brightest_ignore_syntax_def
 
     function! neobundle#hooks.on_source(bundle)
       let g:brightest#enable_filetypes = {'_': 0}
@@ -1126,24 +1128,29 @@
   endif
 
   if neobundle#tap('vim-easymotion')
-    map s <Plug>(easymotion-s)
+    nmap  s <Plug>(easymotion-s)
+    nmap ,w <Plug>(easymotion-overwin-w)
+    nmap ,k <Plug>(easymotion-overwin-f)
+    nmap ,K <Plug>(easymotion-overwin-f2)
+    nmap ,l <Plug>(easymotion-overwin-line)
+
     map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
     map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
     function! neobundle#hooks.on_source(bundle)
+      let g:EasyMotion_verbose = 0
       let g:EasyMotion_do_mapping = 0
       let g:EasyMotion_space_jump_first = 1
-      let g:EasyMotion_disable_two_key_combo = 0
-      let g:EasyMotion_verbose = 0
-      let g:EasyMotion_do_shade = 0
       let g:EasyMotion_hl_inc_cursor = get(g:, 'EasyMotion_hl_inc_cursor', 'EasyMotionIncCursor')
       let g:EasyMotion_hl_group_shade = get(g:, 'EasyMotion_hl_group_shade', 'EasyMotionShade')
       let g:EasyMotion_hl_group_target = get(g:, 'EasyMotion_hl_group_target', 'EasyMotionTarget')
 
-      hi EasyMotionShade     guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
-      hi EasyMotionTarget    guifg=#000000 guibg=#DDEECC gui=bold
-      hi EasyMotionIncSearch guifg=#FFFFFF guibg=#FF7311 gui=NONE
-      hi link EasyMotionIncCursor Cursor
+      hi EasyMotionTarget       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi EasyMotionTarget2First guifg=#FF0000 guibg=#F6F7F7 gui=bold
+      hi link EasyMotionTarget2Second EasyMotionTarget
+      hi link EasyMotionShade         Comment
+      hi link EasyMotionMoveHL        Search
+      hi link EasyMotionIncCursor     Cursor
     endfunction
 
     call neobundle#untap()
@@ -2108,6 +2115,7 @@
   endif
 
 " Twig
+  Autocmd BufNewFile,BufRead *.*.twig,*.twig setl filetype=twig commentstring={#<!--%s-->#}
   " Indent
   AutocmdFT twig Indent 2
   if neobundle#tap('twig-indent')
@@ -2119,9 +2127,8 @@
     call neobundle#untap()
   endif
   " Syntax
-  AutocmdFT twig setl commentstring={#<!--%s-->#}
   if neobundle#tap('twig.vim')
-    function! neobundle#hooks.on_post_source(bundle)
+    function! neobundle#hooks.on_source(bundle)
       Autocmd Syntax twig runtime! syntax/html.vim
       Autocmd Syntax twig
         \  hi twigVariable  guifg=#2B2B2B gui=bold
@@ -2141,7 +2148,7 @@
   AutocmdFT blade Indent 2
   " Syntax
   if neobundle#tap('vim-blade')
-    function! neobundle#hooks.on_post_source(bundle)
+    function! neobundle#hooks.on_source(bundle)
       Autocmd Syntax blade
         \  hi bladeEcho          guifg=#2B2B2B gui=bold
         \| hi bladeKeyword       guifg=#008080 gui=NONE
