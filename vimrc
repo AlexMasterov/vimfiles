@@ -2,21 +2,24 @@
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
-" My vimfiles
-"---------------------------------------------------------------------------
-  let $VIM = substitute($VIM, '[\\/]\+', '/', 'g')  " unification
-  let $VIMFILES = $VIM.'/vimfiles'
-  let $VIMCACHE = $VIMFILES.'/cache'
-
 " Environment
 "---------------------------------------------------------------------------
+  " Unification
+  let $VIM = substitute($VIM, '[\\/]\+', '/', 'g')
+  let $VIMRUNTIME = substitute($VIMRUNTIME, '[\\/]\+', '/', 'g')
+  " Vimfiles
+  let $VIMFILES = $VIM.'/vimfiles'
+  let $VIMCACHE = $VIMFILES.'/cache'
+  " Store
+  set viminfo+=n$VIMFILES/viminfo
+
   let s:is_windows = has('win32') || has('win64')
 
   if &compatible
     set nocompatible  " be improved
   endif
   if s:is_windows
-    setg shellslash
+    set shellslash
   endif
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
@@ -76,6 +79,9 @@
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
   command! -bar -nargs=0 GoldenRatio exe 'vertical resize' &columns * 5 / 8
+  " Save all buffers when focus lost, ignoring warnings, and return to normal mode
+  Autocmd FocusLost * nested wa
+  Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
 
 " Events
 "---------------------------------------------------------------------------
@@ -113,22 +119,17 @@
 
 " Misc
 "---------------------------------------------------------------------------
-  if has('vim_starting')
-    set viminfo+=n$VIMFILES/viminfo
-    " Cache
-    call MakeDir($VIMCACHE, 1)
-    call MakeDir($VIMCACHE.'/tmp', 1)
-    set directory=$VIMCACHE/tmp
-    set noswapfile
-    " Undo
-    call MakeDir($VIMFILES.'/undo', 1)
-    set undofile
-    set undolevels=500 undoreload=1000
-    set undodir=$VIMFILES/undo
-    " View
-    set viewdir=$VIMFILES/views
-    set viewoptions=cursor,slash,unix
-  endif
+  " Cache
+  call MakeDir($VIMCACHE, 1)
+  set directory=$VIMFILES/tmp
+  set noswapfile
+  " Undo
+  call MakeDir($VIMFILES.'/undo', 1)
+  set undodir=$VIMFILES/undo
+  set undofile undolevels=500 undoreload=1000
+  " View
+  set viewdir=$VIMFILES/views
+  set viewoptions=cursor,slash,unix
 
   " Russian keyboard
   set iskeyword=@,48-57,_,192-255
@@ -160,12 +161,11 @@
 
   " Install NeoBundle
   if has('vim_starting')
-    let $NEOBUNDLE = $VIMFILES.'/bundle/neobundle.vim'
+    let $NEOBUNDLE = $VIMFILES.'/bundle/neobundle.vim/'
     if !isdirectory($NEOBUNDLE)
       call s:installNeoBundle($NEOBUNDLE)
     endif
-    let $VIMRUNTIME = substitute($VIMRUNTIME, '[\\/]\+', '/', 'g')
-    setg runtimepath=$VIMFILES,$VIMRUNTIME,$NEOBUNDLE
+    setg runtimepath=$NEOBUNDLE,$VIMFILES,$VIMRUNTIME
   endif
   let g:neobundle#types#git#clone_depth = 1
   let g:neobundle#install_max_processes =
@@ -204,7 +204,13 @@
 
     " Utils
     NeoBundle 'kopischke/vim-stay'
-    NeoBundle 'wellle/targets.vim'
+    " NeoBundle 'wellle/targets.vim'
+    NeoBundleLazy 'cohama/agit.vim', {
+      \ 'on_cmd': ['Agit', 'AgitFile']
+      \}
+    NeoBundleLazy 'lambdalisue/vim-gita', {
+      \ 'on_cmd': 'Gita'
+      \}
     NeoBundleLazy 'osyo-manga/vim-reanimate', {
       \ 'on_cmd': ['ReanimateSaveInput'],
       \ 'on_unite': ['reanimate', 'reanimate_load', 'reanimate_save', 'reanimate_new_save']
@@ -225,19 +231,23 @@
       \   {'name': ['Unite', 'UniteResume'], 'complete': 'customlist,unite#complete#source'},
       \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
       \]}
-    NeoBundleLazy 'Shougo/unite-outline'
-    NeoBundleLazy 'osyo-manga/unite-vimpatches'
     NeoBundleLazy 'osyo-manga/unite-filetype'
     NeoBundleLazy 'chemzqm/unite-location'
     NeoBundleLazy 'tsukkee/unite-tag'
     NeoBundleLazy 'thinca/vim-qfreplace', {
       \ 'on_ft': 'unite'
       \}
+    NeoBundleLazy 'Shougo/unite-outline', {
+      \ 'on_unite': 'outline'
+      \}
     NeoBundleLazy 'Shougo/junkfile.vim', {
       \ 'on_unite': ['junkfile', 'junkfile/new']
       \}
     NeoBundleLazy 'mattn/httpstatus-vim', {
       \ 'on_unite': 'httpstatus'
+      \}
+    NeoBundleLazy 'osyo-manga/unite-vimpatches', {
+      \ 'on_unite': 'vimpatches'
       \}
     NeoBundleLazy 'Shougo/neomru.vim', {
       \ 'on_unite': ['neomru/file', 'neomru/directory'],
@@ -533,7 +543,7 @@
       \}
   endfunction
 
-  call neobundle#begin($VIMFILES.'/bundle')
+  call neobundle#begin($VIMFILES.'/bundle/')
   if neobundle#load_cache(expand('<sfile>'))
     call s:cacheBundles()
     NeoBundleSaveCache
@@ -669,7 +679,11 @@
 
     function! s:jumpToVimfiler()
       if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
-        wincmd p
+        try
+          wincmd p
+        catch
+          wincmd w
+        endtry
       else
         for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
           exe winnr . 'wincmd w'
@@ -680,7 +694,7 @@
     " Vimfiler tuning
     AutocmdFT vimfiler let &l:statusline = ' '
     Autocmd BufEnter,WinEnter vimfiler:*
-      \ setl cursorline nonu nornu nolist cursorline colorcolumn=
+      \ setl nonu nornu nolist cursorline colorcolumn=
     Autocmd BufLeave,WinLeave vimfiler:* setl nocursorline
 
     AutocmdFT vimfiler call s:vimfilerMappings()
@@ -887,13 +901,23 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('vim-gita') "{{{
+  if neobundle#tap('agit.vim')
+    nnoremap <silent> ,gl :<C-u>Agit<CR>
+    nnoremap <silent> ,gf :<C-u>AgitFile<CR>
+
+    AutocmdFT agit setl cursorline
+    AutocmdFT agit* let &l:statusline = ' '
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-gita')
     nnoremap <silent> ,gs :<C-u>Gita status<CR>
     nnoremap <silent> ,gc :<C-u>Gita commit<CR>
     nnoremap <silent> ,ga :<C-u>Gita commit --amend<CR>
     nnoremap <silent> ,gd :<C-u>Gita diff<CR>
     nnoremap <silent> ,gb :<C-u>Gita browse<CR>
-    nnoremap <silent> ,gl :<C-u>Gita blame<CR>
+    " nnoremap <silent> ,gl :<C-u>Gita blame<CR>
 
     AutocmdFT gita*
       \ let &l:statusline = ' ' | setl nonu nornu
@@ -1180,14 +1204,14 @@
       endfunction
 
       " Fix pair completion
-      for pair in ['()', '[]']
+      for pair in split('() []')
         call lexima#add_rule({
           \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
           \})
       endfor | unlet pair
 
       " Quotes
-      for quote in ['"', "'"]
+      for quote in split("\" '")
         call lexima#add_rule({'char': quote, 'at': '\(.......\)\?'. quote .'\%#', 'input': quote})
         call lexima#add_rule({'char': quote, 'at': '\(...........\)\?\%#'. quote, 'input': '<Right>'})
         call lexima#add_rule({'char': '<BS>', 'at': '\(.......\)\?'. quote .'\%#'. quote, 'delete': 1})
@@ -1244,6 +1268,14 @@
         \ 'filetype': 'css',
         \ 'at': '\(........\)\?/\%#', 'char': '/', 'input': '*<Space><Space>*/<Left><Left><Left>'
         \})
+
+      if exists(':Rename')
+        " Rename :er
+        call lexima#add_rule({
+          \ 'mode':  ':',
+          \ 'at': '^e\%#', 'char': 'r', 'input': "\<C-u>Rename \<C-r>=expand('%:p') \<CR>\<C-w>"
+          \})
+      endif
     endfunction
 
     call neobundle#untap()
@@ -1534,7 +1566,7 @@
         \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
         \}
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'html,twig,blade', '<\|\s[[:alnum:]-]*')
+        \ 'html,twig', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'css,scss,sass', '^\s\+\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
@@ -1747,7 +1779,7 @@
 
   if neobundle#tap('unite-outline')
     " ;o: outline
-    nnoremap <silent> ;o :<C-u>Unite outline -toggle -winheight=16 -silent<CR>
+    nnoremap <silent> ;o :<C-u>Unite outline -toggle -no-empty -winheight=16 -silent<CR>
 
     call neobundle#untap()
   endif
@@ -2090,7 +2122,10 @@
           return emmet#expandAbbr(0, '')
         endif
       endif
-      return neocomplete#start_manual_complete()
+      if exists('*neocomplete#start_manual_complete()')
+        return neocomplete#start_manual_complete()
+      endif
+      return "\<C-x>\<C-o>"
     endfunction
 
     function! s:emmetMappings()
@@ -2118,14 +2153,6 @@
   Autocmd BufNewFile,BufRead *.*.twig,*.twig setl filetype=twig commentstring={#<!--%s-->#}
   " Indent
   AutocmdFT twig Indent 2
-  if neobundle#tap('twig-indent')
-    function! neobundle#hooks.on_source(bundle)
-      let g:twig_close_tags = 1
-      let g:twig_indent_tags = 1
-    endfunction
-
-    call neobundle#untap()
-  endif
   " Syntax
   if neobundle#tap('twig.vim')
     function! neobundle#hooks.on_source(bundle)
@@ -2165,6 +2192,7 @@
 
 " CSS
   Autocmd BufNewFile,BufRead *.scss setl filetype=css commentstring=/*%s*/
+  AutocmdFT css setl nonu nornu
   " Indent
   AutocmdFT css setl nowrap | Indent 2
   " Syntax
@@ -2312,7 +2340,7 @@
   " Fold
   setg nofoldenable
   " Diff
-  setg diffopt=iwhite,vertical
+  setg diffopt=filler,iwhite,vertical
 
   " Highlight invisible symbols
   setg nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
@@ -2340,6 +2368,8 @@
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%(%{exists('*anzu#search_status()') ? anzu#search_status() : ''}\ %)"
     \. "%="
+    \. "%1*%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)%*"
+    \. "%(%{exists('*GitBranch()') ? GitBranch() : ''}\ %)"
     \. "%3*%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)%*"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
@@ -2366,7 +2396,19 @@
 
   function! ReanimateIsSaved()
     return exists('*reanimate#is_saved()') && reanimate#is_saved()
-      \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : 'noSAVE'
+      \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : ''
+  endfunction
+
+  function! GitBranch()
+    return winwidth(0) > 70 ? gita#statusline#preset('branch') : ''
+  endfunction
+
+  function! GitTraffic()
+    return winwidth(0) > 70 ? gita#statusline#preset('traffic') : ''
+  endfunction
+
+  function! GitStatus()
+    return winwidth(0) > 70 ? gita#statusline#preset('status') : ''
   endfunction
 
 " Edit
@@ -2579,6 +2621,12 @@
   " <Space>S: split window verticaly
   nnoremap <silent> <expr> <Space>S ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
 
+  if exists(':GoldenRatio')
+    " ,g: golden ratio
+    nnoremap <silent> ,g :<C-u>GoldenRatio<CR>
+    nnoremap <silent> <Space>g :<C-u>GoldenRatio<CR>
+  endif
+
   " Text objects
   "-----------------------------------------------------------------------
   " vi
@@ -2720,6 +2768,10 @@
   nnoremap <silent> ,o :<C-u>let &l:wrap = !&l:wrap<CR>
     \:echo printf(' Wrap mode: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
 
+  " ,n
+  nnoremap <silent> ,n :<C-u>let [&l:nu, &l:rnu] = &l:nu ? [0, 0] : [1, 1]<CR>
+    \:echo printf(' Show line number: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
+
   " [nN]: append blank line and space
   nnoremap <silent> <expr> n v:count ?
     \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
@@ -2730,6 +2782,10 @@
   nnoremap ) f)
   " (: jump to previous pair
   nnoremap ( F(
+
+  " mode()[0] =~ 'i\|R'
+  xnoremap <expr> } mode() == '<c-v>' ? line("'}") - 1 . 'G' : '}'
+  xnoremap <expr> { mode() == '<c-v>' ? line("'{") + 1 . 'G' : '{'
 
   " [#*]: make # and * work in visual mode too
   vnoremap # y?<C-r>*<CR>
