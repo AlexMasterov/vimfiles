@@ -79,13 +79,12 @@
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
   command! -bar -nargs=0 GoldenRatio exe 'vertical resize' &columns * 5 / 8
-  " Save all buffers when focus lost, ignoring warnings, and return to normal mode
-  Autocmd FocusLost * nested wa
-  Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
 
 " Events
 "---------------------------------------------------------------------------
   Autocmd BufWritePost,FileWritePost $MYVIMRC source $MYVIMRC | redraw
+  " Apply new setglobal variables
+  Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call MakeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
@@ -95,6 +94,9 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
+  " Save all buffers when focus lost, ignoring warnings, and return to normal mode
+  " Autocmd FocusLost * nested wa
+  " Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -205,6 +207,9 @@
     " Utils
     NeoBundle 'kopischke/vim-stay'
     " NeoBundle 'wellle/targets.vim'
+    NeoBundleLazy 'dylanaraps/root.vim', {
+      \ 'on_cmd': 'Root'
+      \}
     NeoBundleLazy 'cohama/agit.vim', {
       \ 'on_cmd': ['Agit', 'AgitFile']
       \}
@@ -231,9 +236,13 @@
       \   {'name': ['Unite', 'UniteResume'], 'complete': 'customlist,unite#complete#source'},
       \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
       \]}
-    NeoBundleLazy 'osyo-manga/unite-filetype'
     NeoBundleLazy 'chemzqm/unite-location'
-    NeoBundleLazy 'tsukkee/unite-tag'
+    NeoBundleLazy 'osyo-manga/unite-filetype', {
+      \ 'on_unite': 'filetype'
+      \}
+    NeoBundleLazy 'tsukkee/unite-tag', {
+      \ 'on_unite': 'tag'
+      \}
     NeoBundleLazy 'thinca/vim-qfreplace', {
       \ 'on_ft': 'unite'
       \}
@@ -565,8 +574,20 @@
     call neobundle#untap()
   endif
 
-  if neobundle#tap('vim-characterize')
-    nmap ,C <Plug>(characterize)
+  if neobundle#tap('root.vim')
+    Autocmd BufNewFile,BufRead,BufEnter,WinEnter * Root
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:root#auto = 0
+      let g:root#echo = 0
+      let g:root#disable_autochdir = 0
+      let g:root#patterns = [
+        \  '.git', '.git/', '.hg', '.hg/',
+        \  'composer.json',
+        \  'package.json',
+        \  '.tern-project'
+        \]
+    endfunction
 
     call neobundle#untap()
   endif
@@ -679,11 +700,7 @@
 
     function! s:jumpToVimfiler()
       if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
-        try
-          wincmd p
-        catch
-          wincmd w
-        endtry
+        wincmd p
       else
         for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
           exe winnr . 'wincmd w'
@@ -967,10 +984,11 @@
     vmap <Tab>  <Plug>(Exchange)
     nmap ,x     <Plug>(Exchange)
     nmap ,X     <Plug>(ExchangeLine)
-    nmap ,<Tab> <Plug>(ExchangeClear)
 
     function! neobundle#hooks.on_source(bundle)
       let g:exchange_no_mappings = 1
+      exe 'nmap <silent> <C-c> <Plug>(ExchangeClear)'. maparg('<C-c>', 'n')
+      hi _exchange_region guifg=#2B2B2B guibg=#FFE1CC gui=NONE
     endfunction
 
     call neobundle#untap()
@@ -1112,7 +1130,6 @@
 
     function! neobundle#hooks.on_source(bundle)
       let g:anzu_status_format = '%p (%i/%l)'
-      nnoremap <silent> <C-c> :<C-u>let [&hlsearch, @/] = [0, ""]<CR>:AnzuClearSearchStatus<CR>
     endfunction
 
     call neobundle#untap()
@@ -1181,8 +1198,9 @@
   endif
 
   if neobundle#tap('vim-skipit')
-    imap <A-]> <Plug>SkipItForward
-    imap <A-[> <Plug>SkipItBack
+    imap <A-n> <Plug>SkipItForward
+    imap <A-b> <Plug>SkipItBack
+    imap <A-m> <Nop>
 
     call neobundle#untap()
   endif
@@ -1568,7 +1586,7 @@
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'html,twig', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'css,scss,sass', '^\s\+\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
+        \ 'css,scss,sass', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
 
     call neobundle#untap()
@@ -1750,7 +1768,7 @@
     nnoremap <silent> ;W
       \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
 
-    Autocmd BufLeave,WinLeave,VimLeavePre * NeoMRUSave
+    Autocmd BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave
 
     function! s:openMRU(matchers)
       call unite#custom#source('neomru/file', 'matchers', a:matchers)
@@ -2090,8 +2108,9 @@
   endif
 
 " HTML
-  AutocmdFT html Indent 2
   AutocmdFT html iabbrev <buffer> & &amp;
+  " Indent
+  AutocmdFT html setl textwidth=120 | Indent 2
   " Syntax
   if neobundle#tap('html5.vim')
     function! neobundle#hooks.on_source(bundle)
@@ -2152,7 +2171,7 @@
 " Twig
   Autocmd BufNewFile,BufRead *.*.twig,*.twig setl filetype=twig commentstring={#<!--%s-->#}
   " Indent
-  AutocmdFT twig Indent 2
+  AutocmdFT twig setl textwidth=120 | Indent 2
   " Syntax
   if neobundle#tap('twig.vim')
     function! neobundle#hooks.on_source(bundle)
@@ -2172,7 +2191,7 @@
 " Blade
   Autocmd BufNewFile,BufRead *.blade.php setl filetype=blade commentstring={{--%s--}}
   " Indent
-  AutocmdFT blade Indent 2
+  AutocmdFT blade setl textwidth=120 | Indent 2
   " Syntax
   if neobundle#tap('vim-blade')
     function! neobundle#hooks.on_source(bundle)
@@ -2366,11 +2385,10 @@
     \. "%-0.60t "
     \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
-    \. "%(%{exists('*anzu#search_status()') ? anzu#search_status() : ''}\ %)"
     \. "%="
     \. "%1*%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)%*"
     \. "%(%{exists('*GitBranch()') ? GitBranch() : ''}\ %)"
-    \. "%3*%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)%*"
+    \. "%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)"
     \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
     \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
@@ -2400,7 +2418,7 @@
   endfunction
 
   function! GitBranch()
-    return winwidth(0) > 70 ? gita#statusline#preset('branch') : ''
+    return winwidth(0) > 70 ? matchstr(gita#statusline#preset('branch_short'), '.*/\zs.*') : ''
   endfunction
 
   function! GitTraffic()
@@ -2510,7 +2528,7 @@
   onoremap gv :<C-u>normal! gv<CR>
 
   " Ctrl-c: clear highlight after search
-  nnoremap <silent> <C-c> :<C-u>let [&hlsearch, @/] = [0, ""]<CR>
+  nnoremap <silent> <C-c> :<C-u>let @/ = ""<CR>
   " [N]+Enter: jump to a line number or mark
   nnoremap <silent> <expr> <Enter> v:count ?
     \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
@@ -2639,11 +2657,10 @@
   endfor | unlet char
 
   " Unbinds
-  map <F1> <Nop>
-  " map K <Nop>
-  map ZZ <Nop>
-  map ZQ <Nop>
-  map ' <Nop>
+  "-----------------------------------------------------------------------
+  for char in split("<F1> ZZ ZQ ` ")
+    exe printf('map %s <Nop>', char)
+  endfor | unlet char
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -2770,7 +2787,7 @@
 
   " ,n
   nnoremap <silent> ,n :<C-u>let [&l:nu, &l:rnu] = &l:nu ? [0, 0] : [1, 1]<CR>
-    \:echo printf(' Show line number: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
+    \:echo printf(' Show line number: %3S (local)', (&l:nu == 1 ? 'On' : 'Off'))<CR>
 
   " [nN]: append blank line and space
   nnoremap <silent> <expr> n v:count ?
