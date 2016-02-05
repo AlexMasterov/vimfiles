@@ -82,7 +82,12 @@
 
 " Events
 "---------------------------------------------------------------------------
-  Autocmd BufWritePost,FileWritePost $MYVIMRC source $MYVIMRC | redraw
+  " Auto reload VimScript
+  Autocmd BufWritePost,FileWritePost *.vim nested
+    \ if &autoread | source <afile> | echo 'source ' . bufname('%') |
+    \ endif
+  " Reload .vimrc automatically
+  Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
   " Apply new setglobal variables
   Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
   " Create directories if not exist
@@ -201,7 +206,7 @@
       \ 'build': {
       \   'mac':     'make -f make_mac.mak',
       \   'unix':    'make -f make_unix.mak',
-      \   'windows': 'tools\\update-dll-mingw'
+      \   'windows': 'make -f make_mingw64.mak'
       \}}
 
     " Utils
@@ -209,6 +214,9 @@
     " NeoBundle 'wellle/targets.vim'
     NeoBundleLazy 'dylanaraps/root.vim', {
       \ 'on_cmd': 'Root'
+      \}
+    NeoBundleLazy 'osyo-manga/vim-over', {
+      \ 'on_cmd': 'OverCommandLine'
       \}
     NeoBundleLazy 'cohama/agit.vim', {
       \ 'on_cmd': ['Agit', 'AgitFile']
@@ -250,7 +258,8 @@
       \ 'on_unite': 'outline'
       \}
     NeoBundleLazy 'Shougo/junkfile.vim', {
-      \ 'on_unite': ['junkfile', 'junkfile/new']
+      \ 'on_unite': ['junkfile', 'junkfile/new'],
+      \ 'on_cmd': 'JunkfileOpen'
       \}
     NeoBundleLazy 'mattn/httpstatus-vim', {
       \ 'on_unite': 'httpstatus'
@@ -364,10 +373,14 @@
     NeoBundleLazy 'kana/vim-smartchr', {
       \ 'on_func': 'smartchr#loop'
       \}
-    NeoBundleLazy 'Shougo/context_filetype.vim'
-    NeoBundleLazy 'Shougo/neoinclude.vim'
-    NeoBundleLazy 'Shougo/neco-syntax'
-    NeoBundleLazy 'Shougo/neopairs.vim'
+    NeoBundleLazy 'SirVer/ultisnips', {
+      \ 'disabled': !has('python'),
+      \ 'on_func': 'UltiSnips#',
+      \ 'on_i': 1
+      \}
+    NeoBundleLazy 'Shougo/context_filetype.vim', {
+      \ 'disabled': !has('lua')
+      \}
     NeoBundleLazy 'Shougo/neocomplete.vim', {
       \ 'disabled': !has('lua'),
       \ 'depends': [
@@ -376,11 +389,9 @@
       \ ],
       \ 'on_i': 1
       \}
-    NeoBundleLazy 'SirVer/ultisnips', {
-      \ 'disabled': !has('python'),
-      \ 'on_func': 'UltiSnips#',
-      \ 'on_i': 1
-      \}
+    NeoBundleLazy 'Shougo/neoinclude.vim'
+    NeoBundleLazy 'Shougo/neco-syntax'
+    NeoBundleLazy 'Shougo/neopairs.vim'
 
     " Text objects
     NeoBundleLazy 'kana/vim-textobj-user'
@@ -646,7 +657,7 @@
 
   if neobundle#tap('vim-signature')
     let s:signature_ignore_ft = 'unite qfreplace vimfiler'
-    AutocmdFT *
+    Autocmd BufNewFile,BufRead *
       \ if index(split(s:signature_ignore_ft), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings()
@@ -666,7 +677,7 @@
       nnoremap <silent> <buffer> <S-]> :<C-u>silent! call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
     endfunction
 
-    AutocmdFT * Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
+    Autocmd BufNewFile,BufRead * Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
     function! s:signatureCleanUp()
       for char in split('[] ][ [[ ]] [" ]"')
         exe 'silent! nunmap <buffer> '. char
@@ -685,7 +696,23 @@
     endfunction
 
     function! neobundle#hooks.on_post_source(bundle)
+      au! sig_autocmds CursorHold
       call signature#utils#Maps('remove')
+    endfunction
+
+    call neobundle#untap()
+  endif
+
+  if neobundle#tap('vim-over')
+    nnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/
+    xnoremap <silent> ;/ ms:<C-u>OverCommandLine<CR>%s/\%V
+
+    function! neobundle#hooks.on_source(bundle)
+      let g:over_command_line_key_mappings = {
+            \ "\<C-c>": "\<Esc>",
+            \ "\<C-j>": "\<CR>"
+            \}
+      let g:over#command_line#paste_escape_chars = '\\/.*$^~'
     endfunction
 
     call neobundle#untap()
@@ -739,8 +766,9 @@
       nmap <buffer> <expr> q winnr('$') == 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
       nmap <buffer> <expr> <Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
       nmap <buffer> <nowait> <expr> t vimfiler#do_action('tabopen')
-      nmap <buffer> <nowait> <expr> v vimfiler#do_switch_action('vsplit')
       nmap <buffer> <nowait> <expr> s vimfiler#do_switch_action('split')
+      nmap <buffer> <nowait> <expr> S vimfiler#do_switch_action('vsplit')
+      nmap <buffer> <nowait> <expr> v vimfiler#do_switch_action('vsplit')
       nmap <buffer> <nowait> n <Plug>(vimfiler_new_file)
       nmap <buffer> <nowait> N <Plug>(vimfiler_make_directory)
       nmap <buffer> <nowait> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)y
@@ -790,13 +818,14 @@
       let g:choosewin_label = 'WERABC'
       let g:choosewin_label_align = 'left'
       let g:choosewin_blink_on_land = 0
-      let g:choosewin_color_other = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
-      let g:choosewin_color_shade = {'gui': ['#EEEEEE', '#EEEEEE', 'NONE']}
+      let g:choosewin_overlay_enable = 1
       let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}
       let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}
       let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}
-      let g:choosewin_color_overlay = g:choosewin_color_label
-      let g:choosewin_color_overlay_current = g:choosewin_color_label_current
+      let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}
+      let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}
+      let g:choosewin_color_overlay = {'gui': ['#FFE1CC', '#FFE1CC', 'bold']}
+      let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}
     endfunction
 
     call neobundle#untap()
@@ -1174,6 +1203,8 @@
     nmap ,k <Plug>(easymotion-overwin-f)
     nmap ,K <Plug>(easymotion-overwin-f2)
     nmap ,l <Plug>(easymotion-overwin-line)
+    nmap W  <Plug>(easymotion-lineforward)
+    nmap B  <Plug>(easymotion-linebackward)
 
     map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
     map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
@@ -1181,6 +1212,8 @@
     function! neobundle#hooks.on_source(bundle)
       let g:EasyMotion_verbose = 0
       let g:EasyMotion_do_mapping = 0
+      let g:EasyMotion_startofline = 0
+      let g:EasyMotion_show_prompt = 0
       let g:EasyMotion_space_jump_first = 1
       let g:EasyMotion_hl_inc_cursor = get(g:, 'EasyMotion_hl_inc_cursor', 'EasyMotionIncCursor')
       let g:EasyMotion_hl_group_shade = get(g:, 'EasyMotion_hl_group_shade', 'EasyMotionShade')
@@ -1995,10 +2028,10 @@
       let g:phpcomplete_search_tags_for_variables = 1
       let g:phpcomplete_complete_for_unknown_classes = 0
       let g:phpcomplete_remove_function_extensions = split(
-        \ 'apache dba dbase odbc msql mssql',
+        \ 'apache dba dbase odbc msql mssql'
         \)
       let g:phpcomplete_remove_constant_extensions = split(
-        \ 'ms_sql_server_pdo msql mssql',
+        \ 'ms_sql_server_pdo msql mssql'
         \)
     endfunction
 
@@ -2037,7 +2070,7 @@
         \ 'break_on_open': 1,
         \ 'debug_window_level': 0,
         \ 'watch_window_style': 'compact',
-        \ 'path_maps': {'/www': 'D:/Lab/backend'},
+        \ 'path_maps': {'/www': 'D:/Lab/backend'}
         \}
       let g:vdebug_features = {
         \ 'max_depth': 2048,
@@ -2383,19 +2416,23 @@
     \  "%3*%(%{exists('*SignatureMarksIndent()') ? SignatureMarksIndent() : ' '}\%L %)%*"
     \. "%l%3*:%*%v "
     \. "%-0.60t "
-    \. "%3*%(%{expand('%:~:.:h')}\ %)%*"
+    \. "%3*%(%{IfFit(70) ? expand('%:~:.:h') : ''}\ %)%*"
     \. "%2*%(%{exists('*BufModified()') ? BufModified() : ''}\ %)%*"
     \. "%="
-    \. "%1*%(%{exists('*GitStatus()') ? GitStatus() : ''}\ %)%*"
-    \. "%(%{exists('*GitBranch()') ? GitBranch() : ''}\ %)"
-    \. "%(%{exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)"
-    \. "%(%{exists('*FileSize()') ? FileSize() : ''}\ %)"
-    \. "%2*%(%{&paste ? '[P]' : ''}\ %)%*"
-    \. "%2*%(%{&iminsert ? 'RU' : 'EN'}\ %)%*"
-    \. "%(%{&fileencoding == '' ? &encoding : &fileencoding}\ %)"
+    \. "%1*%(%{IfFit(90) && exists('*GitStatus()') ? GitStatus() : ''}\ %)%*"
+    \. "%(%{IfFit(90) && exists('*GitBranch()') ? GitBranch() : ''}\ %)"
+    \. "%(%{IfFit(100) && exists('*ReanimateIsSaved()') ? ReanimateIsSaved() : ''}\ %)"
+    \. "%(%{IfFit(100) && exists('*FileSize()') ? FileSize() : ''}\ %)"
+    \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
+    \. "%2*%(%{IfFit(100) ? &iminsert ? 'RU' : 'EN' : ''}\ %)%*"
+    \. "%(%{IfFit(90) ? !empty(&fileencoding) ? &fileencoding : &encoding : ''}\ %)"
     \. "%2*%(%Y\ %)%*"
 
   " Status-line functions
+  function! IfFit(width)
+    return winwidth(0) > a:width
+  endfunction
+
   function! BufModified()
     return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
   endfunction
@@ -2418,15 +2455,15 @@
   endfunction
 
   function! GitBranch()
-    return winwidth(0) > 70 ? matchstr(gita#statusline#preset('branch_short'), '.*/\zs.*') : ''
+    return matchstr(gita#statusline#preset('branch_short'), '.*/\zs.*')
   endfunction
 
   function! GitTraffic()
-    return winwidth(0) > 70 ? gita#statusline#preset('traffic') : ''
+    return gita#statusline#preset('traffic')
   endfunction
 
   function! GitStatus()
-    return winwidth(0) > 70 ? gita#statusline#preset('status') : ''
+    return gita#statusline#preset('status')
   endfunction
 
 " Edit
