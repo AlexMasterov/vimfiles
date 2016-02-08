@@ -1,4 +1,4 @@
-" .vimrc / 2016 Yan.
+" .vimrc / 2016 Feb.
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -86,7 +86,7 @@
   Autocmd BufWritePost,FileWritePost *.vim nested
     \ if &autoread | source <afile> | echo 'source ' . bufname('%') |
     \ endif
-  " Reload .vimrc automatically
+  " Auto reload .vimrc
   Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
   " Apply new setglobal variables
   Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
@@ -211,7 +211,6 @@
 
     " Utils
     NeoBundle 'kopischke/vim-stay'
-    " NeoBundle 'wellle/targets.vim'
     NeoBundleLazy 'dylanaraps/root.vim', {
       \ 'on_cmd': 'Root'
       \}
@@ -225,8 +224,8 @@
       \ 'on_cmd': 'Gita'
       \}
     NeoBundleLazy 'osyo-manga/vim-reanimate', {
-      \ 'on_cmd': ['ReanimateSaveInput'],
-      \ 'on_unite': ['reanimate', 'reanimate_load', 'reanimate_save', 'reanimate_new_save']
+      \ 'on_source': 'unite.vim',
+      \ 'on_cmd': 'ReanimateSaveInput'
       \}
     NeoBundleLazy 'tpope/vim-repeat', {
       \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']],
@@ -244,31 +243,32 @@
       \   {'name': ['Unite', 'UniteResume'], 'complete': 'customlist,unite#complete#source'},
       \   {'name': 'UniteBookmarkAdd', 'complete': 'file'}
       \]}
+    NeoBundle 'Shougo/neoyank.vim'
     NeoBundleLazy 'chemzqm/unite-location'
     NeoBundleLazy 'osyo-manga/unite-filetype', {
-      \ 'on_unite': 'filetype'
+      \ 'on_source': 'unite.vim'
       \}
     NeoBundleLazy 'tsukkee/unite-tag', {
-      \ 'on_unite': 'tag'
+      \ 'on_source': 'unite.vim'
       \}
     NeoBundleLazy 'thinca/vim-qfreplace', {
       \ 'on_ft': 'unite'
       \}
     NeoBundleLazy 'Shougo/unite-outline', {
-      \ 'on_unite': 'outline'
+      \ 'on_source': 'unite.vim'
       \}
     NeoBundleLazy 'Shougo/junkfile.vim', {
-      \ 'on_unite': ['junkfile', 'junkfile/new'],
+      \ 'on_source': 'unite.vim',
       \ 'on_cmd': 'JunkfileOpen'
       \}
     NeoBundleLazy 'mattn/httpstatus-vim', {
-      \ 'on_unite': 'httpstatus'
+      \ 'on_source': 'unite.vim'
       \}
     NeoBundleLazy 'osyo-manga/unite-vimpatches', {
-      \ 'on_unite': 'vimpatches'
+      \ 'on_source': 'unite.vim'
       \}
     NeoBundleLazy 'Shougo/neomru.vim', {
-      \ 'on_unite': ['neomru/file', 'neomru/directory'],
+      \ 'on_source': 'unite.vim',
       \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload']
       \}
     NeoBundleLazy 'tpope/vim-characterize', {
@@ -446,7 +446,8 @@
       \}
     NeoBundleLazy 'eagletmt/neco-ghc', {
       \ 'disabled': !executable('ghc-mod'),
-      \ 'on_func': 'necoghc#omnifunc'
+      \ 'on_func': 'necoghc#omnifunc',
+      \ 'external_commands': 'ghc-mod'
       \}
 
     " PHP
@@ -824,17 +825,11 @@
       let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}
       let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}
       let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}
-      let g:choosewin_color_overlay = {'gui': ['#FFE1CC', '#FFE1CC', 'bold']}
+      let g:choosewin_color_overlay = {'gui': ['#2B2B2B', '#2B2B2B', 'bold']}
       let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}
     endfunction
 
     call neobundle#untap()
-  endif
-
-  if neobundle#is_installed('targets.vim')
-    " Disable `n` , `l` , `A`
-    let g:targets_aiAI = 'ai I'
-    let g:targets_nlNL = '  NL'
   endif
 
   if neobundle#tap('vim-quickrun')
@@ -1017,7 +1012,7 @@
     function! neobundle#hooks.on_source(bundle)
       let g:exchange_no_mappings = 1
       exe 'nmap <silent> <C-c> <Plug>(ExchangeClear)'. maparg('<C-c>', 'n')
-      hi _exchange_region guifg=#2B2B2B guibg=#FFE1CC gui=NONE
+      hi _exchange_region guifg=#2B2B2B guibg=#0079A2 gui=NONE
     endfunction
 
     call neobundle#untap()
@@ -1106,16 +1101,22 @@
   endif
 
   if neobundle#tap('caw.vim')
-    nmap <silent> <expr> q v:count > 1
-      \ ? printf('<Esc>V%dj<Plug>(caw:i:toggle):call cursor(%d, %d)<CR>',
-        \ (v:count-1), getcurpos()[1], getcurpos()[4])
-      \ : '<Plug>(caw:i:toggle)'
-    xmap <silent> <expr> q
-      \ printf('<Plug>(caw:i:toggle):call cursor(%d, %d)<CR>', getcurpos()[1], getcurpos()[4])
-
+    nmap <silent> <expr> q <SID>cawRangeComment()
+    xmap <silent> <expr> q <SID>cawRangeComment()
     nmap ,q <Plug>(caw:jump:comment-prev)
     nmap ,w <Plug>(caw:jump:comment-next)
     nmap ,a <Plug>(caw:a:toggle)
+
+    function! s:cawRangeComment()
+      if v:count > 1
+        let [line, pos] = [getcurpos()[1], getcurpos()[4]]
+        return printf(
+          \ "\<Esc>V%dj\<Plug>(caw:i:toggle):call cursor(%d, %d)\<CR>",
+          \ (v:count-1), line, pos
+          \)
+      endif
+      return "\<Plug>(caw:i:toggle)"
+    endfunction
 
     function! neobundle#hooks.on_source(bundle)
       let g:caw_no_default_keymappings = 1
@@ -1279,14 +1280,14 @@
         \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
         \})
 
-      " Twig
+      " Twig / Blade
       " {{ <Space> }}
       call lexima#add_rule({
-        \ 'filetype': 'twig',
+        \ 'filetype': ['twig', 'blade'],
         \ 'at': '\(........\)\?{\%#}', 'char': '{', 'input': '{<Space>', 'input_after': '<Space>}'
         \})
       call lexima#add_rule({
-        \ 'filetype': 'twig',
+        \ 'filetype': ['twig', 'blade'],
         \ 'at': '\(........\)\?{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
         \})
       " {# <Space> #}
@@ -1695,7 +1696,7 @@
 
     " Unite tuning
     AutocmdFT unite,unite_exrename
-      \ setl nolist guicursor=a:blinkon0
+      \ setl nolist
         \| Autocmd InsertEnter,InsertLeave <buffer>
           \ setl nonu nornu nolist colorcolumn=
     AutocmdFT unite call s:uniteMappings()
@@ -1889,12 +1890,28 @@
     call neobundle#untap()
   endif
 
+  if neobundle#tap('neoyank.vim')
+    nnoremap <silent> ;y
+      \ :<C-u>Unite history/yank -buffer-name=history_yank -toggle -no-empty<CR>
+
+    AutocmdFT unite call s:historyYankMappings()
+    function! s:historyYankMappings()
+      let b:unite = unite#get_current_unite()
+      if b:unite.buffer_name ==# 'history_yank'
+        " Normal mode
+        nmap <silent> <buffer> o <Plug>(unite_do_default_action)
+      endif
+    endfunction
+
+    call neobundle#untap()
+  endif
+
   if neobundle#tap('vim-reanimate')
     nnoremap <silent> ,sa :<C-u>ReanimateSaveInput<CR>
     nnoremap <silent> ,sl :<C-u>Unite reanimate -buffer-name=reanimate<CR>
 
-    " command! -nargs=0 ReanimateSaveWithTimeStamp
-    "   \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
+    command! -nargs=0 ReanimateSaveWithTimeStamp
+      \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
 
     " Autocmd VimLeavePre * ReanimateSaveWithTimeStamp
     AutocmdFT unite call s:reanimateMappings()
@@ -2342,8 +2359,8 @@
         " winsize 176 34 | winpos 492 326
     endif
     set guioptions=ac
-    set guicursor=n-v-c:blinkon0  " turn off blinking the cursor
-    set linespace=3               " extra spaces between rows
+    set guicursor=a:blinkon0  " turn off blinking the cursor
+    set linespace=3           " extra spaces between rows
 
     " Font
     if s:is_windows
@@ -2575,6 +2592,19 @@
     nnoremap <silent> ,<Space> :<C-u>FixWhitespace<CR>
   endif
 
+  " Buffers
+  "-----------------------------------------------------------------------
+  " <Space>A: previous buffer
+  nnoremap <silent> <Space>A :<C-u>bnext<CR>
+  " <Space>E: next buffer
+  nnoremap <silent> <Space>E :<C-u>bprev<CR>
+  " <Space>d: delete buffer
+  nnoremap <silent> <Space>d :<C-u>bdelete<CR>
+  " <Space>D: force delete buffer
+  nnoremap <silent> <Space>D :<C-u>bdelete!<CR>
+  " <Space>i: jump to alternate buffer
+  nnoremap <silent> <Space>i <C-^>
+
   " Files
   "-----------------------------------------------------------------------
   " ,ev: open .vimrc in a new tab
@@ -2587,17 +2617,6 @@
   nnoremap <silent> ;e :<C-u>edit<CR>
   " ;E: force reopen file
   nnoremap <silent> ;E :<C-u>edit!<CR>
-
-  " Buffers
-  "-----------------------------------------------------------------------
-  " <Space>A: previous buffer
-  nnoremap <silent> <Space>A :<C-u>bnext<CR>
-  " <Space>E: next buffer
-  nnoremap <silent> <Space>E :<C-u>bprev<CR>
-  " <Space>d: delete buffer
-  nnoremap <silent> <Space>d :<C-u>bdelete<CR>
-  " <Space>D: force delete buffer
-  nnoremap <silent> <Space>D :<C-u>bdelete!<CR>
 
   " Tabs
   "-----------------------------------------------------------------------
@@ -2623,9 +2642,9 @@
   " <Space>m: tab move
   nnoremap <silent> <Space>m :<C-u>tabmove<CR>
   " <Space>t: tab new
-  nnoremap <silent> <Space>t :<C-u>tabnew<CR>
+  nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
   " <Space>T: tab new and move
-  nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>
+  nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>:normal! <C-o><CR>
   " <Space><: move tab to first spot
   nnoremap <silent> <Space>< :<C-u>tabmove 0<CR>
   " <Space>>: move tab to last spot
@@ -2649,6 +2668,8 @@
   nnoremap <silent> <Space>w :<C-u>wincmd w<CR>
   " <Space>W: previous window
   nnoremap <silent> <Space>W :<C-u>wincmd W<CR>
+  " <Space>I: previous (last accessed) window
+  nnoremap <silent> <Space>I :<C-u>wincmd p<CR>
   " <Space>r: rotate windows downwards/rightwards
   nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
   " <Space>R: rotate windows upwards/leftwards
@@ -2822,7 +2843,7 @@
   nnoremap <silent> ,o :<C-u>let &l:wrap = !&l:wrap<CR>
     \:echo printf(' Wrap mode: %3S (local)', (&l:wrap == 1 ? 'On' : 'Off'))<CR>
 
-  " ,n
+  " ,n: toggle show line numbers
   nnoremap <silent> ,n :<C-u>let [&l:nu, &l:rnu] = &l:nu ? [0, 0] : [1, 1]<CR>
     \:echo printf(' Show line number: %3S (local)', (&l:nu == 1 ? 'On' : 'Off'))<CR>
 
