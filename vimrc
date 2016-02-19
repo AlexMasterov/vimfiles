@@ -188,7 +188,6 @@
     call dein#local($VIMFILES.'/dev', {'frozen': 1},
       \ ['dotvim', 'gist'])
     call dein#local($VIMFILES.'/dev', {'frozen': 1,
-      \ 'lazy': 1,
       \ 'on_func': 'ternjs#Complete',
       \ 'on_cmd': ['TernjsRun', 'TernjsStop']},
       \ ['ternjs.vim'])
@@ -271,7 +270,7 @@
       \ 'on_i': 1
       \})
     call dein#add('tpope/vim-surround', {
-      \ 'on_map': [['n', '<Plug>Csurround']]
+      \ 'on_map': [['n', '<Plug>'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']]
       \})
     call dein#add('gcmt/wildfire.vim', {
       \ 'on_map': '<Plug>(wildfire-'
@@ -330,7 +329,6 @@
       \})
     " vim-quickrun bundles
     call dein#local($VIMFILES.'/dev', {'frozen': 1,
-      \ 'lazy': 1,
       \ 'on_source': 'vim-quickrun'
       \}, ['quickrun'])
 
@@ -486,11 +484,10 @@
     call dein#add('othree/csscomplete.vim', {
       \ 'on_func': 'csscomplete#CompleteCSS'
       \})
-
-    " NeoBundleLazy 'rstacruz/vim-hyperstyle', {
-    "   \ 'frozen': 1,
-    "   \ 'on_map': [['i', '<Plug>(hyperstyle']]
-    "   \}
+    call dein#add('rstacruz/vim-hyperstyle', {
+      \ 'frozen': 1,
+      \ 'on_map': [['i', '<Plug>(hyperstyle']]
+      \})
 
     " Twig
     call dein#local($VIMFILES.'/dev', {'frozen': 1,
@@ -781,11 +778,6 @@
       \ if index(split(s:signature_ignore_ft), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings() abort
-      " Clean up
-      for char in split('[] ][ [[ ]] [" ]"')
-        exe 'silent! nunmap <buffer> '. char
-      endfor
-
       nnoremap <silent> <buffer> <BS>
         \ :<C-u>call signature#mark#Toggle('next')<CR>:call signature#sign#ToggleDummy()<CR>
       nnoremap <silent> <buffer> <S-BS>
@@ -800,6 +792,13 @@
       " jump to any marker
       nnoremap <silent> <buffer> <S-[> :<C-u>silent! call signature#marker#Goto('next', 'any',  v:count)<CR>zz
       nnoremap <silent> <buffer> <S-]> :<C-u>silent! call signature#marker#Goto('prev', 'any',  v:count)<CR>zz
+
+      Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
+      function! s:signatureCleanUp() abort
+        for char in split('[] ][ [[ ]] [" ]"')
+          exe 'silent! nunmap <buffer> '. char
+        endfor
+      endfunction
     endfunction
 
     function! s:vimSignatureOnSource() abort
@@ -856,9 +855,9 @@
     AutocmdFT vimfiler call s:vimfilerMappings()
     " Vimfiler tuning
     AutocmdFT vimfiler let &l:statusline = ' '
-    Autocmd BufEnter,WinEnter vimfiler:*
+    Autocmd BufEnter,WinEnter vimfiler*
       \ setl nonu nornu nolist cursorline colorcolumn=
-    Autocmd BufLeave,WinLeave vimfiler:* setl nocursorline
+    Autocmd BufLeave,WinLeave vimfiler* setl nocursorline
 
     function! s:vimfilerMappings() abort
       nunmap <buffer> <Space>
@@ -1506,7 +1505,13 @@
   endif
 
   if dein#tap('vim-surround')
-    nmap ,I <Plug>Csurround
+    nmap ,d <Plug>Dsurround
+    nmap ,i <Plug>Csurround
+    nmap ,I <Plug>CSurround
+    nmap ,t <Plug>Yssurround
+    nmap ,T <Plug>YSsurround
+    xmap ,s <Plug>VSurround
+    xmap ,S <Plug>VgSurround
 
     for char in split("' ` \" ( ) { } [ ]")
       exe printf('nmap ,%s ,Iw%s', char, char)
@@ -1536,6 +1541,11 @@
   endif
 
   if dein#tap('ultisnips')
+    let g:UltiSnipsEnableSnipMate = 0
+    let g:UltiSnipsExpandTrigger = '<C-F12>'
+    let g:UltiSnipsListSnippets = '<C-F12>'
+    let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
+
     inoremap <silent> ` <C-r>=<SID>ultiComplete("\`")<CR>
     xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
@@ -1554,18 +1564,8 @@
     endfunction
 
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
-
-    function! s:ultisnipsOnSource() abort
-      let g:UltiSnipsEnableSnipMate = 0
-      let g:UltiSnipsExpandTrigger = '<C-F12>'
-      let g:UltiSnipsListSnippets = '<C-F12>'
-      let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
-
-      AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
-      AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
-    endfunction
-
-    Autocmd User dein#source#ultisnips call s:ultisnipsOnSource()
+    AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
+    AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
   endif
 
   if dein#tap('unite.vim')
@@ -2139,26 +2139,24 @@
   endif
   " Autocomplete
   AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
-" if neobundle#tap('vim-hyperstyle')
-"   Autocmd BufNewFile,BufRead *.{css,scss} call s:hyperstyleReset()
-"
-"   function! s:hyperstyleReset()
-"     let b:hyperstyle = 1
-"     let b:hyperstyle_semi = ' '
-"
-"     for char in split("<BS> <CR> <Tab> <Space> ; :")
-"       exe printf('silent! iunmap <buffer> %s', char)
-"     endfor | unlet char
-"
-"     if exists('*neoComplete')
-"       imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete("\<Tab>")<CR>
-"     endif
-"     imap <buffer> <expr> <Space>
-"       \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
-"   endfunction
-"
-"   call neobundle#untap()
-" endif
+  if dein#tap('vim-hyperstyle')
+    Autocmd BufNewFile,BufRead *.{css,scss} call s:hyperstyleReset()
+
+    function! s:hyperstyleReset()
+      let b:hyperstyle = 1
+      let b:hyperstyle_semi = ' '
+
+      for char in split("<BS> <CR> <Tab> <Space> ; :")
+        exe printf('silent! iunmap <buffer> %s', char)
+      endfor | unlet char
+
+      imap <buffer> <expr> <Space>
+        \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
+      if exists('*neoComplete')
+        imap <silent> <buffer> <Tab> <C-r>=<SID>neoComplete("\<Tab>")<CR>
+      endif
+    endfunction
+  endif
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json
@@ -2736,12 +2734,12 @@
   nnoremap <silent> ,yp :<C-u>let @*=fnamemodify(bufname('%'),':p')<CR>
 
   " ,r: replace a word under cursor
-  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
-  xnoremap re y:%s/<C-r>=substitute(@0, '/', '\\/', 'g')<CR>//gI<Left><Left><Left>
-
+  noremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
   " :s::: is more useful than :s/// when replacing paths
   " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272
-  noremap ,S :%s:::<Left><Left>
+  noremap ,R :%s:::<Left><Left>
+
+  xnoremap re y:%s/<C-r>=substitute(@0, '/', '\\/', 'g')<CR>//gI<Left><Left><Left>
 
   " Alt-q: delete line
   inoremap <silent> <A-q> <C-o>$<C-u>
