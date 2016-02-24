@@ -84,12 +84,14 @@
 "---------------------------------------------------------------------------
   " Auto reload VimScript
   Autocmd BufWritePost,FileWritePost *.vim nested
-    \ if &autoread | source <afile> | echo 'source ' . bufname('%') |
+    \ if &l:autoread > 0 | source <afile> | echo 'source ' . bufname('%') |
     \ endif
   " Auto reload .vimrc
   Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
   " Apply new setglobal variables
   Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
+  " Remove quit command from history
+  Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
@@ -99,6 +101,7 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
+  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=100 |endif
   " Save all buffers when focus lost, ignoring warnings, and return to normal mode
   " Autocmd FocusLost * nested wa
   " Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
@@ -182,7 +185,14 @@
   call dein#begin($VIMFILES.'/dein')
   if dein#load_cache()
     call dein#add('Shougo/dein.vim', {'rtp': ''})
-    call dein#add('Shougo/vimproc.vim')
+    call dein#add('Shougo/vimproc.vim', {
+      \ 'lazy': 1,
+      \ 'build': {
+      \   'linux': 'make',
+      \   'mac': 'make -f make_mac.mak',
+      \   'windows': 'tools\\update-dll-mingw'
+      \ }
+      \})
 
     " Load develop version plugins
     call dein#local($VIMFILES.'/dev', {'frozen': 1},
@@ -252,9 +262,9 @@
     call dein#add('Shougo/neco-syntax', {
       \ 'on_source': 'neocomplete.vim'
       \})
-    " call dein#add('Shougo/neoyank.vim', {
-    "   \ 'lazy': 1
-    "   \})
+    call dein#add('Shougo/neoyank.vim', {
+      \ 'on_source': 'unite.vim'
+      \})
     " call dein#add('kana/vim-altr', {
     "   \ 'on_func': 'altr#define',
     "   \ 'on_map': '<Plug>(altr-'
@@ -270,7 +280,7 @@
       \ 'on_i': 1
       \})
     call dein#add('tpope/vim-surround', {
-      \ 'on_map': [['n', '<Plug>'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']]
+      \ 'on_map': [['n', '<Plug>D'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']]
       \})
     call dein#add('gcmt/wildfire.vim', {
       \ 'on_map': '<Plug>(wildfire-'
@@ -293,7 +303,7 @@
       \ 'on_map': [['nx', '<Plug>(smartword-']]
       \})
     call dein#add('osyo-manga/vim-jplus', {
-      \ 'on_map': [['nx', '<Plug>']]
+      \ 'on_map': [['nv', '<Plug>(jplus']]
       \})
     call dein#add('AndrewRadev/splitjoin.vim', {
       \ 'on_cmd': 'SplitjoinSplit'
@@ -548,6 +558,10 @@
 
 " Bundle settings
 "---------------------------------------------------------------------------
+  if dein#tap('dein.vim')
+    nnoremap <silent> ;u :<C-u>call dein#update()<CR>
+  endif
+
   " if dein#tap('hiddenBuffersLimit.vim')
     let g:bufcleaner_max_saved = 9
     Autocmd BufHidden * CleanBuffers -f
@@ -647,11 +661,13 @@
         return "\<C-n>"
       endif
       let [curPos, lineLength] = [getcurpos()[4], col('$')]
-      let isText = curPos <= lineLength ? 1 : 0
-      let isStartLine = curPos <= 1 ? 1 : 0
-      let isBackspace = getline('.')[curPos-2] =~ '\s' ? 1 : 0
+      let isText = curPos <= lineLength
+      let isStartLine = curPos <= 1
+      let isBackspace = getline('.')[curPos-2] =~ '\s'
       if isText && !isStartLine && !isBackspace
-        return neocomplete#start_manual_complete()
+        return neocomplete#helper#get_force_omni_complete_pos(neocomplete#get_cur_text(1)) >= 0
+          \ ? "\<C-x>\<C-o>\<C-r>=neocomplete#mappings#popup_post()\<CR>"
+          \ : neocomplete#start_manual_complete()
       endif
       return a:key
     endfunction
@@ -1091,6 +1107,9 @@
   if dein#tap('vim-projectionist')
     " ;p: detect .projections.json
     nnoremap <silent> ;p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
+
+    AutocmdFT vimfiler 
+      \ call ProjectionistDetect(resolve(expand('<afile>:p')))
   endif
 
   if dein#tap('vim-altr')
@@ -1222,7 +1241,7 @@
         \ 'modules': [incsearch#config#easymotion#module({'overwin': 1})],
         \ 'keymap': {
         \   "\<C-CR>": '<Over>(easymotion)',
-        \   "\<s-CR>": '<Over>(easymotion)'
+        \   "\<S-CR>": '<Over>(easymotion)'
         \ },
         \ 'is_expr': 0
         \}), get(a:, 1, {}))
@@ -1240,14 +1259,14 @@
     nmap ,J <Plug>(jplus-getchar)
     vmap ,J <Plug>(jplus-getchar)
 
-    function! s:vimPlusOnSource() abort
+    function! s:vimJplusOnSource() abort
       let g:jplus#config = get(g:, 'jplus#config', {})
       let g:jplus#config = {
         \ 'php': {'delimiter_format': ''}
         \}
     endfunction
 
-    Autocmd User dein#source#vim-jplus call s:vimPlusOnSource()()
+    Autocmd User dein#source#vim-jplus call s:vimJplusOnSource()()
   endif
 
   if dein#tap('splitjoin.vim')
@@ -1541,11 +1560,6 @@
   endif
 
   if dein#tap('ultisnips')
-    let g:UltiSnipsEnableSnipMate = 0
-    let g:UltiSnipsExpandTrigger = '<C-F12>'
-    let g:UltiSnipsListSnippets = '<C-F12>'
-    let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
-
     inoremap <silent> ` <C-r>=<SID>ultiComplete("\`")<CR>
     xnoremap <silent> ` :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     snoremap <C-c> <Esc>
@@ -1553,15 +1567,20 @@
     function! s:ultiComplete(key) abort
       if len(UltiSnips#SnippetsInCurrentScope()) >= 1
         let [curPos, lineLength] = [getcurpos()[4], col('$')]
-        let isBackspace = getline('.')[curPos-2] =~ '\s' ? 1 : 0
-        let isStartLine = curPos <= 1 ? 1 : 0
-        let isText = curPos <= lineLength ? 1 : 0
+        let isBackspace = getline('.')[curPos-2] =~ '\s'
+        let isStartLine = curPos <= 1
+        let isText = curPos <= lineLength ?
         if isText && !isStartLine && !isBackspace
           return UltiSnips#ExpandSnippet()
         endif
       endif
       return a:key
     endfunction
+
+    let g:UltiSnipsEnableSnipMate = 0
+    let g:UltiSnipsExpandTrigger = '<C-F12>'
+    let g:UltiSnipsListSnippets = '<C-F12>'
+    let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
 
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
     AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
@@ -1577,7 +1596,7 @@
 
     " ;b: open buffers
     nnoremap <silent> ;b :<C-u>Unite buffer -toggle<CR>
-    nnoremap <silent> = :<C-u>Unite buffer -toggle<CR>
+    nnoremap <silent> =  :<C-u>Unite buffer -toggle<CR>
     " ;h: open windows
     nnoremap <silent> ;h :<C-u>Unite window:all:no-current -toggle<CR>
     " ;H: open tab pages
@@ -1629,6 +1648,8 @@
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('rename')
       nmap <silent> <buffer> <nowait> <expr> R
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
+      nmap <buffer> <expr> <C-s> unite#mappings#set_current_sorters(
+        \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
       " Insert mode
       imap <buffer> <C-e> <C-o>A
@@ -1642,6 +1663,8 @@
       imap <buffer> <expr> <BS>   col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <S-BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_word)" : ""
       imap <buffer> <expr> q      getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
+      imap <buffer> <expr> <C-s> unite#mappings#set_current_sorters(
+        \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : [])
     endfunction
 
     function! s:uniteOnSource() abort
@@ -1797,6 +1820,9 @@
         nmap <silent> <buffer> o <Plug>(unite_do_default_action)
       endif
     endfunction
+
+    Autocmd User dein#source#neoyank.vim
+      \ let g:neoyank#file = $VIMCACHE.'/yankring'
   endif
 
   if dein#tap('vim-reanimate')
@@ -1982,7 +2008,7 @@
 " JavaScript
   Autocmd BufNewFile,BufRead *.{jsx,es6} setl filetype=javascript
   " Indent
-  AutocmdFT javascript setl nowrap textwidth=80 | Indent 2
+  AutocmdFT javascript setl nowrap textwidth=100 | Indent 2
   " Syntax
   if dein#tap('yajs.vim')
     function! s:yajsOnPostSource() abort
@@ -2030,6 +2056,7 @@
 
 " HTML
   AutocmdFT html iabbrev <buffer> & &amp;
+  AutocmdFT html setl includeexpr=substitute(v:fname,'^\\/','','') path+=./;/
   " Indent
   AutocmdFT html setl textwidth=120 | Indent 2
   " Syntax
@@ -2056,7 +2083,7 @@
         return "\<C-n>"
       endif
       if emmet#isExpandable()
-        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s' ? 1 : 0
+        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s'
         if !isBackspace
           return emmet#expandAbbr(0, '')
         endif
@@ -2238,9 +2265,11 @@
 " View
 "---------------------------------------------------------------------------
   " Don't override colorscheme on reloading
-  if !exists('g:colors_name')| silent! colorscheme topos |endif
-  " Reload the colorscheme whenever we write the file
-  exe 'Autocmd BufWritePost '.g:colors_name.'.vim colorscheme '.g:colors_name
+  if !exists('g:colors_name')
+    silent! colorscheme topos
+    " Reload the colorscheme whenever we write the file
+    exe 'Autocmd BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
+  endif
 
   setg shortmess=aoOtTIc
   set number relativenumber     " show the line number
@@ -2404,8 +2433,8 @@
 " Normal mode
 "---------------------------------------------------------------------------
   " jk: don't skip wrap lines
-  nnoremap <expr> j v:count == 0 ? 'gj' : 'j'
-  nnoremap <expr> k v:count == 0 ? 'gk' : 'k'
+  nnoremap <expr> j v:count ? 'gj' : 'j'
+  nnoremap <expr> k v:count ? 'gk' : 'k'
   " Alt-[jkhl]: move selected lines
   nnoremap <silent> <A-j> :<C-u>move+<CR>
   nnoremap <silent> <A-k> :<C-u>move-2<CR>
@@ -2416,9 +2445,9 @@
   nnoremap Q ==
   " @: record macros
   nnoremap @ q
-  " Ctrl-[jk]: scroll up/down
-  nnoremap <C-j> <C-d>
-  nnoremap <C-k> <C-u>
+  " Ctrl-[jk]: scroll up/down 1/3 page
+  nnoremap <expr> <C-j> v:count ? "\<C-d>" : winheight('.') / (3 + 1). "\<C-d>"
+  nnoremap <expr> <C-k> v:count ? "\<C-u>" : winheight('.') / (3 + 1). "\<C-u>"
   " [dDcC]: don't update register
   nnoremap d "_d
   nnoremap D "_D
@@ -2626,8 +2655,8 @@
 " Visual mode
 "---------------------------------------------------------------------------
   " jk: don't skip wrap lines
-  xnoremap <expr> j (v:count == 0 && mode() !=# 'V') ? 'gj' : 'j'
-  xnoremap <expr> k (v:count == 0 && mode() !=# 'V') ? 'gk' : 'k'
+  xnoremap <expr> j v:count && mode() ==# 'V' ? 'j' : 'gj'
+  xnoremap <expr> k v:count && mode() ==# 'V' ? 'k' : 'gk'
   " Alt-[jkhl]: move selected lines
   xnoremap <silent> <A-j> :move'>+<CR>gv
   xnoremap <silent> <A-k> :move-2<CR>gv
@@ -2749,12 +2778,3 @@
   nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
   " Ctrl-d: duplicate line
   vnoremap <C-d> :t'><CR>
-
-  inoremap <A-'> <Esc>ci'
-  inoremap <A-"> <Esc>ci"
-  inoremap <A-(> <Esc>ci(
-  inoremap <A-{> <Esc>ci{
-  inoremap <A-[> <Esc>ci[
-  inoremap <A-o> <Esc>o
-  inoremap <A-a> <Esc>O
-  inoremap <A-$> <Esc>d$
