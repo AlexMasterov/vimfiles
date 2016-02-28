@@ -88,7 +88,7 @@
     \ endif
   " Auto reload .vimrc
   Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
-  " Apply new setglobal variables
+  " Apply new set variables
   Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
@@ -108,19 +108,19 @@
 
 " Encoding
 "---------------------------------------------------------------------------
-  setg encoding=utf-8
+  set encoding=utf-8
   scriptencoding utf-8
 
   if s:is_windows && has('multi_byte')
-    setg fileencodings=utf-8,cp1251
-    setg termencoding=cp850  " cmd.exe uses cp850
+    set fileencodings=utf-8,cp1251
+    set termencoding=cp850  " cmd.exe uses cp850
   else
-    setg termencoding=       " same as 'encoding'
+    set termencoding=       " same as 'encoding'
   endif
 
   " Default fileformat
-  setg fileformat=unix
-  setg fileformats=unix,dos,mac
+  set fileformat=unix
+  set fileformats=unix,dos,mac
 
   " Open in UTF-8
   command! -bar -bang -nargs=? -complete=file Utf8 edit<bang> ++enc=utf-8 <args>
@@ -150,7 +150,7 @@
 
   " Regexp engine (0=auto, 1=old, 2=NFA)
   if exists('&regexpengine')
-    setg regexpengine=2
+    set regexpengine=2
   endif
 
 " Plugins
@@ -245,7 +245,9 @@
       \ 'on_func': 'repeat#',
       \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']]
       \})
-    call dein#add('SirVer/ultisnips')
+    call dein#add('SirVer/ultisnips', {
+      \ 'lazy': 1
+      \})
     call dein#add('Shougo/context_filetype.vim', {
       \ 'lazy': 1
       \})
@@ -1108,7 +1110,7 @@
     " ;p: detect .projections.json
     nnoremap <silent> ;p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
-    AutocmdFT vimfiler 
+    AutocmdFT vimfiler
       \ call ProjectionistDetect(resolve(expand('<afile>:p')))
   endif
 
@@ -1569,7 +1571,7 @@
         let [curPos, lineLength] = [getcurpos()[4], col('$')]
         let isBackspace = getline('.')[curPos-2] =~ '\s'
         let isStartLine = curPos <= 1
-        let isText = curPos <= lineLength ?
+        let isText = curPos <= lineLength
         if isText && !isStartLine && !isBackspace
           return UltiSnips#ExpandSnippet()
         endif
@@ -1577,14 +1579,19 @@
       return a:key
     endfunction
 
-    let g:UltiSnipsEnableSnipMate = 0
-    let g:UltiSnipsExpandTrigger = '<C-F12>'
-    let g:UltiSnipsListSnippets = '<C-F12>'
-    let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
-
     Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
-    AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
-    AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+
+    function! s:ultiOnSource() abort
+      let g:UltiSnipsEnableSnipMate = 0
+      let g:UltiSnipsExpandTrigger = '<C-F12>'
+      let g:UltiSnipsListSnippets = '<C-F12>'
+      let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
+
+      AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
+      AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+    endfunction
+
+    Autocmd User dein#source#ultisnips call s:ultiOnSource()
   endif
 
   if dein#tap('unite.vim')
@@ -1648,7 +1655,7 @@
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('rename')
       nmap <silent> <buffer> <nowait> <expr> R
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
-      nmap <buffer> <expr> <C-s> unite#mappings#set_current_sorters(
+      nmap <buffer> <expr> <C-x> unite#mappings#set_current_sorters(
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
       " Insert mode
@@ -1663,8 +1670,9 @@
       imap <buffer> <expr> <BS>   col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <S-BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_word)" : ""
       imap <buffer> <expr> q      getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<Plug>(unite_exit)" : "\q"
-      imap <buffer> <expr> <C-s> unite#mappings#set_current_sorters(
+      imap <buffer> <expr> <C-x> unite#mappings#set_current_sorters(
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : [])
+          \ . (col('$') > 2 ? "" : "\<Plug>(unite_delete_backward_word)")
     endfunction
 
     function! s:uniteOnSource() abort
@@ -1892,7 +1900,7 @@
       \  call feedkeys("\<CR>\<Esc>")
       \| setl nonu nornu colorcolumn= laststatus=0
       \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
-      \| Autocmd BufLeave,BufDelete <buffer> setg laststatus=2
+      \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2
       \| Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
   endif
 
@@ -2187,6 +2195,7 @@
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json
+  AutocmdFT json setl nonu nornu
   " Indent
   AutocmdFT json
     \ Autocmd BufEnter,WinEnter <buffer> setl formatoptions+=2l | Indent 2
@@ -2271,49 +2280,49 @@
     exe 'Autocmd BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
   endif
 
-  setg shortmess=aoOtTIc
+  set shortmess=aoOtTIc
   set number relativenumber     " show the line number
-  setg nocursorline             " highlight the current line
-  setg hidden                   " allows the closing of buffers without saving
-  setg switchbuf=useopen,split  " orders to open the buffer
-  setg showtabline=1            " always show the tab pages
-  setg noequalalways            " resize windows as little as possible
-  setg winminheight=0
-  setg splitbelow splitright
+  set nocursorline             " highlight the current line
+  set hidden                   " allows the closing of buffers without saving
+  set switchbuf=useopen,split  " orders to open the buffer
+  set showtabline=1            " always show the tab pages
+  set noequalalways            " resize windows as little as possible
+  set winminheight=0
+  set splitbelow splitright
 
   " Wrapping
   if exists('+breakindent')
-    setg wrap                         " wrap long lines
-    setg linebreak                    " wrap without line breaks
-    setg breakindent                  " wrap lines, taking indentation into account
-    setg breakindentopt=shift:4       " indent broken lines
-    setg breakat=\ \ ;:,!?            " break point for linebreak
-    setg textwidth=0                  " do not wrap text
-    setg display+=lastline            " easy browse last line with wrap text
-    setg whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
+    set wrap                         " wrap long lines
+    set linebreak                    " wrap without line breaks
+    set breakindent                  " wrap lines, taking indentation into account
+    set breakindentopt=shift:4       " indent broken lines
+    set breakat=\ \ ;:,!?            " break point for linebreak
+    set textwidth=0                  " do not wrap text
+    set display+=lastline            " easy browse last line with wrap text
+    set whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
   else
-    setg nowrap
+    set nowrap
   endif
 
   " Folding
-  setg nofoldenable
+  set nofoldenable
   " Diff
-  setg diffopt=filler,iwhite,vertical
+  set diffopt=filler,iwhite,vertical
 
   " Highlight invisible symbols
-  setg nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
+  set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
   " Avoid showing trailing whitespace when in Insert mode
   let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
   Autocmd InsertEnter * exe 'setl listchars+=trail:'. s:trailchar
   Autocmd InsertLeave * exe 'setl listchars-=trail:'. s:trailchar
 
   " Title-line
-  setg title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
+  set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
 
   " Command-line
-  setg cmdheight=1
-  setg noshowmode   " don't show the mode ('-- INSERT --') at the bottom
-  setg wildmenu wildmode=longest,full
+  set cmdheight=1
+  set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
+  set wildmenu wildmode=longest,full
 
   " Status-line
   set laststatus=2
@@ -2374,39 +2383,39 @@
 
 " Edit
 "---------------------------------------------------------------------------
-  setg report=0           " reporting number of lines changes
-  setg lazyredraw         " don't redraw while executing macros
-  setg nostartofline      " avoid moving cursor to BOL when jumping around
-  setg virtualedit=all    " allows the cursor position past true end of line
-  " setg clipboard=unnamed  " use * register for copy-paste
+  set report=0           " reporting number of lines changes
+  set lazyredraw         " don't redraw while executing macros
+  set nostartofline      " avoid moving cursor to BOL when jumping around
+  set virtualedit=all    " allows the cursor position past true end of line
+  " set clipboard=unnamed  " use * register for copy-paste
 
   " Keymapping timeout (mapping / keycode)
-  setg notimeout ttimeoutlen=100
+  set notimeout ttimeoutlen=100
 
   " Indent
-  setg cindent          " smart indenting for c-like code
-  setg autoindent       " indent at the same level of the previous line
-  setg shiftround       " indent multiple of shiftwidth
-  setg expandtab        " spaces instead of tabs
-  setg tabstop=2        " number of spaces per tab for display
-  setg shiftwidth=2     " number of spaces per tab in insert mode
-  setg softtabstop=2    " number of spaces when indenting
-  setg nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
+  set cindent          " smart indenting for c-like code
+  set autoindent       " indent at the same level of the previous line
+  set shiftround       " indent multiple of shiftwidth
+  set expandtab        " spaces instead of tabs
+  set tabstop=2        " number of spaces per tab for display
+  set shiftwidth=2     " number of spaces per tab in insert mode
+  set softtabstop=2    " number of spaces when indenting
+  set nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
   " Backspacing setting
-  setg backspace=indent,eol,start
+  set backspace=indent,eol,start
 
   " Search
-  setg hlsearch         " highlight search results
-  setg incsearch        " find as you type search
-  setg ignorecase
-  setg smartcase
-  setg magic            " change the way backslashes are used in search patterns
-  setg gdefault         " flag 'g' by default for replacing
+  set hlsearch         " highlight search results
+  set incsearch        " find as you type search
+  set ignorecase
+  set smartcase
+  set magic            " change the way backslashes are used in search patterns
+  set gdefault         " flag 'g' by default for replacing
 
   " Autocomplete
-  setglobal complete=.
-  setglobal completeopt=longest
-  setglobal pumheight=14
+  set complete=.
+  set completeopt=longest
+  set pumheight=14
   " Syntax complete if nothing else available
   Autocmd BufEnter,WinEnter * if &omnifunc == ''| setl omnifunc=syntaxcomplete#Complete |endif
 
