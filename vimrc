@@ -1,4 +1,4 @@
-" .vimrc / 2016 Feb.
+" .vimrc / 2016 March
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -101,7 +101,7 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
-  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=100 |endif
+  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=200 |endif
   " Save all buffers when focus lost, ignoring warnings, and return to normal mode
   " Autocmd FocusLost * nested wa
   " Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
@@ -551,6 +551,7 @@
     call dein#add('ekalinin/Dockerfile.vim', {
       \ 'on_path': 'Dockerfile$'
       \})
+
     call dein#save_cache()
   endif
   call dein#end()
@@ -597,10 +598,10 @@
 
   if dein#tap('vim-easymotion')
     nmap  s <Plug>(easymotion-s)
+    nmap <Space>s <Plug>(easymotion-overwin-f)
+    nmap <Space>S <Plug>(easymotion-overwin-f2)
     nmap ,w <Plug>(easymotion-overwin-w)
-    nmap ,k <Plug>(easymotion-overwin-f)
-    nmap ,K <Plug>(easymotion-overwin-f2)
-    nmap ,l <Plug>(easymotion-overwin-line)
+    nmap ,W <Plug>(easymotion-overwin-line)
     nmap W  <Plug>(easymotion-lineforward)
     nmap B  <Plug>(easymotion-linebackward)
 
@@ -820,7 +821,7 @@
     endfunction
 
     function! s:vimSignatureOnSource() abort
-      let g:SignatureMarkTextHL = "'BookmarkLine'"
+      let g:SignatureMarkTextHL = 'BookmarkLine'
       let g:SignatureIncludeMarks = 'weratsdfqglcvbzxyi'
       let g:SignaturePeriodicRefresh = 0
       let g:SignatureErrorIfNoAvailableMarks = 0
@@ -1026,9 +1027,15 @@
 
       " CSS
       let g:quickrun_config['css/formatter'] = {
-        \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
-        \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
+        \ 'command': 'postcss', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+        \ 'args': printf('--use postcss-sorting --config %s/preset/postcss.js', $VIMFILES)
         \}
+
+      " CSS
+      " let g:quickrun_config['css/formatter'] = {
+      "   \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
+      "   \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
+      "   \}
 
       " HTML
       let g:quickrun_config['html/formatter'] = {
@@ -1621,6 +1628,9 @@
     nnoremap <silent> ;*
       \ :<C-u>UniteWithCursorWord line:forward:wrap -buffer-name=search%`bufnr('%')` -no-wipe<CR>
 
+    xnoremap <silent> ;r
+      \ d:<C-u>Unite register history/yank -buffer-name=register -default-action=append<CR>
+
     " ;r: resume search buffer
     nnoremap <silent> ;r
       \ :<C-u>UniteResume search%`bufnr('%')` -no-start-insert -force-redraw<CR>
@@ -2156,7 +2166,6 @@
   endif
 
 " CSS
-  Autocmd BufNewFile,BufRead *.scss setl filetype=css commentstring=/*%s*/
   AutocmdFT css setl nonu nornu
   " Indent
   AutocmdFT css setl nowrap | Indent 2
@@ -2175,7 +2184,7 @@
   " Autocomplete
   AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
   if dein#tap('vim-hyperstyle')
-    Autocmd BufNewFile,BufRead *.{css,scss} call s:hyperstyleReset()
+    AutocmdFT css call s:hyperstyleReset()
 
     function! s:hyperstyleReset()
       let b:hyperstyle = 1
@@ -2192,6 +2201,10 @@
       endif
     endfunction
   endif
+
+" Sugar CSS
+  Autocmd BufNewFile,BufRead *.{scss,sss}
+    \ setl filetype=css syntax=sass commentstring=//%s
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json
@@ -2592,10 +2605,10 @@
   nnoremap <silent> <expr> <Space>Q winnr('$') == 1
     \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
     \ : ':<C-u>close!<CR>'
-  " <Space>s: split window horizontaly
-  nnoremap <silent> <expr> <Space>s ':<C-u>'. (v:count == 0 ? '' : v:count) .'split<CR>'
-  " <Space>S: split window verticaly
-  nnoremap <silent> <expr> <Space>S ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
+  " <Space>v: split window horizontaly
+  nnoremap <silent> <expr> <Space>v ':<C-u>'. (v:count == 0 ? '' : v:count) .'split<CR>'
+  " <Space>V: split window verticaly
+  nnoremap <silent> <expr> <Space>V ':<C-u>vertical '. (v:count == 0 ? '' : v:count) .'split<CR>'
 
   if exists(':GoldenRatio')
     " ,g: golden ratio
