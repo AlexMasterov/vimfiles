@@ -10,8 +10,6 @@
   " Vimfiles
   let $VIMFILES = $VIM.'/vimfiles'
   let $VIMCACHE = $VIMFILES.'/cache'
-  " Store
-  set viminfo+=n$VIMFILES/viminfo
 
   let s:is_windows = has('win32') || has('win64')
 
@@ -23,6 +21,7 @@
   endif
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
+  set viminfo+=n$VIMFILES/viminfo
 
   " Initialize autogroup in MyVimrc
   augroup MyVimrc| exe 'autocmd!' |augroup END
@@ -38,14 +37,6 @@
 
 " Functions
 "---------------------------------------------------------------------------
-  function! s:installDein(deinPath) abort
-    if !executable('git')
-      echom "Can\'t download Dein: Git not found." | return
-    endif
-    let deinUri = 'https://github.com/Shougo/dein.vim.git'
-    call system(printf('git clone --depth 1 %s %s', deinUri, a:deinPath))
-  endfunction
-
   function! s:makeDir(dir, ...) abort
     let dir = expand(a:dir, 1)
     if !isdirectory(dir)
@@ -82,14 +73,13 @@
 
 " Events
 "---------------------------------------------------------------------------
+  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=200 |endif
   " Auto reload VimScript
   Autocmd BufWritePost,FileWritePost *.vim nested
     \ if &l:autoread > 0 | source <afile> | echo 'source ' . bufname('%') |
     \ endif
   " Auto reload .vimrc
   Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
-  " Apply new set variables
-  Autocmd VimEnter * if argc() == 0 && bufname('%') ==# ''| enew |endif
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Create directories if not exist
@@ -101,7 +91,6 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
-  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=200 |endif
   " Save all buffers when focus lost, ignoring warnings, and return to normal mode
   " Autocmd FocusLost * nested wa
   " Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
@@ -171,16 +160,17 @@
 
   " Install Dein plugin manager
   if has('vim_starting')
-    let s:deinDirectory = $VIMFILES
-      \ .'/dein/repos/github.com/Shougo/dein.vim'
-    if !isdirectory(s:deinDirectory)
-      call s:installDein(s:deinDirectory)
+    let s:deinPath = $VIMFILES.'/dein/repos/github.com/Shougo/dein.vim'
+    if !isdirectory(s:deinPath)
+      if executable('git')
+        let s:deinUri = 'https://github.com/Shougo/dein.vim.git'
+        call system(printf('git clone --depth 1 %s %s', s:deinUri, s:deinPath))
+      else
+        echom "Can\'t download Dein: Git not found."
+      endif
     endif
-    exe 'set runtimepath='. s:deinDirectory .',$VIMFILES,$VIMRUNTIME'
+    exe 'set runtimepath='. s:deinPath .',$VIMFILES,$VIMRUNTIME'
   endif
-  let g:dein#types#git#clone_depth = 1
-  let g:dein#install_max_processes =
-    \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) : 1
 
   call dein#begin($VIMFILES.'/dein')
   if dein#load_cache()
@@ -209,7 +199,7 @@
       \ 'on_cmd': 'Root'
       \})
     call dein#add('tyru/caw.vim', {
-      \ 'on_map': [['nv', '<Plug>(caw:']]
+      \ 'on_map': [['nx', '<Plug>(caw:']]
       \})
     call dein#add('easymotion/vim-easymotion', {
       \ 'on_cmd': 'EasyMotionWordsBeginningWithChar',
@@ -267,10 +257,7 @@
     call dein#add('Shougo/neoyank.vim', {
       \ 'on_source': 'unite.vim'
       \})
-    " call dein#add('kana/vim-altr', {
-    "   \ 'on_func': 'altr#define',
-    "   \ 'on_map': '<Plug>(altr-'
-    "   \})
+
     call dein#add('haya14busa/incsearch.vim', {
       \ 'on_func': 'incsearch#go'
       \})
@@ -331,6 +318,10 @@
       \})
     call dein#add('whatyouhide/vim-lengthmatters', {
       \ 'on_cmd': 'Lengthmatters'
+      \})
+    call dein#add('kana/vim-altr', {
+      \ 'on_func': 'altr#define',
+      \ 'on_map': '<Plug>(altr-'
       \})
 
     call dein#add('thinca/vim-quickrun', {
@@ -559,19 +550,25 @@
   filetype plugin indent on
   if !exists('g:syntax_on')| syntax on |endif
 
-" Bundle settings
+" Plugin settings
 "---------------------------------------------------------------------------
   if dein#tap('dein.vim')
     nnoremap <silent> ;u :<C-u>call dein#update()<CR>
+
+    let g:dein#types#git#clone_depth = 1
+    let g:dein#install_max_processes =
+      \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) : 1
+
+    command! -bar -nargs=* Autodein
+      \ exe 'autocmd MyVimrc User dein#source#'.g:dein#name "<args>"
+    command! -bar -nargs=* AutodeinPost
+      \ exe 'autocmd MyVimrc User dein#post_source#'.g:dein#name "<args>"
   endif
 
-  " if dein#tap('hiddenBuffersLimit.vim')
+  if exists(':CleanBuffers')
     let g:bufcleaner_max_saved = 9
     Autocmd BufHidden * CleanBuffers -f
-
-  "   Autocmd User dein#source#hiddenBuffersLimit.vim
-  "     \ let g:bufcleaner_max_saved = 9
-  " endif
+  endif
 
   if dein#tap('caw.vim')
     nmap <silent> <expr> q <SID>cawRangeComment()
@@ -591,19 +588,19 @@
       return "\<Plug>(caw:i:toggle)"
     endfunction
 
-    Autocmd User dein#source#caw.vim
+    Autodein
       \  let g:caw_no_default_keymappings = 1
       \| let g:caw_i_skip_blank_line = 1
   endif
 
   if dein#tap('vim-easymotion')
-    nmap  s <Plug>(easymotion-s)
+    nmap  s       <Plug>(easymotion-s)
     nmap <Space>s <Plug>(easymotion-overwin-f)
     nmap <Space>S <Plug>(easymotion-overwin-f2)
-    nmap ,w <Plug>(easymotion-overwin-w)
-    nmap ,W <Plug>(easymotion-overwin-line)
-    nmap W  <Plug>(easymotion-lineforward)
-    nmap B  <Plug>(easymotion-linebackward)
+    nmap ,w       <Plug>(easymotion-overwin-w)
+    nmap ,W       <Plug>(easymotion-overwin-line)
+    nmap W        <Plug>(easymotion-lineforward)
+    nmap B        <Plug>(easymotion-linebackward)
 
     map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
     map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
@@ -625,7 +622,7 @@
       hi link EasyMotionTarget2Second EasyMotionTarget
     endfunction
 
-    Autocmd User dein#source#vim-easymotion call s:easymotionOnSource()
+    Autodein call s:easymotionOnSource()
   endif
 
   if dein#tap('context_filetype.vim')
@@ -648,7 +645,7 @@
       endfor | unlet filetype
     endfunction
 
-    Autocmd User dein#source#context_filetype.vim call s:context_filetypeOnSource()
+    Autodein call s:context_filetypeOnSource()
   endif
 
   if dein#tap('neocomplete.vim') && has('lua')
@@ -702,7 +699,8 @@
         \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'css':        ['omni', 'file/include', 'ultisnips'],
         \ 'html':       ['omni', 'file/include', 'ultisnips'],
-        \ 'twig':       ['omni', 'file/include', 'ultisnips']
+        \ 'twig':       ['omni', 'file/include', 'ultisnips'],
+        \ 'blade':      ['omni', 'file/include', 'ultisnips']
         \}
 
       " Completion patterns
@@ -718,7 +716,7 @@
         \ 'css,scss,sass', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
 
-    Autocmd User dein#source#neocomplete.vim call s:neocompleteOnSource()
+    Autodein call s:neocompleteOnSource()
   endif
 
   if dein#tap('root.vim')
@@ -736,7 +734,7 @@
         \]
     endfunction
 
-    Autocmd User dein#source#root.vim call s:rootOnSource()
+    Autodein call s:rootOnSource()
   endif
 
   if dein#tap('undotree')
@@ -774,7 +772,7 @@
         \| nnoremap <silent> <buffer> ` :<C-u>UndotreeHide<CR>
     endfunction
 
-    Autocmd User dein#source#undotree call s:undotreeOnSource()
+    Autodein nested call s:undotreeOnSource()
   endif
 
   if dein#tap('vim-lengthmatters')
@@ -788,7 +786,7 @@
       call lengthmatters#highlight_link_to('ColorColumn')
     endfunction
 
-    Autocmd User dein#source#vim-lengthmatters call s:vimLengthmattersOnSource()
+    Autodein call s:vimLengthmattersOnSource()
   endif
 
   if dein#tap('vim-signature')
@@ -835,8 +833,8 @@
       call signature#utils#Maps('remove')
     endfunction
 
-    Autocmd User dein#source#vim-signature call s:vimSignatureOnSource()
-    Autocmd User dein#post_source#vim-signature call s:vimSignatureOnPostSource()
+    Autodein     nested call s:vimSignatureOnSource()
+    AutodeinPost nested call s:vimSignatureOnPostSource()
   endif
 
   if dein#tap('vim-over')
@@ -851,7 +849,7 @@
       let g:over#command_line#paste_escape_chars = '\\/.*$^~'
     endfunction
 
-    Autocmd User dein#source#vim-over call s:vimOverOnSource()
+    Autodein call s:vimOverOnSource()
   endif
 
   if dein#tap('vimfiler.vim')
@@ -918,7 +916,7 @@
       let g:unite_kind_file_use_trashbox = s:is_windows
 
       let g:vimfiler_ignore_pattern =
-        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|vendor\|node_modules\)$'
+        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
 
       " Icons
       let g:vimfiler_file_icon = ' '
@@ -938,7 +936,7 @@
       call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
     endfunction
 
-    Autocmd User dein#source#vimfiler.vim call s:vimfilerOnSource()
+    Autodein call s:vimfilerOnSource()
   endif
 
   if dein#tap('vim-choosewin')
@@ -964,7 +962,7 @@
       let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}
     endfunction
 
-    Autocmd User dein#source#vim-choosewin call s:vimChoosewinOnSource()
+    Autodein call s:vimChoosewinOnSource()
   endif
 
   if dein#tap('vim-quickrun')
@@ -1080,7 +1078,7 @@
       call quickrun#module#register(s:eslint, 1) | unlet s:eslint
     endfunction
 
-    Autocmd User dein#source#vim-quickrun call s:vimQuickrunOnSource()
+    Autodein call s:vimQuickrunOnSource()
   endif
 
   if dein#tap('agit.vim')
@@ -1092,7 +1090,7 @@
       AutocmdFT agit* let &l:statusline = ' '
     endfunction
 
-    Autocmd User dein#source#agit.vim call s:agitOnSource()
+    Autodein nested call s:agitOnSource()
   endif
 
   if dein#tap('vim-gita')
@@ -1110,7 +1108,7 @@
         \ let &l:statusline = ' ' | setl nonu nornu
     endfunction
 
-    Autocmd User dein#source#vim-gita call s:vimGitaOnSource()
+    Autodein nested call s:vimGitaOnSource()
   endif
 
   if dein#tap('vim-projectionist')
@@ -1122,15 +1120,17 @@
   endif
 
   if dein#tap('vim-altr')
-    AutocmdFT php,twig call s:altrMappings()
+    AutocmdFT php,javascript,twig,blade call s:altrMappings()
+    AutocmdFT php
+      \  call altr#define('src/*/%.php', 'tests/*/%Test.php')
+      \| call altr#define('src/*/%.php', 'tests/*/%spec.php')
 
     function! s:altrMappings() abort
       nmap <buffer> { <Plug>(altr-back)
       nmap <buffer> } <Plug>(altr-forward)
     endfunction
 
-    Autocmd User dein#source#vim-altr
-      \ call altr#remove_all()
+    Autodein call altr#remove_all()
   endif
 
   if dein#tap('vim-exchange')
@@ -1141,10 +1141,9 @@
     function! s:vimExchangeOnSource() abort
       let g:exchange_no_mappings = 1
       exe 'nmap <silent> <C-c> <Plug>(ExchangeClear)'. maparg('<C-c>', 'n')
-      hi _exchange_region guifg=#2B2B2B guibg=#0079A2 gui=NONE
     endfunction
 
-    Autocmd User dein#source#vim-exchange call s:vimExchangeOnSource()
+    Autodein call s:vimExchangeOnSource()
   endif
 
   if dein#tap('vim-visual-increment')
@@ -1152,8 +1151,7 @@
     xmap <C-x> <Plug>VisualDecrement
 
     " CTRL+A and CTRL+X works also for letters
-    Autocmd User dein#source#vim-visual-increment
-      \ set nrformats+=alpha
+    Autodein set nrformats+=alpha
   endif
 
   if dein#tap('vim-easy-align')
@@ -1173,7 +1171,7 @@
         \}
     endfunction
 
-    Autocmd User dein#source#vim-easy-align call s:vimEasyAlignOnSource()
+    Autodein call s:vimEasyAlignOnSource()
   endif
 
   if dein#tap('vim-brightest')
@@ -1211,7 +1209,7 @@
       let g:brightest#highlight = {'group': 'BrightestCursorLine', 'priority': -1}
     endfunction
 
-    Autocmd User dein#source#vim-brightest call s:vimBrightestOnSource()
+    Autodein call s:vimBrightestOnSource()
   endif
 
   if dein#tap('sideways.vim')
@@ -1233,7 +1231,7 @@
         \}
     endfunction
 
-    Autocmd User dein#source#wildfire.vim call s:wildfireOnSource()
+    Autodein call s:wildfireOnSource()
   endif
 
   if dein#tap('argumentrewrap')
@@ -1256,8 +1254,7 @@
         \}), get(a:, 1, {}))
     endfunction
 
-    Autocmd User dein#source#incsearch.vim
-      \ let g:incsearch#auto_nohlsearch = 1
+    Autodein let g:incsearch#auto_nohlsearch = 1
   endif
 
   if dein#tap('vim-jplus')
@@ -1275,7 +1272,7 @@
         \}
     endfunction
 
-    Autocmd User dein#source#vim-jplus call s:vimJplusOnSource()()
+    Autodein call s:vimJplusOnSource()()
   endif
 
   if dein#tap('splitjoin.vim')
@@ -1361,7 +1358,7 @@
 
       " Attributes
       call lexima#add_rule({
-        \ 'filetype': ['html', 'xml', 'javascript', 'twig', 'blade'],
+        \ 'filetype': ['html', 'xml', 'twig', 'blade'],
         \ 'at': '\(........\)\?<.\+\%#', 'char': '=', 'input': '=""<Left>'
         \})
 
@@ -1380,7 +1377,7 @@
       endif
     endfunction
 
-    Autocmd User dein#source#lexima.vim call s:leximaOnSource()
+    Autodein call s:leximaOnSource()
   endif
 
   if dein#tap('switch.vim')
@@ -1523,7 +1520,7 @@
     nmap y <Plug>(operator-flashy)
     nmap Y <Plug>(operator-flashy)$
 
-    Autocmd User dein#source#vim-operator-flashy
+    Autodein
       \  let g:operator#flashy#group = 'Visual'
       \| let g:operator#flashy#flash_time = 280
   endif
@@ -1545,8 +1542,7 @@
       exe printf('nmap ,%s ,Iw%s', char, char)
     endfor | unlet char
 
-    Autocmd User dein#source#vim-surround
-      \ let g:surround_no_mappings = 1
+    Autodein let g:surround_no_mappings = 1
   endif
 
   if dein#tap('colorizer')
@@ -1564,8 +1560,7 @@
       augroup! Colorizer
     endfunction
 
-    Autocmd User dein#source#colorizer
-      \ let g:colorizer_nomap = 1
+    Autodein let g:colorizer_nomap = 1
   endif
 
   if dein#tap('ultisnips')
@@ -1586,7 +1581,8 @@
       return a:key
     endfunction
 
-    Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
+    Autocmd BufNewFile,BufRead *.snippets
+      \ setl filetype=snippets foldmethod=manual
 
     function! s:ultiOnSource() abort
       let g:UltiSnipsEnableSnipMate = 0
@@ -1598,7 +1594,7 @@
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
 
-    Autocmd User dein#source#ultisnips call s:ultiOnSource()
+    Autodein nested call s:ultiOnSource()
   endif
 
   if dein#tap('unite.vim')
@@ -1688,13 +1684,17 @@
     function! s:uniteOnSource() abort
       let g:unite_source_buffer_time_format = '%H:%M '
       let g:unite_data_directory = $VIMCACHE.'/unite'
-      if executable('ag')
-        let g:unite_source_grep_command = 'ag'
+
+      let s:search_tool =
+        \ executable('pt') ? 'pt' :
+        \ executable('ag') ? 'ag' : ''
+      if !empty(s:search_tool)
+        let g:unite_source_grep_command = s:search_tool
         let g:unite_source_grep_recursive_opt = ''
         let g:unite_source_grep_encoding = 'utf-8'
-        let g:unite_source_grep_default_opts = '--follow --smart-case --nogroup --nocolor'
+        let g:unite_source_grep_default_opts = '--nogroup --nocolor --follow --smart-case'
         let g:unite_source_rec_async_command = [
-          \ 'ag', &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
+          \ s:search_tool, &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
           \]
       endif
 
@@ -1739,7 +1739,7 @@
         \| hi link uniteStatusLineNR           User2
     endfunction
 
-    Autocmd User dein#source#unite.vim call s:uniteOnSource()
+    Autodein nested call s:uniteOnSource()
   endif
 
   if dein#tap('neomru.vim')
@@ -1767,7 +1767,7 @@
       call unite#custom#source('neomru/file,neomru/directory', 'limit', 20)
     endfunction
 
-    Autocmd User dein#source#neomru.vim call s:neomruOnSource()
+    Autodein call s:neomruOnSource()
   endif
 
   if dein#tap('unite-vimpatches')
@@ -1784,8 +1784,7 @@
     " ;i: filetype change
     nnoremap <silent> ;z :<C-u>Unite filetype filetype/new -start-insert<CR>
 
-    Autocmd User dein#source#unite-filetype
-      \ call unite#custom#source('filetype', 'sorters', 'sorter_length')
+    Autodein call unite#custom#source('filetype', 'sorters', 'sorter_length')
   endif
 
   if dein#tap('httpstatus-vim')
@@ -1797,8 +1796,7 @@
     nnoremap ,sj :<C-u>JunkfileOpen<CR>
     nnoremap <silent> ,sJ :<C-u>Unite junkfile/new junkfile -split<CR>
 
-    Autocmd User dein#source#junkfile.vim
-      \ let g:junkfile#directory = $VIMFILES.'/cache/junkfile'
+    Autodein let g:junkfile#directory = $VIMFILES.'/cache/junkfile'
   endif
 
   if dein#tap('unite-tag')
@@ -1806,9 +1804,9 @@
       \ Autocmd BufRead,BufEnter <buffer> call s:uniteTagMappings()
 
     function! s:uniteTagMappings() abort
-      " if !empty(&buftype) " just <empty> == normal buffer
-      "   return
-      " endif
+      if !empty(&buftype) " just <empty> == normal buffer
+        return
+      endif
       " ;t: open tag
       nnoremap <silent> <buffer> ;t :<C-u>UniteWithCursorWord tag tag/include<CR>
       " ;T: search tag by name
@@ -1839,8 +1837,7 @@
       endif
     endfunction
 
-    Autocmd User dein#source#neoyank.vim
-      \ let g:neoyank#file = $VIMCACHE.'/yankring'
+    Autodein let g:neoyank#file = $VIMCACHE.'/yankring'
   endif
 
   if dein#tap('vim-reanimate')
@@ -1901,7 +1898,7 @@
       call reanimate#hook(s:event) | unlet s:event
     endfunction
 
-    Autocmd User dein#source#vim-reanimate call s:vimReanimateOnSource()
+    Autodein call s:vimReanimateOnSource()
   endif
 
   if dein#tap('vim-qfreplace')
@@ -1930,8 +1927,7 @@
   if dein#tap('neco-ghc')
     AutocmdFT haskell setl omnifunc=necoghc#omnifunc
 
-    Autocmd User dein#source#neco-ghc
-      \ let g:necoghc_enable_detailed_browse = 1
+    Autodein let g:necoghc_enable_detailed_browse = 1
   endif
   if dein#tap('ghcmod-vim')
     AutocmdFT haskell
@@ -1943,12 +1939,12 @@
     function! s:ghcmodVimOnSource() abort
       let g:ghcmod_open_quickfix_function = 's:ghcmodQuickfix'
 
-      function! s:ghcmodQuickfix()
+      function! s:ghcmodQuickfix() abort
         Unite quickfix -no-empty -silent
       endfunction
     endfunction
 
-    Autocmd User dein#source#ghcmod-vim call s:ghcmodVimOnSource()
+    Autodein call s:ghcmodVimOnSource()
   endif
 
 " PHP
@@ -1972,21 +1968,20 @@
         \)
     endfunction
 
-    Autocmd User dein#source#phpcomplete.vim call s:phpcompleteOnSource()
+    Autodein call s:phpcompleteOnSource()
   endif
   " PHP Documentor
   if dein#tap('pdv')
     AutocmdFT php
       \ nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>
 
-    Autocmd User dein#source#pdv
-      \ let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'
+    Autodein let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'
   endif
   " vDebug (for xDebug)
   if dein#tap('vdebug')
     AutocmdFT php call s:vdebugMappings()
 
-    function! s:vdebugMappings()
+    function! s:vdebugMappings() abort
       nnoremap <silent> <buffer> ,d      :<C-u>python debugger.run()<CR>
       vnoremap <silent> <buffer> ,d      :<C-u>python debugger.handle_visual_eval()<CR>
       nnoremap <silent> <buffer> ,,      :<C-u>python debugger.set_breakpoint()<CR>
@@ -2020,7 +2015,7 @@
         \| hi DbgBreakptSign guifg=#2B2B2B guibg=#E4F3FB gui=NONE
     endfunction
 
-    Autocmd User dein#source#vdebug call s:vdebugOnSource()
+    Autodein nested call s:vdebugOnSource()
   endif
 
 " JavaScript
@@ -2030,13 +2025,19 @@
   " Syntax
   if dein#tap('yajs.vim')
     function! s:yajsOnPostSource() abort
-      function! s:yajsJsxSyntax()
+      function! s:yajsJsxSyntax() abort
         syntax include @XMLSyntax syntax/xml.vim
-        syntax region jsxRegion contains=@XMLSyntax,jsxRegion,jsBlock,javascriptBlock
-          \ start=+<\@<!<\z([a-zA-Z][a-zA-Z0-9:\-.]*\)+ skip=+<!--\_.\{-}-->+
-          \ end=+</\z1\_\s\{-}>+ end=+/>+
-          \ keepend extend
         syntax region xmlString contained start=+{+ end=++ contains=jsBlock,javascriptBlock
+        syntax region jsxChild contained start=+{+ end=++ contains=jsBlock,javascriptBlock
+          \ extend
+        syntax region jsxRegion
+          \ contains=@XMLSyntax,jsxRegion,jsxChild,jsBlock,javascriptBlock
+          \ start=+\%(<\|\w\)\@<!<\z([a-zA-Z][a-zA-Z0-9:\-.]*\)+
+          \ skip=+<!--\_.\{-}-->+
+          \ end=+</\z1\_\s\{-}>+
+          \ end=+/>+
+          \ keepend
+          \ extend
         syntax cluster jsExpression add=jsxRegion
         syntax cluster javascriptNoReserved add=jsxRegion
       endfunction
@@ -2047,7 +2048,7 @@
         \| hi link javascriptInvalidOp Normal
     endfunction
 
-    Autocmd User dein#post_source#yajs.vim call s:yajsOnPostSource()
+    Autodein nested call s:yajsOnPostSource()
   endif
   " Autocomplete
   if dein#tap('ternjs.vim')
@@ -2069,7 +2070,7 @@
       let g:jsdoc_return_description = 0
     endfunction
 
-    Autocmd User dein#source#vim-jsdoc call s:vimJsdocOnSource()
+    Autodein call s:vimJsdocOnSource()
   endif
 
 " HTML
@@ -2079,9 +2080,13 @@
   AutocmdFT html setl textwidth=120 | Indent 2
   " Syntax
   if dein#tap('html5.vim')
-    Autocmd User dein#source#html5.vim
-      \  hi link htmlError    htmlTag
-      \| hi link htmlTagError htmlTag
+    function! s:htmlOnSource() abort
+      Autocmd Syntax html
+        \  hi link htmlError    htmlTag
+        \| hi link htmlTagError htmlTag
+    endfunction
+
+    Autodein nested call s:htmlOnSource()
   endif
   if dein#tap('MatchTag')
     Autocmd Syntax xml runtime! ftplugin/xml.vim
@@ -2118,7 +2123,7 @@
       let g:user_emmet_install_global = 0
     endfunction
 
-    Autocmd User dein#source#emmet-vim call s:emmetVimOnSource()
+    Autodein call s:emmetVimOnSource()
   endif
   if dein#tap('vim-closetag')
     Autocmd BufReadPre *.{html,twig,xml} call dein#source(['vim-closetag'])
@@ -2141,7 +2146,7 @@
         \| hi link twigTagDelim  twigOperator
     endfunction
 
-    Autocmd User dein#source#twig.vim call s:twigOnSource()
+    Autodein nested call s:twigOnSource()
   endif
 
 " Blade
@@ -2162,7 +2167,7 @@
         \| hi link sqlKeyword   phpString
     endfunction
 
-    Autocmd User dein#source#vim-blade call s:vimBladeOnSource()
+    Autodein nested call s:vimBladeOnSource()
   endif
 
 " CSS
@@ -2179,14 +2184,14 @@
         \| hi link cssDeprecated Normal
     endfunction
 
-    Autocmd User dein#source#css.vim call s:cssOnSource()
+    Autodein nested call s:cssOnSource()
   endif
   " Autocomplete
   AutocmdFT css setl omnifunc=csscomplete#CompleteCSS
   if dein#tap('vim-hyperstyle')
     AutocmdFT css call s:hyperstyleReset()
 
-    function! s:hyperstyleReset()
+    function! s:hyperstyleReset() abort
       let b:hyperstyle = 1
       let b:hyperstyle_semi = ' '
 
@@ -2205,6 +2210,8 @@
 " Sugar CSS
   Autocmd BufNewFile,BufRead *.{scss,sss}
     \ setl filetype=css syntax=sass commentstring=//%s
+  Autocmd BufNewFile,BufRead *.sss
+    \ nnoremap <silent> <buffer> <C-Enter> :<C-u>FixWhitespace<CR>:write!<CR>
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setl filetype=json
@@ -2227,7 +2234,7 @@
         \| hi link jsonComment Comment
     endfunction
 
-    Autocmd User dein#source#vim-json call s:vimJsonOnSource()
+    Autodein nested call s:vimJsonOnSource()
   endif
 
 " Yaml
@@ -2248,7 +2255,7 @@
         \| hi link sqlKeyword   phpOperator
     endfunction
 
-    Autocmd User dein#source#vim-sql-syntax call s:vimSqlSyntaxOnSource()
+    Autodein nested call s:vimSqlSyntaxOnSource()
   endif
 
 " Nginx
@@ -2357,15 +2364,15 @@
     \. "%2*%(%Y\ %)%*"
 
   " Status-line functions
-  function! IfFit(width)
+  function! IfFit(width) abort
     return winwidth(0) > a:width
   endfunction
 
-  function! BufModified()
+  function! BufModified() abort
     return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
   endfunction
 
-  function! FileSize()
+  function! FileSize() abort
     let size = &encoding ==# &fileencoding || &fileencoding ==# ''
       \ ? line2byte(line('$') + 1) - 1
       \ : getfsize(expand('%:p'))
@@ -2373,24 +2380,24 @@
       \ size < 1024 ? size.'B' : (size / 1024).'K'
   endfunction
 
-  function! SignatureMarksIndent()
+  function! SignatureMarksIndent() abort
     return exists('b:sig_marks') && len(b:sig_marks) > 0 ? repeat(' ', 4) : ' '
   endfunction
 
-  function! ReanimateIsSaved()
+  function! ReanimateIsSaved() abort
     return exists('*reanimate#is_saved()') && reanimate#is_saved()
       \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : ''
   endfunction
 
-  function! GitBranch()
+  function! GitBranch() abort
     return exists('*gita#statusline#preset') ? matchstr(gita#statusline#preset('branch_short'), '.*/\zs.*') : ''
   endfunction
 
-  function! GitTraffic()
+  function! GitTraffic() abort
     return gita#statusline#preset('traffic')
   endfunction
 
-  function! GitStatus()
+  function! GitStatus() abort
     return exists('*gita#statusline#preset') ? gita#statusline#preset('status') : ''
   endfunction
 
@@ -2619,10 +2626,12 @@
   " Text objects
   "-----------------------------------------------------------------------
   " vi
+  nmap " <Esc>vi"
   for char in split("' \" ` ( [ { <")
     exe printf('nmap ;%s <Esc>vi%s', char, char)
   endfor | unlet char
   " va
+  nmap ' <Esc>vi'
   for char in split(") ] } >")
     exe printf('nmap ;%s <Esc>va%s', char, char)
   endfor | unlet char
