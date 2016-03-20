@@ -169,11 +169,12 @@
         echom "Can\'t download Dein: Git not found."
       endif
     endif
-    exe 'set runtimepath='. s:deinPath .',$VIMFILES,$VIMRUNTIME'
+    exe 'set runtimepath='. s:deinPath .',$VIMRUNTIME'
   endif
 
-  call dein#begin($VIMFILES.'/dein')
-  if dein#load_cache()
+  let s:deinPlugin = $VIMFILES.'/dein'
+  if dein#load_state(s:deinPlugin)
+    call dein#begin(s:deinPlugin)
     call dein#add('Shougo/dein.vim', {'rtp': ''})
     call dein#add('Shougo/vimproc.vim', {
       \ 'lazy': 1,
@@ -199,6 +200,7 @@
       \ 'on_cmd': 'Root'
       \})
     call dein#add('tyru/caw.vim', {
+      \ 'rev': 'b418d46',
       \ 'on_map': [['nx', '<Plug>(caw:']]
       \})
     call dein#add('easymotion/vim-easymotion', {
@@ -218,9 +220,12 @@
      \ 'on_cmd': 'OverCommandLine'
      \})
     call dein#add('cohama/agit.vim', {
+    \ 'if': executable('git'),
      \ 'on_cmd': ['Agit', 'AgitFile']
      \})
     call dein#add('lambdalisue/vim-gita', {
+     \ 'rev': 'alpha-3',
+     \ 'if': executable('git'),
      \ 'on_cmd': 'Gita'
      \})
     call dein#add('tpope/vim-characterize', {
@@ -236,12 +241,13 @@
       \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']]
       \})
     call dein#add('SirVer/ultisnips', {
-      \ 'lazy': 1
+      \ 'on_source': 'neocomplete.vim'
       \})
     call dein#add('Shougo/context_filetype.vim', {
       \ 'lazy': 1
       \})
     call dein#add('Shougo/neocomplete.vim', {
+      \ 'if': has('lua'),
       \ 'depends': 'context_filetype.vim',
       \ 'on_i': 1
       \})
@@ -301,7 +307,7 @@
       \ 'on_func': 'argumentrewrap#RewrapArguments'
       \})
     call dein#add('AndrewRadev/switch.vim', {
-      \ 'on_func': 'switch#Switch',
+      \ 'on_func': 'switch#',
       \ 'on_cmd': 'Switch'
       \})
     call dein#add('kana/vim-smartchr', {
@@ -543,9 +549,9 @@
       \ 'on_path': 'Dockerfile$'
       \})
 
-    call dein#save_cache()
+    call dein#end()
+    call dein#save_state()
   endif
-  call dein#end()
 
   filetype plugin indent on
   if !exists('g:syntax_on')| syntax on |endif
@@ -554,6 +560,7 @@
 "---------------------------------------------------------------------------
   if dein#tap('dein.vim')
     nnoremap <silent> ;u :<C-u>call dein#update()<CR>
+    nnoremap <silent> ;i :<C-u>call dein#install()<CR>
 
     let g:dein#types#git#clone_depth = 1
     let g:dein#install_max_processes =
@@ -573,8 +580,8 @@
   if dein#tap('caw.vim')
     nmap <silent> <expr> q <SID>cawRangeComment()
     xmap <silent> <expr> q <SID>cawRangeComment()
-    nmap ,q <Plug>(caw:jump:comment-prev)
-    nmap ,w <Plug>(caw:jump:comment-next)
+    nmap ,f <Plug>(caw:jump:comment-prev)
+    nmap ,F <Plug>(caw:jump:comment-next)
     nmap ,a <Plug>(caw:a:toggle)
 
     function! s:cawRangeComment() abort
@@ -595,10 +602,10 @@
 
   if dein#tap('vim-easymotion')
     nmap  s       <Plug>(easymotion-s)
-    nmap <Space>s <Plug>(easymotion-overwin-f)
-    nmap <Space>S <Plug>(easymotion-overwin-f2)
-    nmap ,w       <Plug>(easymotion-overwin-w)
-    nmap ,W       <Plug>(easymotion-overwin-line)
+    nmap ,s       <Plug>(easymotion-overwin-f)
+    nmap ,S       <Plug>(easymotion-overwin-f2)
+    nmap <Space>s <Plug>(easymotion-overwin-w)
+    nmap <Space>S <Plug>(easymotion-overwin-line)
     nmap W        <Plug>(easymotion-lineforward)
     nmap B        <Plug>(easymotion-linebackward)
 
@@ -648,7 +655,7 @@
     Autodein call s:context_filetypeOnSource()
   endif
 
-  if dein#tap('neocomplete.vim') && has('lua')
+  if dein#tap('neocomplete.vim')
     inoremap <silent> <Tab> <C-r>=<SID>neoComplete("\<Tab>")<CR>
     inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
     " Ctrl-d: select the previous match OR delete till start of line
@@ -699,6 +706,7 @@
         \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'css':        ['omni', 'file/include', 'ultisnips'],
         \ 'html':       ['omni', 'file/include', 'ultisnips'],
+        \ 'xml':        ['omni', 'file/include', 'ultisnips', 'buffer'],
         \ 'twig':       ['omni', 'file/include', 'ultisnips'],
         \ 'blade':      ['omni', 'file/include', 'ultisnips']
         \}
@@ -711,9 +719,9 @@
         \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
         \}
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'html,twig', '<\|\s[[:alnum:]-]*')
+        \ 'html,twig,xml', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'css,scss,sass', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
+        \ 'css,scss,sass,sss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
     endfunction
 
     Autodein call s:neocompleteOnSource()
@@ -791,7 +799,7 @@
 
   if dein#tap('vim-signature')
     let s:signature_ignore_ft = 'unite qfreplace vimfiler'
-    Autocmd BufNewFile,BufRead *
+    Autocmd BufNewFile,BufRead * nested
       \ if index(split(s:signature_ignore_ft), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings() abort
@@ -871,14 +879,14 @@
 
     AutocmdFT vimfiler call s:vimfilerMappings()
     " Vimfiler tuning
-    AutocmdFT vimfiler let &l:statusline = ' '
-    Autocmd BufEnter,WinEnter vimfiler*
-      \ setl nonu nornu nolist cursorline colorcolumn=
-    Autocmd BufLeave,WinLeave vimfiler* setl nocursorline
+    Autocmd BufEnter,WinEnter vimfiler* nested
+      \  let &l:statusline = ' '
+      \| setl nonu nornu nolist cursorline colorcolumn=
+      \| Autocmd BufLeave,WinLeave <buffer> setl nocursorline
 
     function! s:vimfilerMappings() abort
-      nunmap <buffer> <Space>
-      nunmap <buffer> <Tab>
+      silent! nunmap <buffer> <Space>
+      silent! nunmap <buffer> <Tab>
       " Normal mode
       nmap <buffer> <C-j> 4j
       nmap <buffer> <C-k> 4k
@@ -930,7 +938,7 @@
         \ 'safe': 0,
         \ 'parent': 0,
         \ 'explorer': 1,
-        \ 'winwidth': 26,
+        \ 'winwidth': 24,
         \ 'winminwidth': 16
         \}
       call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
@@ -970,11 +978,11 @@
     nnoremap <expr> <silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
     AutocmdFT php
-      \  nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('csfixer')<CR>
+      \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('csfixer')<CR>
       \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
 
     AutocmdFT javascript,html,twig,css,json
-      \ nnoremap <silent> <buffer> ,b :<C-u>call <SID>quickrunType('formatter')<CR>
+      \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
 
     AutocmdFT javascript
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
@@ -1082,30 +1090,62 @@
   endif
 
   if dein#tap('agit.vim')
-    nnoremap <silent> ,gl :<C-u>Agit<CR>
+    nnoremap <silent> ,gg :<C-u>Agit<CR>
     nnoremap <silent> ,gf :<C-u>AgitFile<CR>
 
     function! s:agitOnSource() abort
       AutocmdFT agit setl cursorline
       AutocmdFT agit* let &l:statusline = ' '
+
+      Autocmd Syntax agit*
+        \  hi AgitRef          guifg=#2B2B2B guibg=#E8EFDF gui=NONE
+        \| hi AgitHead         guifg=#2B2B2B guibg=#E8EFDF gui=bold
+        \| hi AgitHeaderLabel  guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        \| hi AgitAuthor       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        \| hi link AgitDiffAdd       DiffAdd
+        \| hi link AgitDiffRemove    DiffDelete
+        \| hi link AgitStatFile      AgitDiffHeader
+        \| hi link AgitDate          Comment
+        \| hi link agitUntrackedFile Normal
     endfunction
 
     Autodein nested call s:agitOnSource()
   endif
 
   if dein#tap('vim-gita')
-    nnoremap <silent> ,gs :<C-u>Gita status<CR>
-    nnoremap <silent> ,gc :<C-u>Gita commit<CR>
-    nnoremap <silent> ,ga :<C-u>Gita commit --amend<CR>
-    nnoremap <silent> ,gd :<C-u>Gita diff<CR>
-    nnoremap <silent> ,gb :<C-u>Gita browse<CR>
-    " nnoremap <silent> ,gl :<C-u>Gita blame<CR>
+    nnoremap <silent> ,,   :<C-u>Gita status<CR>
+    nnoremap <silent> ,gs  :<C-u>Gita status<CR>
+    nnoremap <silent> ,gi  :<C-u>Gita init<CR>
+    nnoremap <silent> ,gb  :<C-u>Gita branch<CR>
+    nnoremap <silent> ,gc  :<C-u>Gita commit<CR>
+    nnoremap <silent> ,gca :<C-u>Gita commit --amend<CR>
+
+    function! s:gitaMappings()
+      nmap <buffer> m <Plug>(gita-toggle)
+      nmap <buffer> c <Plug>(gita-commit)
+      nmap <buffer> C <Plug>(gita-commit-do)
+      nmap <buffer> A <Plug>(gita-commit-amend)
+      nmap <buffer> t <Plug>(gita-edit-tab)
+      nmap <buffer> o <Plug>(gita-edit-preview)
+      nmap <buffer> O <Plug>(gita-edit)
+      nmap <buffer> r <Plug>(gita-status)
+      nmap <buffer> R <Plug>(gita-redraw)
+    endfunction
+
+    AutocmdFT gita-{status,commit} call s:gitaMappings()
 
     function! s:vimGitaOnSource() abort
-      let gita#features#commit#enable_default_mappings = 0
-
       AutocmdFT gita*
         \ let &l:statusline = ' ' | setl nonu nornu
+        \| Autocmd InsertEnter <buffer> setl nocursorline
+        \| Autocmd InsertLeave <buffer> setl cursorline
+
+      Autocmd Syntax gita*
+        \  hi GitaBranch   guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        \| hi GitaSelected guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        \| hi link GitaStaged    DiffAdd
+        \| hi link GitaUntracked Normal
+        \| hi link GitaKeyword   MatchParen
     endfunction
 
     Autodein nested call s:vimGitaOnSource()
@@ -1594,6 +1634,9 @@
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
 
+    exe 'Autocmd User dein#source#neocomplete.vim'
+      \ "if !dein#is_sourced('ultisnips')| call dein#source(['ultisnips']) |endif"
+
     Autodein nested call s:ultiOnSource()
   endif
 
@@ -1793,8 +1836,8 @@
   endif
 
   if dein#tap('junkfile.vim')
-    nnoremap ,sj :<C-u>JunkfileOpen<CR>
-    nnoremap <silent> ,sJ :<C-u>Unite junkfile/new junkfile -split<CR>
+    nnoremap ;J :<C-u>JunkfileOpen<CR>
+    nnoremap <silent> ;j :<C-u>Unite junkfile/new junkfile -split<CR>
 
     Autodein let g:junkfile#directory = $VIMFILES.'/cache/junkfile'
   endif
@@ -1841,8 +1884,8 @@
   endif
 
   if dein#tap('vim-reanimate')
-    nnoremap <silent> ,sa :<C-u>ReanimateSaveInput<CR>
-    nnoremap <silent> ,sl :<C-u>Unite reanimate -buffer-name=reanimate<CR>
+    nnoremap <silent> ,L :<C-u>ReanimateSaveInput<CR>
+    nnoremap <silent> ,l :<C-u>Unite reanimate -buffer-name=reanimate<CR>
 
     command! -nargs=0 ReanimateSaveWithTimeStamp
       \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
@@ -2126,11 +2169,13 @@
     Autodein call s:emmetVimOnSource()
   endif
   if dein#tap('vim-closetag')
-    Autocmd BufReadPre *.{html,twig,xml} call dein#source(['vim-closetag'])
+    let g:closetag_filenames = '*.{html,twig,xml,xml.*}'
+    exe 'Autocmd BufReadPre '. g:closetag_filenames
+      \ "if !dein#is_sourced('vim-closetag')| call dein#source(['vim-closetag']) |endif"
   endif
 
 " Twig
-  Autocmd BufNewFile,BufRead *.*.twig,*.twig setl filetype=twig commentstring={#<!--%s-->#}
+  Autocmd BufNewFile,BufRead *.{twig,*.twig} setl filetype=twig commentstring={#<!--%s-->#}
   " Indent
   AutocmdFT twig setl textwidth=120 | Indent 2
   " Syntax
@@ -2244,8 +2289,10 @@
   Autocmd BufNewFile,BufRead *.xml.* setl filetype=xml
   " Syntax
   AutocmdFT xml setl nowrap | Indent 4
+  Autocmd Syntax xml
+    \ hi link xmlError xmlTag
   " Autocomplete
-  AutocmdFT xml setl omnifunc=xmlcomplete#CompleteTags
+  Autocmd BufNewFile,BufRead *.{xml,xml.*} setl omnifunc=xmlcomplete#CompleteTags
 
 " MySQL
   if dein#tap('vim-sql-syntax')
@@ -2300,8 +2347,8 @@
     exe 'Autocmd BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
   endif
 
-  set shortmess=aoOtTIc
-  set number relativenumber     " show the line number
+  set shortmess=aoOtTIcF
+  set number relativenumber    " show the line number
   set nocursorline             " highlight the current line
   set hidden                   " allows the closing of buffers without saving
   set switchbuf=useopen,split  " orders to open the buffer
@@ -2354,8 +2401,6 @@
     \. "%3*%(%{IfFit(70) ? expand('%:~:.:h') : ''}\ %)%*"
     \. "%2*%(%{exists('*BufModified') ? BufModified() : ''}\ %)%*"
     \. "%="
-    \. "%1*%(%{IfFit(90) && exists('*GitStatus') ? GitStatus() : ''}\ %)%*"
-    \. "%(%{IfFit(90) && exists('*GitBranch') ? GitBranch() : ''}\ %)"
     \. "%(%{IfFit(100) && exists('*ReanimateIsSaved') ? ReanimateIsSaved() : ''}\ %)"
     \. "%(%{IfFit(100) && exists('*FileSize') ? FileSize() : ''}\ %)"
     \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
@@ -2369,7 +2414,7 @@
   endfunction
 
   function! BufModified() abort
-    return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
+    return &modified ? '+' : &modifiable ? '' : '-'
   endfunction
 
   function! FileSize() abort
@@ -2387,18 +2432,6 @@
   function! ReanimateIsSaved() abort
     return exists('*reanimate#is_saved()') && reanimate#is_saved()
       \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : ''
-  endfunction
-
-  function! GitBranch() abort
-    return exists('*gita#statusline#preset') ? matchstr(gita#statusline#preset('branch_short'), '.*/\zs.*') : ''
-  endfunction
-
-  function! GitTraffic() abort
-    return gita#statusline#preset('traffic')
-  endfunction
-
-  function! GitStatus() abort
-    return exists('*gita#statusline#preset') ? gita#statusline#preset('status') : ''
   endfunction
 
 " Edit
@@ -2619,7 +2652,6 @@
 
   if exists(':GoldenRatio')
     " ,g: golden ratio
-    nnoremap <silent> ,g :<C-u>GoldenRatio<CR>
     nnoremap <silent> <Space>g :<C-u>GoldenRatio<CR>
   endif
 
@@ -2641,7 +2673,7 @@
   for char in split("<F1> ZZ ZQ")
     exe printf('map %s <Nop>', char)
   endfor | unlet char
-  nmap ` <Nop>
+  " nmap ` <Nop>
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -2809,3 +2841,6 @@
   nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
   " Ctrl-d: duplicate line
   vnoremap <C-d> :t'><CR>
+
+  nnoremap <silent> <Space><Space> :<C-u>tabnext<CR>
+  nnoremap <silent> <S-Space>      :<C-u>tabprev<CR>
