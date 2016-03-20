@@ -24,7 +24,7 @@
   set viminfo+=n$VIMFILES/viminfo
 
   " Initialize autogroup in MyVimrc
-  augroup MyVimrc| exe 'autocmd!' |augroup END
+  augroup MyVimrc| execute 'autocmd!' |augroup END
 
   " Echo startup time on start
   if has('vim_starting') && has('reltime')
@@ -59,7 +59,7 @@
   command! -nargs=* Autocmd   autocmd MyVimrc <args>
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
   command! -bar -nargs=* Indent
-    \ exe 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
+    \ execute 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
   command! -nargs=* FontSize let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
   command! -nargs=* Mkdir call s:makeDir(<f-args>)
   " Strip trailing whitespace at the end of non-blank lines
@@ -69,7 +69,7 @@
   " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
   " Golden ratio
-  command! -bar -nargs=0 GoldenRatio exe 'vertical resize' &columns * 5 / 8
+  command! -bar -nargs=0 GoldenRatio execute 'vertical resize' &columns * 5 / 8
 
 " Events
 "---------------------------------------------------------------------------
@@ -169,7 +169,7 @@
         echom "Can\'t download Dein: Git not found."
       endif
     endif
-    exe 'set runtimepath='. s:deinPath .',$VIMRUNTIME'
+    execute 'set runtimepath='. s:deinPath .',$VIMRUNTIME'
   endif
 
   let s:deinPlugin = $VIMFILES.'/dein'
@@ -567,9 +567,9 @@
       \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) : 1
 
     command! -bar -nargs=* Autodein
-      \ exe 'autocmd MyVimrc User dein#source#'.g:dein#name "<args>"
+      \ execute 'autocmd MyVimrc User dein#source#'.g:dein#name "<args>"
     command! -bar -nargs=* AutodeinPost
-      \ exe 'autocmd MyVimrc User dein#post_source#'.g:dein#name "<args>"
+      \ execute 'autocmd MyVimrc User dein#post_source#'.g:dein#name "<args>"
   endif
 
   if exists(':CleanBuffers')
@@ -578,8 +578,8 @@
   endif
 
   if dein#tap('caw.vim')
-    nmap <silent> <expr> q <SID>cawRangeComment()
-    xmap <silent> <expr> q <SID>cawRangeComment()
+    nmap <silent> q :<C-u>call <SID>cawRangeComment()<CR>
+    xmap <silent> q :<C-u>call <SID>cawrangecomment()<CR>
     nmap ,f <Plug>(caw:jump:comment-prev)
     nmap ,F <Plug>(caw:jump:comment-next)
     nmap ,a <Plug>(caw:a:toggle)
@@ -587,12 +587,11 @@
     function! s:cawRangeComment() abort
       if v:count > 1
         let [line, pos] = [getcurpos()[1], getcurpos()[4]]
-        return printf(
-          \ "\<Esc>V%dj\<Plug>(caw:i:toggle):call cursor(%d, %d)\<CR>",
-          \ (v:count-1), line, pos
-          \)
+        execute "normal \V". (v:count - 1) ."j\<Plug>(caw:i:toggle)"
+        call cursor(line, pos)
+      else
+        execute "normal \<Plug>(caw:i:toggle)"
       endif
-      return "\<Plug>(caw:i:toggle)"
     endfunction
 
     Autodein
@@ -821,7 +820,7 @@
       Autocmd BufEnter,WinEnter <buffer> call s:signatureCleanUp()
       function! s:signatureCleanUp() abort
         for char in split('[] ][ [[ ]] [" ]"')
-          exe 'silent! nunmap <buffer> '. char
+          execute 'silent! nunmap <buffer> '. char
         endfor
       endfunction
     endfunction
@@ -872,7 +871,7 @@
         wincmd p
       else
         for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
-          exe winnr . 'wincmd w'
+          execute winnr . 'wincmd w'
         endfor
       endif
     endfunction
@@ -1180,7 +1179,7 @@
 
     function! s:vimExchangeOnSource() abort
       let g:exchange_no_mappings = 1
-      exe 'nmap <silent> <C-c> <Plug>(ExchangeClear)'. maparg('<C-c>', 'n')
+      execute 'nmap <silent> <C-c> <Plug>(ExchangeClear)'. maparg('<C-c>', 'n')
     endfunction
 
     Autodein call s:vimExchangeOnSource()
@@ -1321,8 +1320,8 @@
 
   if dein#tap('vim-smartword')
     for char in split('w e b ge')
-      exe printf('nmap %s <Plug>(smartword-%s)', char, char)
-      exe printf('vmap %s <Plug>(smartword-%s)', char, char)
+      execute printf('nmap %s <Plug>(smartword-%s)', char, char)
+      execute printf('vmap %s <Plug>(smartword-%s)', char, char)
     endfor | unlet char
   endif
 
@@ -1579,7 +1578,7 @@
     xmap ,S <Plug>VgSurround
 
     for char in split("' ` \" ( ) { } [ ]")
-      exe printf('nmap ,%s ,Iw%s', char, char)
+      execute printf('nmap ,%s ,Iw%s', char, char)
     endfor | unlet char
 
     Autodein let g:surround_no_mappings = 1
@@ -1588,7 +1587,7 @@
   if dein#tap('colorizer')
     let s:color_codes_ft = 'css html twig'
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter *
-      \ exe index(split(s:color_codes_ft), &filetype) == -1
+      \ execute index(split(s:color_codes_ft), &filetype) == -1
         \ ? 'call s:removeColorizerEvent()'
         \ : 'ColorHighlight'
 
@@ -1634,7 +1633,7 @@
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
 
-    exe 'Autocmd User dein#source#neocomplete.vim'
+    execute 'Autocmd User dein#source#neocomplete.vim'
       \ "if !dein#is_sourced('ultisnips')| call dein#source(['ultisnips']) |endif"
 
     Autodein nested call s:ultiOnSource()
@@ -1860,7 +1859,7 @@
       function! s:inputSearchTag() abort
         let searchWord = input(' Tag name: ')
         if !empty(searchWord)
-          exe ':Unite tag:'.escape(searchWord, '"')
+          execute ':Unite tag:'.escape(searchWord, '"')
         endif
       endfunction
     endfu
@@ -1888,7 +1887,7 @@
     nnoremap <silent> ,l :<C-u>Unite reanimate -buffer-name=reanimate<CR>
 
     command! -nargs=0 ReanimateSaveWithTimeStamp
-      \ exe ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
+      \ execute ':ReanimateSave '. strftime('%y%m%d_%H%M%S')
 
     " Autocmd VimLeavePre * ReanimateSaveWithTimeStamp
     AutocmdFT unite call s:reanimateMappings()
@@ -2170,7 +2169,7 @@
   endif
   if dein#tap('vim-closetag')
     let g:closetag_filenames = '*.{html,twig,xml,xml.*}'
-    exe 'Autocmd BufReadPre '. g:closetag_filenames
+    execute 'Autocmd BufReadPre '. g:closetag_filenames
       \ "if !dein#is_sourced('vim-closetag')| call dein#source(['vim-closetag']) |endif"
   endif
 
@@ -2241,7 +2240,7 @@
       let b:hyperstyle_semi = ' '
 
       for char in split("<BS> <CR> <Tab> <Space> ; :")
-        exe printf('silent! iunmap <buffer> %s', char)
+        execute printf('silent! iunmap <buffer> %s', char)
       endfor | unlet char
 
       imap <buffer> <expr> <Space>
@@ -2255,6 +2254,10 @@
 " Sugar CSS
   Autocmd BufNewFile,BufRead *.{scss,sss}
     \ setl filetype=css syntax=sass commentstring=//%s
+  " Syntax
+  Autocmd Syntax sass
+    \ hi sassClass guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+  " Mappings
   Autocmd BufNewFile,BufRead *.sss
     \ nnoremap <silent> <buffer> <C-Enter> :<C-u>FixWhitespace<CR>:write!<CR>
 
@@ -2344,7 +2347,7 @@
   if !exists('g:colors_name')
     silent! colorscheme topos
     " Reload the colorscheme whenever we write the file
-    exe 'Autocmd BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
+    execute 'Autocmd BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
   endif
 
   set shortmess=aoOtTIcF
@@ -2380,8 +2383,8 @@
   set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
   " Avoid showing trailing whitespace when in Insert mode
   let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
-  Autocmd InsertEnter * exe 'setl listchars+=trail:'. s:trailchar
-  Autocmd InsertLeave * exe 'setl listchars-=trail:'. s:trailchar
+  Autocmd InsertEnter * execute 'setl listchars+=trail:'. s:trailchar
+  Autocmd InsertLeave * execute 'setl listchars-=trail:'. s:trailchar
 
   " Title-line
   set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
@@ -2575,7 +2578,7 @@
   "-----------------------------------------------------------------------
   " <Space>1-9: jumps to a tab number
   for n in range(1, 9)
-    exe printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
+    execute printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
   endfor | unlet n
   " <Space>a: previous tab
   nnoremap <silent> <Space>a :<C-u>tabprev<CR>
@@ -2613,9 +2616,9 @@
   "-----------------------------------------------------------------------
   for char in split('h j k l')
     " <Space>[hjkl]: jump to a window
-    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', char, char)
+    execute printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', char, char)
     " <Space>[HJKL]: move the current window
-    exe printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', toupper(char), toupper(char))
+    execute printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', toupper(char), toupper(char))
   endfor | unlet char
   " <Space>w: next window
   nnoremap <silent> <Space>w :<C-u>wincmd w<CR>
@@ -2660,18 +2663,18 @@
   " vi
   nmap " <Esc>vi"
   for char in split("' \" ` ( [ { <")
-    exe printf('nmap ;%s <Esc>vi%s', char, char)
+    execute printf('nmap ;%s <Esc>vi%s', char, char)
   endfor | unlet char
   " va
   nmap ' <Esc>vi'
   for char in split(") ] } >")
-    exe printf('nmap ;%s <Esc>va%s', char, char)
+    execute printf('nmap ;%s <Esc>va%s', char, char)
   endfor | unlet char
 
   " Unbinds
   "-----------------------------------------------------------------------
   for char in split("<F1> ZZ ZQ")
-    exe printf('map %s <Nop>', char)
+    execute printf('map %s <Nop>', char)
   endfor | unlet char
   " nmap ` <Nop>
 
