@@ -200,7 +200,6 @@
       \ 'on_cmd': 'Root'
       \})
     call dein#add('tyru/caw.vim', {
-      \ 'rev': 'b418d46',
       \ 'on_map': [['nx', '<Plug>(caw:']]
       \})
     call dein#add('easymotion/vim-easymotion', {
@@ -282,6 +281,7 @@
       \})
 
     call dein#add('osyo-manga/vim-brightest', {
+      \ 'if': 0,
       \ 'on_cmd': 'Brightest'
       \})
     call dein#add('lilydjwg/colorizer', {
@@ -418,6 +418,15 @@
       \ 'on_map': [['n', '<Plug>(operator-flashy)']]
       \})
 
+    " Rust
+    call dein#add('rust-lang/rust.vim', {
+      \ 'on_ft': 'rust'
+      \})
+    call dein#add('ebfe/vim-racer', {
+      \ 'if': executable('racer'),
+      \ 'on_func': 'racer#'
+      \})
+
     " Haskell
     call dein#add('itchyny/vim-haskell-indent', {
       \ 'on_ft': 'haskell'
@@ -448,9 +457,11 @@
     call dein#add('tobyS/pdv', {
       \ 'on_func': 'pdv#'
       \})
-    " call dein#add('joonty/vdebug', {
-    "   \ 'on_ft': 'php'
-    "   \})
+    call dein#add('joonty/vdebug', {
+      \ 'if': 0,
+      \ 'merged': 0,
+      \ 'on_ft': 'php'
+      \})
     call dein#add('jwalton512/vim-blade', {
       \ 'on_path': '\.blade.php$'
       \})
@@ -578,8 +589,8 @@
   endif
 
   if dein#tap('caw.vim')
-    nmap <silent> q :<C-u>call <SID>cawRangeComment()<CR>
-    xmap <silent> q :<C-u>call <SID>cawrangecomment()<CR>
+    nmap <silent> <expr> q <SID>cawRangeComment()
+    xmap <silent> <expr> q <SID>cawRangeComment()
     nmap ,f <Plug>(caw:jump:comment-prev)
     nmap ,F <Plug>(caw:jump:comment-next)
     nmap ,a <Plug>(caw:a:toggle)
@@ -587,16 +598,17 @@
     function! s:cawRangeComment() abort
       if v:count > 1
         let [line, pos] = [getcurpos()[1], getcurpos()[4]]
-        execute "normal \V". (v:count - 1) ."j\<Plug>(caw:i:toggle)"
-        call cursor(line, pos)
-      else
-        execute "normal \<Plug>(caw:i:toggle)"
+        return printf(
+          \ "\<Esc>V%dj\<Plug>(caw:tildepos:toggle):call cursor(%d, %d)\<CR>",
+          \ (v:count-1), line, pos
+          \)
       endif
+      return "\<Plug>(caw:tildepos:toggle)"
     endfunction
 
     Autodein
       \  let g:caw_no_default_keymappings = 1
-      \| let g:caw_i_skip_blank_line = 1
+      \| let g:caw_tildepos_skip_blank_line = 1
   endif
 
   if dein#tap('vim-easymotion')
@@ -683,9 +695,9 @@
       let g:neocomplete#enable_smart_case = 1
       let g:neocomplete#enable_camel_case = 1
       let g:neocomplete#enable_auto_delimiter = 1
+      let g:neocomplete#min_keyword_length = 2
       let g:neocomplete#auto_completion_start_length = 2
       let g:neocomplete#manual_completion_start_length = 2
-      let g:neocomplete#min_keyword_length = 2
       let g:neocomplete#data_directory = $VIMCACHE.'/neocomplete'
 
       " Custom settings
@@ -700,6 +712,7 @@
       " Sources
       let g:neocomplete#sources = {
         \ '_':          ['buffer', 'file/include'],
+        \ 'rust':       ['omni', 'file/include', 'ultisnips'],
         \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
@@ -713,9 +726,10 @@
       " Completion patterns
       let g:neocomplete#sources#omni#input_patterns = {
         \ 'haskell':    '\h\w*\|\(import\|from\)\s',
+        \ 'rust':       '[^.[:digit:] *\t]\%(\.\|\::\)\%(\h\w*\)\?',
         \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
         \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
-        \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)',
+        \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
         \}
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'html,twig,xml', '<\|\s[[:alnum:]-]*')
@@ -987,6 +1001,9 @@
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
       \| nnoremap <silent> <buffer> ,c :<C-u>call <SID>quickrunType('lint')<CR>
 
+    AutocmdFT xml
+      \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
+
     Autocmd BufEnter,WinEnter runner:*
       \ let &l:statusline = ' ' | setl nonu nornu nolist colorcolumn=
 
@@ -1023,7 +1040,7 @@
         \}
       let g:quickrun_config['javascript/formatter'] = {
         \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-        \ 'args': printf('--config %s/preset/js.json --no-color', $VIMFILES)
+        \ 'args': printf('--config %s/preset/esformatter_js.json --no-color', $VIMFILES)
         \}
       let g:quickrun_config['javascript/lint'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'eslint',
@@ -1033,13 +1050,11 @@
       " CSS
       let g:quickrun_config['css/formatter'] = {
         \ 'command': 'postcss', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-        \ 'args': printf('--use postcss-sorting --config %s/preset/postcss.js', $VIMFILES)
+        \ 'args': printf('--use postcss-sorting --config %s/preset/postcss_sort.js', $VIMFILES)
         \}
-
-      " CSS
       " let g:quickrun_config['css/formatter'] = {
       "   \ 'command': 'csscomb', 'exec': '%c %a %s', 'outputter': 'reopen',
-      "   \ 'args': printf('--config %s/preset/css.json', $VIMFILES)
+      "   \ 'args': printf('--config %s/preset/csscomb.json', $VIMFILES)
       "   \}
 
       " HTML
@@ -1049,6 +1064,12 @@
         \}
       " Twig
       let g:quickrun_config['twig/formatter'] = g:quickrun_config['html/formatter']
+
+      " XML
+      let g:quickrun_config['xml/formatter'] = {
+        \ 'command': 'tidy', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+        \ 'args': printf('-config %s/preset/tidy_xml.config', $VIMFILES)
+        \}
 
       " JSON
       let g:quickrun_config['json/formatter'] = {
@@ -1065,8 +1086,7 @@
 
       function! s:eslint.finish(session) abort
         if a:session.exit_code == 0 " if NO error
-          echo ' No errors'
-          return
+          echo ' No errors' | return
         endif
 
         let data = split(self.result, "\n")
@@ -1075,11 +1095,10 @@
 
         echo printf(' %s ', errorMessage)
 
-        set errorformat=%f:\ line\ %l\\,\ col\ %c\\,\ %m
+        setl errorformat=%f:\ line\ %l\\,\ col\ %c\\,\ %m
 
         lgetexpr errors
-        Unite location_list
-        redraw
+        Unite location_list | redraw
       endfunction
 
       call quickrun#module#register(s:eslint, 1) | unlet s:eslint
@@ -1306,9 +1325,7 @@
 
     function! s:vimJplusOnSource() abort
       let g:jplus#config = get(g:, 'jplus#config', {})
-      let g:jplus#config = {
-        \ 'php': {'delimiter_format': ''}
-        \}
+      let g:jplus#config.php = {'delimiter_format': ''}
     endfunction
 
     Autodein call s:vimJplusOnSource()()
@@ -1955,6 +1972,21 @@
 
 " Languages
 "---------------------------------------------------------------------------
+ " Rust
+  Autocmd BufNewFile,BufRead *.rt setl filetype=rust
+  " Syntax
+  if dein#tap('rust.vim')
+    let g:rustfmt_autosave = 0
+    let g:ftplugin_rust_source_path = exists('$RUST_SRC_PATH') ? $RUST_SRC_PATH : ''
+  endif
+  " Autocomplete
+  if dein#tap('vim-racer')
+    AutocmdFT rust
+      \ nnoremap <silent> <buffer> gd :<C-u>call racer#JumpToDefinition()<CR>
+
+    AutocmdFT rust setl omnifunc=racer#Complete
+  endif
+
 " Haskell
   " Indent
   AutocmdFT haskell setl nowrap textwidth=80 | Indent 4
