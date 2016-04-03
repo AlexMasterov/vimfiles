@@ -1,4 +1,4 @@
-" .vimrc / 2016 March
+" .vimrc / 2016 April
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -262,6 +262,13 @@
     call dein#add('Shougo/neoyank.vim', {
       \ 'on_source': 'unite.vim'
       \})
+    call dein#add('osyo-manga/vim-precious', {
+      \ 'if': 1,
+      \ 'merged': 0,
+      \ 'depends': 'context_filetype.vim',
+      \ 'on_i': 1,
+      \ 'on_cmd': ['PreciousSwitch', 'PreciousReset']
+      \})
 
     call dein#add('haya14busa/incsearch.vim', {
       \ 'on_func': 'incsearch#go'
@@ -324,10 +331,6 @@
       \})
     call dein#add('whatyouhide/vim-lengthmatters', {
       \ 'on_cmd': 'Lengthmatters'
-      \})
-    call dein#add('kana/vim-altr', {
-      \ 'on_func': 'altr#define',
-      \ 'on_map': '<Plug>(altr-'
       \})
 
     call dein#add('thinca/vim-quickrun', {
@@ -456,6 +459,9 @@
       \})
     call dein#add('tobyS/pdv', {
       \ 'on_func': 'pdv#'
+      \})
+    call dein#add('c9s/phpunit.vim', {
+      \ 'on_cmd': 'PHPUnit'
       \})
     call dein#add('joonty/vdebug', {
       \ 'if': 0,
@@ -599,16 +605,16 @@
       if v:count > 1
         let [line, pos] = [getcurpos()[1], getcurpos()[4]]
         return printf(
-          \ "\<Esc>V%dj\<Plug>(caw:tildepos:toggle):call cursor(%d, %d)\<CR>",
+          \ "\<Esc>V%dj\<Plug>(caw:hatpos:toggle):call cursor(%d, %d)\<CR>",
           \ (v:count-1), line, pos
           \)
       endif
-      return "\<Plug>(caw:tildepos:toggle)"
+      return "\<Plug>(caw:hatpos:toggle)"
     endfunction
 
     Autodein
       \  let g:caw_no_default_keymappings = 1
-      \| let g:caw_tildepos_skip_blank_line = 1
+      \| let g:caw_hatpos_skip_blank_line = 1
   endif
 
   if dein#tap('vim-easymotion')
@@ -812,7 +818,7 @@
 
   if dein#tap('vim-signature')
     let s:signature_ignore_ft = 'unite qfreplace vimfiler'
-    Autocmd BufNewFile,BufRead * nested
+    Autocmd BufNewFile,BufRead,BufEnter * nested
       \ if index(split(s:signature_ignore_ft), &filetype) == -1| call s:signatureMappings() |endif
 
     function! s:signatureMappings() abort
@@ -1173,22 +1179,15 @@
     " ;p: detect .projections.json
     nnoremap <silent> ;p :<C-u>call ProjectionistDetect(resolve(expand('<afile>:p')))<CR>
 
-    AutocmdFT vimfiler
-      \ call ProjectionistDetect(resolve(expand('<afile>:p')))
-  endif
-
-  if dein#tap('vim-altr')
-    AutocmdFT php,javascript,twig,blade call s:altrMappings()
-    AutocmdFT php
-      \  call altr#define('src/*/%.php', 'tests/*/%Test.php')
-      \| call altr#define('src/*/%.php', 'tests/*/%spec.php')
-
-    function! s:altrMappings() abort
-      nmap <buffer> { <Plug>(altr-back)
-      nmap <buffer> } <Plug>(altr-forward)
+    function! s:projectionistMappings() abort
+      nmap <silent> <buffer> { :<C-u>A<CR>
+      nmap <silent> <buffer> } :<C-u>AV<CR>
     endfunction
 
-    Autodein call altr#remove_all()
+    AutocmdFT php,javascript
+      \ call s:projectionistMappings()
+    AutocmdFT vimfiler
+      \ call ProjectionistDetect(resolve(expand('<afile>:p')))
   endif
 
   if dein#tap('vim-exchange')
@@ -2051,6 +2050,38 @@
 
     Autodein let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'
   endif
+  " PHPUnit
+  if dein#tap('phpunit.vim')
+    AutocmdFT php call s:phpunitMappings()
+
+    function! s:phpunitMappings()
+      nnoremap <silent> <buffer> ,T :<C-u>PHPUnitRunAll<CR>
+      nnoremap <silent> <buffer> ,t :<C-u>PHPUnitRunCurrentFile<CR>
+      " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
+    endfunction
+
+    function! s:phpunitOnSource()
+      for char in split("ta tf ts")
+        execute printf('silent! iunmap %s', char)
+      endfor | unlet char
+
+      AutocmdFT phpunit let &l:statusline = ' '
+      Autocmd Syntax phpunit
+        \  hi! link PHPUnitOK         Todo
+        \| hi! link PHPUnitFail       WarningMsg
+        \| hi! link PHPUnitAssertFail Error
+
+      " PHPUnit dirty helpers
+      let g:neocomplete#sources#dictionary#dictionaries = {
+        \ 'default' : '',
+        \ 'php' : $VIMFILES.'/dict/phpunit'
+        \}
+      Autocmd BufNewFile,BufRead *Test.php
+        \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
+    endfunction
+
+    Autodein nested call s:phpunitOnSource()
+  endif
   " vDebug (for xDebug)
   if dein#tap('vdebug')
     AutocmdFT php call s:vdebugMappings()
@@ -2348,6 +2379,13 @@
 
 " Vim
   AutocmdFT vim setl iskeyword+=: | Indent 2
+
+  if dein#tap('vim-precious')
+    Autodein nested
+      \  let g:precious_enable_switch_CursorMoved = { '*': 0 }
+      \| Autocmd InsertEnter * PreciousSwitch
+      \| Autocmd InsertLeave * PreciousReset
+  endif
 
 " GUI
 "---------------------------------------------------------------------------
