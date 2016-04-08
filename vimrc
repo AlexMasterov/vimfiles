@@ -79,13 +79,13 @@
     \ if &l:autoread > 0 | source <afile> | echo 'source ' . bufname('%') |
     \ endif
   " Auto reload .vimrc
-  Autocmd BufWritePost $MYVIMRC nested | source $MYVIMRC | redraw
+  Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  AutocmdFT * Autocmd BufEnter,WinEnter <buffer> setl formatoptions-=ro
+  Autocmd BufEnter,WinEnter * setl formatoptions-=r formatoptions-=o
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -178,11 +178,8 @@
     call dein#add('Shougo/dein.vim', {'rtp': ''})
     call dein#add('Shougo/vimproc.vim', {
       \ 'lazy': 1,
-      \ 'build': {
-      \   'linux': 'make',
-      \   'mac': 'make -f make_mac.mak',
-      \   'windows': 'tools\\update-dll-mingw'
-      \ }
+      \ 'build': s:is_windows ?
+      \   'tools\\update-dll-mingw' : 'make'
       \})
 
     " Load develop version plugins
@@ -216,17 +213,17 @@
       \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir']
       \})
     call dein#add('osyo-manga/vim-over', {
-     \ 'on_cmd': 'OverCommandLine'
-     \})
+      \ 'on_cmd': 'OverCommandLine'
+      \})
     call dein#add('cohama/agit.vim', {
-    \ 'if': executable('git'),
-     \ 'on_cmd': ['Agit', 'AgitFile']
-     \})
+      \ 'if': executable('git'),
+      \ 'on_cmd': ['Agit', 'AgitFile']
+      \})
     call dein#add('lambdalisue/vim-gita', {
-     \ 'rev': 'alpha-3',
-     \ 'if': executable('git'),
-     \ 'on_cmd': 'Gita'
-     \})
+      \ 'rev': 'alpha-3',
+      \ 'if': executable('git'),
+      \ 'on_cmd': 'Gita'
+      \})
     call dein#add('tpope/vim-characterize', {
       \ 'on_map': [['nx', '<Plug>(characterize)']]
       \})
@@ -240,10 +237,10 @@
       \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']]
       \})
     call dein#add('SirVer/ultisnips', {
-      \ 'on_source': 'neocomplete.vim'
+      \ 'on_source': 'neocomplete.vim',
       \})
     call dein#add('Shougo/context_filetype.vim', {
-      \ 'lazy': 1
+      \ 'lazy': 1,
       \})
     call dein#add('Shougo/neocomplete.vim', {
       \ 'if': has('lua'),
@@ -270,6 +267,9 @@
       \ 'on_cmd': ['PreciousSwitch', 'PreciousReset']
       \})
 
+    call dein#add('haya14busa/vim-keeppad', {
+      \ 'on_cmd': ['KeeppadOn', 'KeeppadOff']
+      \})
     call dein#add('haya14busa/incsearch.vim', {
       \ 'on_func': 'incsearch#go'
       \})
@@ -592,6 +592,12 @@
   if exists(':CleanBuffers')
     let g:bufcleaner_max_saved = 9
     Autocmd BufHidden * CleanBuffers -f
+  endif
+
+  if dein#tap('vim-keeppad')
+    Autocmd BufReadPre,WinEnter *.{css,sss,json} KeeppadOn
+
+    Autodein let g:keeppad_autopadding = 0
   endif
 
   if dein#tap('caw.vim')
@@ -957,8 +963,8 @@
         \ 'safe': 0,
         \ 'parent': 0,
         \ 'explorer': 1,
-        \ 'winwidth': 24,
-        \ 'winminwidth': 16
+        \ 'winwidth': 26,
+        \ 'winminwidth': 18
         \}
       call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
     endfunction
@@ -1118,19 +1124,35 @@
     nnoremap <silent> ,gf :<C-u>AgitFile<CR>
 
     function! s:agitOnSource() abort
-      AutocmdFT agit setl cursorline
-      AutocmdFT agit* let &l:statusline = ' '
+      let g:agit_max_log_lines = 100
 
-      Autocmd Syntax agit*
-        \  hi AgitRef          guifg=#2B2B2B guibg=#E8EFDF gui=NONE
-        \| hi AgitHead         guifg=#2B2B2B guibg=#E8EFDF gui=bold
-        \| hi AgitHeaderLabel  guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-        \| hi AgitAuthor       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-        \| hi link AgitDiffAdd       DiffAdd
-        \| hi link AgitDiffRemove    DiffDelete
-        \| hi link AgitStatFile      AgitDiffHeader
-        \| hi link AgitDate          Comment
-        \| hi link agitUntrackedFile Normal
+      AutocmdFT agit setl cursorline
+      AutocmdFT {agit,agit*}
+        \  let &l:statusline = ' '
+        \| call s:agitMappings()
+      Autocmd Syntax {agit,agit*}
+        \ call s:agitSyntaxColors()
+
+      function! s:agitMappings() abort
+        nmap <buffer> u <PLug>(agit-reload)
+        nmap <buffer> r <Plug>(agit-git-reset)
+        nmap <buffer> R <Plug>(agit-git-rebase)
+        nmap <buffer> E <Plug>(agit-print-commitmsg)
+      endfunction
+
+      function! s:agitSyntaxColors() abort
+        hi AgitRef          guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
+        hi agitTree         guifg=#F6F7F7 guibg=#F6F7F7 gui=NONE
+        hi agitRemote       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        hi AgitHead         guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        hi AgitHeaderLabel  guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        hi AgitAuthor       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        hi link AgitDiffAdd       DiffAdd
+        hi link AgitDiffRemove    DiffDelete
+        hi link AgitStatFile      AgitDiffHeader
+        hi link AgitDate          Comment
+        hi link agitUntrackedFile Normal
+      endfunction
     endfunction
 
     Autodein nested call s:agitOnSource()
@@ -1144,32 +1166,46 @@
     nnoremap <silent> ,gc  :<C-u>Gita commit<CR>
     nnoremap <silent> ,gca :<C-u>Gita commit --amend<CR>
 
-    function! s:gitaMappings()
-      nmap <buffer> m <Plug>(gita-toggle)
-      nmap <buffer> c <Plug>(gita-commit)
-      nmap <buffer> C <Plug>(gita-commit-do)
-      nmap <buffer> A <Plug>(gita-commit-amend)
-      nmap <buffer> t <Plug>(gita-edit-tab)
-      nmap <buffer> o <Plug>(gita-edit-preview)
-      nmap <buffer> O <Plug>(gita-edit)
-      nmap <buffer> r <Plug>(gita-status)
-      nmap <buffer> R <Plug>(gita-redraw)
-    endfunction
-
-    AutocmdFT gita-{status,commit} call s:gitaMappings()
-
     function! s:vimGitaOnSource() abort
-      AutocmdFT gita*
-        \ let &l:statusline = ' ' | setl nonu nornu
-        \| Autocmd InsertEnter <buffer> setl nocursorline
-        \| Autocmd InsertLeave <buffer> setl cursorline
+      AutocmdFT {gita,gita*}
+        \  call s:gitaFiletypes()
+        \| call s:gitaBaseMappings()
+      AutocmdFT gita-{branch,status,commit}
+        \ call s:gitaSpecialMappings()
+      Autocmd Syntax {gita,gita*}
+        \ call s:agitSyntaxColors()
 
-      Autocmd Syntax gita*
-        \  hi GitaBranch   guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-        \| hi GitaSelected guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-        \| hi link GitaStaged    DiffAdd
-        \| hi link GitaUntracked Normal
-        \| hi link GitaKeyword   MatchParen
+      function! s:gitaFiletypes() abort
+        let &l:statusline = ' ' | setl nonu nornu
+        Autocmd InsertEnter <buffer> setl nocursorline
+        Autocmd InsertLeave <buffer> setl cursorline
+      endfunction
+
+      function! s:gitaBaseMappings() abort
+        nmap <silent> <buffer> q :<C-u>bdelete<CR>
+        nmap <silent> <buffer> Q :<C-u>bdelete!<CR>
+      endfunction
+
+      function! s:gitaSpecialMappings() abort
+        nmap <buffer> m <Plug>(gita-toggle)
+        nmap <buffer> c <Plug>(gita-commit)
+        nmap <buffer> C <Plug>(gita-commit-do)
+        nmap <buffer> A <Plug>(gita-commit-amend)
+        nmap <buffer> t <Plug>(gita-edit-tab)
+        nmap <buffer> o <Plug>(gita-edit-preview)
+        nmap <buffer> O <Plug>(gita-edit)
+        nmap <buffer> r <Plug>(gita-status)
+        nmap <buffer> R <Plug>(gita-redraw)
+      endfunction
+
+      function! s:agitSyntaxColors() abort
+        hi GitaBranch   guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        hi GitaSelected guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+        " hi GitaSummary  guifg=#EEEEEE guibg=#F6F7F7 gui=NONE
+        " hi link GitaStaged    DiffAdd
+        hi link GitaUntracked Normal
+        hi link GitaKeyword   MatchParen
+      endfunction
     endfunction
 
     Autodein nested call s:vimGitaOnSource()
@@ -1540,16 +1576,24 @@
 
   if dein#tap('vim-smartchr')
     command! -nargs=* ImapBufExpr inoremap <buffer> <expr> <args>
+
+    AutocmdFT haskell,javascript,html
+      \  ImapBufExpr \ smartchr#loop('\ ', '\\')
+
     AutocmdFT haskell
-      \  ImapBufExpr \ smartchr#loop('\ ', '\')
+      \  ImapBufExpr \ smartchr#loop('\ ', '\\')
       \| ImapBufExpr - smartchr#loop('-', ' -> ', ' <- ')
+
     AutocmdFT php
-      \  ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
-      \| ImapBufExpr > smartchr#loop('>', '=>')
-      \| ImapBufExpr - smartchr#loop('-', '->')
+      \  ImapBufExpr @ smartchr#loop('@', '$this->', 'self::$', '@@')
+      \| ImapBufExpr = smartchr#loop('=', '===', '==')
+      \| ImapBufExpr > smartchr#loop('>', '=>', '>>')
+      \| ImapBufExpr . smartchr#loop('.', '->', '..')
+
     AutocmdFT javascript
-      \  ImapBufExpr - smartchr#loop('-', '--', '_')
-      \| ImapBufExpr $ smartchr#loop('$', 'this.', 'self.')
+      \  ImapBufExpr @ smartchr#loop('@', 'this.', '@@')
+      \| ImapBufExpr - smartchr#loop('-', '--', '_')
+
     AutocmdFT yaml
       \  ImapBufExpr > smartchr#loop('>', '%>')
       \| ImapBufExpr < smartchr#loop('<', '<%', '<%=')
@@ -1636,6 +1680,7 @@
       return a:key
     endfunction
 
+    Autocmd VimEnter * silent! au! UltiSnipsFileType
     Autocmd BufNewFile,BufRead *.snippets
       \ setl filetype=snippets foldmethod=manual
 
@@ -1644,6 +1689,8 @@
       let g:UltiSnipsExpandTrigger = '<C-F12>'
       let g:UltiSnipsListSnippets = '<C-F12>'
       let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
+
+      AutocmdFT * silent! call UltiSnips#FileTypeChanged()
 
       AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
@@ -1817,7 +1864,7 @@
 
     function! s:neomruOnSource() abort
       let g:neomru#file_mru_path = $VIMCACHE.'/unite/file'
-      let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$'
+      let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'
       let g:neomru#filename_format = ':.'
       let g:neomru#directory_mru_path = $VIMCACHE.'/unite/directory'
       let g:neomru#time_format = '%d.%m %H:%M — '
@@ -2282,7 +2329,7 @@
   " Indent
   AutocmdFT css setl nowrap | Indent 2
   " Syntax
-  AutocmdFT css setl iskeyword+=-,%
+  AutocmdFT css setl iskeyword+=-,%,:
   if dein#tap('css.vim')
     function! s:cssOnSource() abort
       Autocmd Syntax css
