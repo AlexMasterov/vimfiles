@@ -38,15 +38,16 @@
 " Functions
 "---------------------------------------------------------------------------
   function! s:makeDir(dir, ...) abort
+    let force = a:0 >= 1 && a:1 ==# '!'
     let dir = expand(a:dir, 1)
     if !isdirectory(dir)
-      \ && (a:0 || input(printf('"%s" does not exist. Create? [yes/no]', dir)) =~? '^y\%[es]$')
+      \ && (force || input(printf('"%s" does not exist. Create? [yes/no]', dir)) =~? '^y\%[es]$')
       silent call mkdir(iconv(dir, &encoding, &termencoding), 'p')
     endif
   endfunction
 
   function! s:trimWhiteSpace() abort
-    if &bin| return |endif
+    if &bin | return | endif
     let [winView, _s] = [winsaveview(), @/]
     silent! %s/\s\+$//ge
     call winrestview(winView)
@@ -58,22 +59,22 @@
   " Vimrc augroup sugar
   command! -nargs=* Autocmd   autocmd MyVimrc <args>
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
-  command! -bar -nargs=* Indent
+  command! -nargs=1 -bang Mkdir call s:makeDir(<f-args>, "<bang>")
+  command! -nargs=1 FontSize let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
+  command! -nargs=1 Indent
     \ execute 'setl tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
-  command! -nargs=* FontSize let &guifont = substitute(&guifont, '\d\+', '\=<args>', 'g')
-  command! -nargs=* Mkdir call s:makeDir(<f-args>)
   " Strip trailing whitespace at the end of non-blank lines
-  command! -bar -nargs=* -complete=file FixWhitespace f <args>|call s:trimWhiteSpace()
+  command! -nargs=* -complete=file FixWhitespace f <args> | call s:trimWhiteSpace()
   " Rename current file name
-  command! -nargs=1 -complete=file Rename f <args>| w |call delete(expand('#'))
-  " Shows the syntax stack under the cursor
-  command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  command! -nargs=* -complete=file Rename f <args> | w | call delete(expand('#'))
   " Golden ratio
-  command! -bar -nargs=0 GoldenRatio execute 'vertical resize' &columns * 5 / 8
+  command! -nargs=0 GoldenRatio execute 'vertical resize' &columns * 5 / 8
+  " Shows the syntax stack under the cursor
+  command! SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 
 " Events
 "---------------------------------------------------------------------------
-  Autocmd Syntax * if 5000 < line('$')| syntax sync minlines=200 |endif
+  Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
   " Auto reload VimScript
   Autocmd BufWritePost,FileWritePost *.vim nested
     \ if &l:autoread > 0 | source <afile> | echo 'source ' . bufname('%') |
@@ -91,9 +92,6 @@
   Autocmd InsertLeave * setl nolist
   Autocmd WinLeave * setl nornu
   Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
-  " Save all buffers when focus lost, ignoring warnings, and return to normal mode
-  " Autocmd FocusLost * nested wa
-  " Autocmd FocusLost * if mode()[0] =~ 'i\|R'| call feedkeys("\<Esc>`^") |endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -119,11 +117,11 @@
 " Misc
 "---------------------------------------------------------------------------
   " Cache
-  call s:makeDir($VIMCACHE, 1)
+  Mkdir! $VIMCACHE
   set directory=$VIMFILES/tmp
   set noswapfile
   " Undo
-  call s:makeDir($VIMFILES.'/undo', 1)
+  Mkdir! $VIMFILES/undo
   set undodir=$VIMFILES/undo
   set undofile undolevels=500 undoreload=1000
   " View
@@ -175,13 +173,6 @@
   let s:deinPlugin = $VIMFILES.'/dein'
   if dein#load_state(s:deinPlugin)
     call dein#begin(s:deinPlugin)
-    call dein#add('Shougo/dein.vim', {'rtp': ''})
-    call dein#add('Shougo/vimproc.vim', {
-      \ 'lazy': 1,
-      \ 'build': s:is_windows ?
-      \   'tools\\update-dll-mingw' : 'make'
-      \})
-
     " Load develop version plugins
     call dein#local($VIMFILES.'/dev', {'frozen': 1},
       \ ['dotvim', 'gist'])
@@ -189,6 +180,13 @@
       \ 'on_func': 'ternjs#Complete',
       \ 'on_cmd': ['TernjsRun', 'TernjsStop']},
       \ ['ternjs.vim'])
+
+    call dein#add('Shougo/dein.vim', {'frozen': 1, 'rtp': ''})
+    call dein#add('Shougo/vimproc.vim', {
+      \ 'lazy': 1,
+      \ 'build': s:is_windows ?
+      \   'tools\\update-dll-mingw' : 'make'
+      \})
 
     call dein#add('kopischke/vim-stay', {
       \ 'on_path': '.*'
@@ -198,10 +196,6 @@
       \})
     call dein#add('tyru/caw.vim', {
       \ 'on_map': [['nx', '<Plug>(caw:']]
-      \})
-    call dein#add('easymotion/vim-easymotion', {
-      \ 'on_cmd': 'EasyMotionWordsBeginningWithChar',
-      \ 'on_map': [['nx', '<Plug>(easymotion-']]
       \})
     call dein#add('t9md/vim-choosewin', {
       \ 'on_map': [['n', '<Plug>(choosewin)']]
@@ -259,16 +253,13 @@
     call dein#add('Shougo/neoyank.vim', {
       \ 'on_source': 'unite.vim'
       \})
+
     call dein#add('osyo-manga/vim-precious', {
       \ 'if': 1,
       \ 'merged': 0,
       \ 'depends': 'context_filetype.vim',
       \ 'on_i': 1,
       \ 'on_cmd': ['PreciousSwitch', 'PreciousReset']
-      \})
-
-    call dein#add('haya14busa/vim-keeppad', {
-      \ 'on_cmd': ['KeeppadOn', 'KeeppadOff']
       \})
     call dein#add('haya14busa/incsearch.vim', {
       \ 'on_func': 'incsearch#go'
@@ -286,7 +277,9 @@
     call dein#add('gcmt/wildfire.vim', {
       \ 'on_map': '<Plug>(wildfire-'
       \})
-
+    call dein#add('haya14busa/vim-keeppad', {
+      \ 'on_cmd': ['KeeppadOn', 'KeeppadOff']
+      \})
     call dein#add('osyo-manga/vim-brightest', {
       \ 'if': 0,
       \ 'on_cmd': 'Brightest'
@@ -346,7 +339,6 @@
 
     " Unite
     call dein#add('Shougo/unite.vim', {
-      \ 'lazy': 1,
       \ 'pre_cmd': 'Unite'
       \})
     call dein#add('Shougo/neomru.vim', {
@@ -385,7 +377,7 @@
       \ 'on_map': [['nv', '<Plug>(Exchange']]
       \})
     call dein#add('kana/vim-textobj-user', {
-      \ 'lazy': 1
+      \ 'on_func': 'textobj#'
       \})
     call dein#add('machakann/vim-textobj-delimited', {
       \ 'depends': 'vim-textobj-user',
@@ -398,7 +390,7 @@
 
     " Operators
     call dein#add('kana/vim-operator-user', {
-      \ 'lazy': 1
+      \ 'on_func': 'operator#'
       \})
     call dein#add('kana/vim-operator-replace', {
       \ 'depends': 'vim-operator-user',
@@ -596,6 +588,7 @@
 
   if dein#tap('vim-keeppad')
     Autocmd BufReadPre,WinEnter *.{css,sss,json} KeeppadOn
+    AutocmdFT qfreplace KeeppadOn
 
     Autodein let g:keeppad_autopadding = 0
   endif
@@ -1577,21 +1570,16 @@
   if dein#tap('vim-smartchr')
     command! -nargs=* ImapBufExpr inoremap <buffer> <expr> <args>
 
-    AutocmdFT haskell,javascript,html
-      \  ImapBufExpr \ smartchr#loop('\ ', '\\')
-
     AutocmdFT haskell
       \  ImapBufExpr \ smartchr#loop('\ ', '\\')
       \| ImapBufExpr - smartchr#loop('-', ' -> ', ' <- ')
 
     AutocmdFT php
-      \  ImapBufExpr @ smartchr#loop('@', '$this->', 'self::$', '@@')
-      \| ImapBufExpr = smartchr#loop('=', '===', '==')
+      \  ImapBufExpr $ smartchr#loop('$', '$this->', '$$')
       \| ImapBufExpr > smartchr#loop('>', '=>', '>>')
-      \| ImapBufExpr . smartchr#loop('.', '->', '..')
 
     AutocmdFT javascript
-      \  ImapBufExpr @ smartchr#loop('@', 'this.', '@@')
+      \  ImapBufExpr $ smartchr#loop('$', 'this.', '$$')
       \| ImapBufExpr - smartchr#loop('-', '--', '_')
 
     AutocmdFT yaml
@@ -2007,13 +1995,20 @@
   endif
 
   if dein#tap('vim-qfreplace')
-    " qfreplace tuning
-    AutocmdFT qfreplace
-      \  call feedkeys("\<CR>\<Esc>")
-      \| setl nonu nornu colorcolumn= laststatus=0
-      \| Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
-      \| Autocmd BufLeave,BufDelete <buffer> set laststatus=2
-      \| Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
+    function! s:qfreplaceOnSource()
+      AutocmdFT qfreplace nested call s:qfreplaceBuffer()
+
+      " qfreplace tuning
+      function! s:qfreplaceBuffer()
+        call feedkeys("\<CR>\<Esc>")
+        setl nonu nornu colorcolumn= laststatus=0
+        Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
+        Autocmd BufLeave,BufDelete <buffer> set laststatus=2
+        Autocmd InsertEnter,InsertLeave <buffer> setl nonu nornu colorcolumn=
+      endfunction
+    endfunction
+
+    Autodein call s:qfreplaceOnSource()
   endif
 
 " Languages
@@ -2451,11 +2446,11 @@
     else
       set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
     endif
-  endif
 
-  " DirectWrite
-  if s:is_windows && has('directx')
-    set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    " DirectWrite
+    if s:is_windows && has('directx')
+      set renderoptions=type:directx,gamma:2.2,contrast:0.5,level:0.0,geom:1,taamode:1,renmode:3
+    endif
   endif
 
 " View
