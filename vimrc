@@ -197,6 +197,10 @@
     call dein#add('tyru/caw.vim', {
       \ 'on_map': [['nx', '<Plug>(caw:']]
       \})
+    call dein#add('easymotion/vim-easymotion', {
+      \ 'on_cmd': 'EasyMotionWordsBeginningWithChar',
+      \ 'on_map': [['nx', '<Plug>(easymotion-']]
+      \})
     call dein#add('t9md/vim-choosewin', {
       \ 'on_map': [['n', '<Plug>(choosewin)']]
       \})
@@ -339,6 +343,7 @@
 
     " Unite
     call dein#add('Shougo/unite.vim', {
+      \ 'lazy': 1,
       \ 'pre_cmd': 'Unite'
       \})
     call dein#add('Shougo/neomru.vim', {
@@ -807,7 +812,7 @@
     function! s:vimLengthmattersOnSource() abort
       let g:lengthmatters_on_by_default = 0
       let g:lengthmatters_excluded = split(
-        \ 'vim help unite vimfiler undotree qfreplace'
+        \ 'vim help markdown unite vimfiler undotree qfreplace'
         \)
       call lengthmatters#highlight_link_to('ColorColumn')
     endfunction
@@ -1999,7 +2004,7 @@
       AutocmdFT qfreplace nested call s:qfreplaceBuffer()
 
       " qfreplace tuning
-      function! s:qfreplaceBuffer()
+      function! s:qfreplaceBuffer() abort
         call feedkeys("\<CR>\<Esc>")
         setl nonu nornu colorcolumn= laststatus=0
         Autocmd BufEnter,WinEnter <buffer> setl laststatus=0
@@ -2096,13 +2101,13 @@
   if dein#tap('phpunit.vim')
     AutocmdFT php call s:phpunitMappings()
 
-    function! s:phpunitMappings()
+    function! s:phpunitMappings() abort
       nnoremap <silent> <buffer> ,T :<C-u>PHPUnitRunAll<CR>
       nnoremap <silent> <buffer> ,t :<C-u>PHPUnitRunCurrentFile<CR>
       " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
     endfunction
 
-    function! s:phpunitOnSource()
+    function! s:phpunitOnSource() abort
       for char in split("ta tf ts")
         execute printf('silent! iunmap %s', char)
       endfor | unlet char
