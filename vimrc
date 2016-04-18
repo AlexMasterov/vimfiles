@@ -158,21 +158,21 @@
 
   " Install Dein plugin manager
   if has('vim_starting')
-    let s:deinPath = $VIMFILES.'/dein/repos/github.com/Shougo/dein.vim'
-    if !isdirectory(s:deinPath)
+    let s:deinPath = $VIMFILES.'/dein'
+    let s:deinRepo = s:deinPath .'/repos/github.com/Shougo/dein.vim'
+    if !isdirectory(s:deinRepo)
       if executable('git')
         let s:deinUri = 'https://github.com/Shougo/dein.vim.git'
-        call system(printf('git clone --depth 1 %s %s', s:deinUri, s:deinPath))
+        call system(printf('git clone --depth 1 %s %s', s:deinUri, s:deinRepo))
       else
         echom "Can\'t download Dein: Git not found."
       endif
     endif
-    execute 'set runtimepath='. s:deinPath .',$VIMRUNTIME'
+    execute 'set runtimepath='. s:deinRepo .',$VIMRUNTIME'
   endif
 
-  let s:deinPlugin = $VIMFILES.'/dein'
-  if dein#load_state(s:deinPlugin)
-    call dein#begin(s:deinPlugin)
+  if dein#load_state(s:deinPath)
+    call dein#begin(s:deinPath)
     " Load develop version plugins
     call dein#local($VIMFILES.'/dev', {'frozen': 1},
       \ ['dotvim', 'gist'])
@@ -641,7 +641,6 @@
       let g:EasyMotion_space_jump_first = 1
       let g:EasyMotion_enter_jump_first = 1
 
-      hi BookmarkLine guifg=#2B2B2B guibg=#F9EDDF gui=NONE
       hi EasyMotionTarget       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
       hi EasyMotionTarget2First guifg=#FF0000 guibg=#F6F7F7 gui=bold
       hi link EasyMotionShade         Comment
@@ -1361,7 +1360,7 @@
       let g:jplus#config.php = {'delimiter_format': ''}
     endfunction
 
-    Autodein call s:vimJplusOnSource()()
+    Autodein call s:vimJplusOnSource()
   endif
 
   if dein#tap('splitjoin.vim')
@@ -1472,8 +1471,8 @@
   if dein#tap('switch.vim')
     nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
     xnoremap <silent> <S-Tab> :silent! Switch<CR>
-    nnoremap <silent> ! :<C-u>silent! call switch#Switch([g:switch_def_quotes], {'reverse': 0})<CR>
-    nnoremap <silent> ` :<C-u>silent! call switch#Switch([g:switch_def_camelcase], {'reverse': 0})<CR>
+    nnoremap <silent> ! :<C-u>silent! call switch#Switch([g:switch_def_quotes], {'reverse': 1})<CR>
+    nnoremap <silent> ` :<C-u>silent! call switch#Switch([g:switch_def_camelcase], {'reverse': 1})<CR>
 
     let g:switch_mapping = ''
     let g:switch_def_quotes = {
@@ -1499,8 +1498,10 @@
       \ ['string ', 'int ', 'array '],
       \ ['use', 'namespace'],
       \ ['var_dump', 'print_r'],
-      \ ['include', 'require'], ['include_once', 'require_once'],
+      \ ['include', 'require'], 
+      \ ['include_once', 'require_once'],
       \ ['$_GET', '$_POST', '$_REQUEST'],
+      \ ['__DIR__', '__FILE__'],
       \ {
       \   '\([^=]\)===\([^=]\)': '\1==\2',
       \   '\([^=]\)==\([^=]\)': '\1===\2'
@@ -1512,8 +1513,12 @@
       \ {
       \   '\array(\(.\{-}\))': '[\1]',
       \   '\[\(.\{-}\)]': '\array(\1)'
+      \ },
+      \ {
+      \   'final\s*class': 'class',
+      \   '^class': 'final class'
       \ }
-      \]
+      \}
 
     " JavaScript
     AutocmdFT javascript let b:switch_custom_definitions = [
@@ -2146,7 +2151,7 @@
       let g:vdebug_keymap = {}
       let g:vdebug_options = {
         \ 'port': 9001,
-        \ 'server': '10.10.78.16',
+        \ 'server': 'vagrant',
         \ 'on_close': 'detach',
         \ 'break_on_open': 1,
         \ 'debug_window_level': 0,
@@ -2855,7 +2860,7 @@
   " Alt-w: fast save
   xmap <silent> <A-w> <Esc> :update<CR>
   " Ctrl-s: old fast save
-  xmap <C-s> <Esc> :write!<CR>
+  xmap <C-s> <Esc> :write!<CR>gv
   " Ctrl-[jk]: scroll up/down
   xnoremap <C-j> <C-d>
   xnoremap <C-k> <C-u>
