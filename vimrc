@@ -86,7 +86,7 @@
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  Autocmd BufEnter,WinEnter * setl formatoptions-=r formatoptions-=o
+  Autocmd VimEnter,BufEnter,WinEnter * setl formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -1518,7 +1518,7 @@
       \   'final\s*class': 'class',
       \   '^class': 'final class'
       \ }
-      \}
+      \]
 
     " JavaScript
     AutocmdFT javascript let b:switch_custom_definitions = [
