@@ -86,7 +86,7 @@
   " Create directories if not exist
   Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
   " Don't auto insert a comment when using O/o for a newline (see also :help fo-table)
-  Autocmd VimEnter,BufEnter,WinEnter * setl formatoptions-=ro
+  Autocmd BufEnter,WinEnter * setl formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setl list
   Autocmd InsertLeave * setl nolist
@@ -197,7 +197,15 @@
     call dein#add('tyru/caw.vim', {
       \ 'on_map': [['nx', '<Plug>(caw:']]
       \})
+    call dein#add('haya14busa/incsearch.vim', {
+      \ 'on_func': 'incsearch#go'
+      \})
+    call dein#add('haya14busa/incsearch-easymotion.vim', {
+      \ 'depends': 'incsearch.vim',
+      \ 'on_source': 'vim-easymotion'
+      \})
     call dein#add('easymotion/vim-easymotion', {
+      \ 'on_source': 'incsearch.vim',
       \ 'on_cmd': 'EasyMotionWordsBeginningWithChar',
       \ 'on_map': [['nx', '<Plug>(easymotion-']]
       \})
@@ -235,15 +243,15 @@
       \ 'on_map': [['nv', '.'], ['nv', '<Plug>(Repeat']]
       \})
     call dein#add('SirVer/ultisnips', {
-      \ 'on_source': 'neocomplete.vim',
+      \ 'on_event': 'InsertCharPre'
       \})
     call dein#add('Shougo/context_filetype.vim', {
       \ 'lazy': 1,
       \})
     call dein#add('Shougo/neocomplete.vim', {
-      \ 'if': has('lua'),
       \ 'depends': 'context_filetype.vim',
-      \ 'on_i': 1
+      \ 'if': has('lua'),
+      \ 'on_event': 'InsertEnter'
       \})
     call dein#add('Shougo/neoinclude.vim', {
       \ 'on_source': 'neocomplete.vim'
@@ -259,21 +267,14 @@
       \})
 
     call dein#add('osyo-manga/vim-precious', {
+      \ 'depends': 'context_filetype.vim',
       \ 'if': 1,
       \ 'merged': 0,
-      \ 'depends': 'context_filetype.vim',
-      \ 'on_i': 1,
+      \ 'on_event': 'InsertEnter',
       \ 'on_cmd': ['PreciousSwitch', 'PreciousReset']
       \})
-    call dein#add('haya14busa/incsearch.vim', {
-      \ 'on_func': 'incsearch#go'
-      \})
-    call dein#add('haya14busa/incsearch-easymotion.vim', {
-      \ 'depends': 'incsearch.vim',
-      \ 'on_source': 'vim-easymotion'
-      \})
     call dein#add('cohama/lexima.vim', {
-      \ 'on_i': 1
+      \ 'on_event': 'InsertEnter'
       \})
     call dein#add('tpope/vim-surround', {
       \ 'on_map': [['n', '<Plug>D'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']]
@@ -315,6 +316,7 @@
       \ 'on_cmd': 'Switch'
       \})
     call dein#add('kana/vim-smartchr', {
+      \ 'on_event': 'InsertCharPre',
       \ 'on_func': 'smartchr#loop'
       \})
     call dein#add('junegunn/vim-easy-align', {
@@ -578,7 +580,7 @@
 
     let g:dein#types#git#clone_depth = 1
     let g:dein#install_max_processes =
-      \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) : 1
+      \ exists('$NUMBER_OF_PROCESSORS') ? str2nr($NUMBER_OF_PROCESSORS) * 4 : 1
 
     command! -bar -nargs=* Autodein
       \ execute 'autocmd MyVimrc User dein#source#'.g:dein#name "<args>"
@@ -599,21 +601,21 @@
   endif
 
   if dein#tap('caw.vim')
-    nmap <silent> <expr> q <SID>cawRangeComment()
-    xmap <silent> <expr> q <SID>cawRangeComment()
+    nmap  q <Plug>(caw:range:toggle)
+    xmap  q <Plug>(caw:hatpos:toggle)
     nmap ,f <Plug>(caw:jump:comment-prev)
     nmap ,F <Plug>(caw:jump:comment-next)
     nmap ,a <Plug>(caw:a:toggle)
 
-    function! s:cawRangeComment() abort
+    nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
+    function! s:cawRangeToggle() abort
       if v:count > 1
         let [line, pos] = [getcurpos()[1], getcurpos()[4]]
-        return printf(
-          \ "\<Esc>V%dj\<Plug>(caw:hatpos:toggle):call cursor(%d, %d)\<CR>",
-          \ (v:count-1), line, pos
-          \)
+        execute "normal V". (v:count-1) ."j\<Plug>(caw:hatpos:toggle)" 
+        call cursor(line, pos)
+      else
+        execute "normal \<Plug>(caw:hatpos:toggle)" 
       endif
-      return "\<Plug>(caw:hatpos:toggle)"
     endfunction
 
     Autodein
@@ -1515,8 +1517,9 @@
       \   '\[\(.\{-}\)]': '\array(\1)'
       \ },
       \ {
-      \   'final\s*class': 'class',
-      \   '^class': 'final class'
+      \   '^class\s\(\k\+\)': 'final class \1',
+      \   '^final class\s\(\k\+\)': 'abstract class \1',
+      \   '^abstract class\s\(\k\+\)': 'class \1'
       \ }
       \]
 
@@ -1679,8 +1682,8 @@
     endfunction
 
     Autocmd VimEnter * silent! au! UltiSnipsFileType
-    Autocmd BufNewFile,BufRead *.snippets
-      \ setl filetype=snippets foldmethod=manual
+    Autocmd BufNewFile,BufRead *.snippets setl filetype=snippets
+    AutocmdFT snippets setl foldmethod=manual
 
     function! s:ultiOnSource() abort
       let g:UltiSnipsEnableSnipMate = 0
@@ -1693,9 +1696,6 @@
       AutocmdFT twig call UltiSnips#AddFiletypes('twig.html')
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
-
-    execute 'Autocmd User dein#source#neocomplete.vim'
-      \ "if !dein#is_sourced('ultisnips')| call dein#source(['ultisnips']) |endif"
 
     Autodein nested call s:ultiOnSource()
   endif
