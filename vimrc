@@ -216,6 +216,8 @@
       \ 'on_cmd': 'UndotreeToggle'
       \})
     call dein#add('Shougo/vimfiler.vim', {
+      \ 'on_if': "isdirectory(bufname('%'))",
+      \ 'on_map': [['n', '<Plug>']],
       \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir']
       \})
     call dein#add('osyo-manga/vim-over', {
@@ -345,6 +347,7 @@
 
     " Unite
     call dein#add('Shougo/unite.vim', {
+      \ 'depends': 'neomru.vim',
       \ 'lazy': 1,
       \ 'pre_cmd': 'Unite'
       \})
@@ -369,14 +372,23 @@
       \ 'on_source': 'unite.vim'
       \})
     call dein#add('mattn/httpstatus-vim', {
-      \ 'on_source': 'unite.vim'
+      \ 'on_source': 'unite.vim',
+      \ 'hook_add':
+      \   'nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>'
       \})
+
     call dein#add('osyo-manga/unite-vimpatches', {
       \ 'on_source': 'unite.vim'
       \})
     call dein#add('Shougo/junkfile.vim', {
       \ 'on_source': 'unite.vim',
-      \ 'on_cmd': 'JunkfileOpen'
+      \ 'on_cmd': 'JunkfileOpen',
+      \ 'hook_add': join([
+      \   'nnoremap ;J :<C-u>JunkfileOpen<CR>',
+      \   'nnoremap <silent> ;j :<C-u>Unite junkfile/new junkfile -split<CR>'
+      \], "\n"),
+      \ 'hook_source':
+      \   "let g:junkfile#directory = $VIMFILES.'/cache/junkfile'"
       \})
 
     " Text objects
@@ -611,10 +623,10 @@
     function! s:cawRangeToggle() abort
       if v:count > 1
         let [line, pos] = [getcurpos()[1], getcurpos()[4]]
-        execute "normal V". (v:count-1) ."j\<Plug>(caw:hatpos:toggle)" 
+        execute "normal V". (v:count-1) ."j\<Plug>(caw:hatpos:toggle)"
         call cursor(line, pos)
       else
-        execute "normal \<Plug>(caw:hatpos:toggle)" 
+        execute "normal \<Plug>(caw:hatpos:toggle)"
       endif
     endfunction
 
@@ -1500,7 +1512,7 @@
       \ ['string ', 'int ', 'array '],
       \ ['use', 'namespace'],
       \ ['var_dump', 'print_r'],
-      \ ['include', 'require'], 
+      \ ['include', 'require'],
       \ ['include_once', 'require_once'],
       \ ['$_GET', '$_POST', '$_REQUEST'],
       \ ['__DIR__', '__FILE__'],
@@ -1888,18 +1900,6 @@
     nnoremap <silent> ;z :<C-u>Unite filetype filetype/new -start-insert<CR>
 
     Autodein call unite#custom#source('filetype', 'sorters', 'sorter_length')
-  endif
-
-  if dein#tap('httpstatus-vim')
-    " F12: http codes
-    nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>
-  endif
-
-  if dein#tap('junkfile.vim')
-    nnoremap ;J :<C-u>JunkfileOpen<CR>
-    nnoremap <silent> ;j :<C-u>Unite junkfile/new junkfile -split<CR>
-
-    Autodein let g:junkfile#directory = $VIMFILES.'/cache/junkfile'
   endif
 
   if dein#tap('unite-tag')
