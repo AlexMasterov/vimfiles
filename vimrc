@@ -228,7 +228,6 @@
       \ 'on_cmd': ['Agit', 'AgitFile']
       \})
     call dein#add('lambdalisue/vim-gita', {
-      \ 'rev': 'alpha-3',
       \ 'if': executable('git'),
       \ 'on_cmd': 'Gita'
       \})
@@ -360,13 +359,19 @@
       \ 'on_source': 'unite.vim'
       \})
     call dein#add('Shougo/unite-outline', {
-      \ 'on_source': 'unite.vim'
+      \ 'on_source': 'unite.vim',
+      \ 'hook_add':
+      \   'nnoremap <silent> ;o :<C-u>Unite outline -silent -no-empty -toggle -winheight=16<CR>'
       \})
     call dein#add('chemzqm/unite-location', {
       \ 'on_source': 'unite.vim'
       \})
     call dein#add('osyo-manga/unite-filetype', {
-      \ 'on_source': 'unite.vim'
+      \ 'on_source': 'unite.vim',
+      \ 'hook_add':
+      \   'nnoremap <silent> ;z :<C-u>Unite filetype filetype/new -start-insert<CR>',
+      \ 'hook_source':
+      \   "call unite#custom#source('filetype', 'sorters', 'sorter_length')"
       \})
     call dein#add('tsukkee/unite-tag', {
       \ 'on_source': 'unite.vim'
@@ -378,7 +383,9 @@
       \})
 
     call dein#add('osyo-manga/unite-vimpatches', {
-      \ 'on_source': 'unite.vim'
+      \ 'on_source': 'unite.vim',
+      \ 'hook_add':
+      \   'nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>'
       \})
     call dein#add('Shougo/junkfile.vim', {
       \ 'on_source': 'unite.vim',
@@ -617,7 +624,7 @@
     xmap  q <Plug>(caw:hatpos:toggle)
     nmap ,f <Plug>(caw:jump:comment-prev)
     nmap ,F <Plug>(caw:jump:comment-next)
-    nmap ,a <Plug>(caw:a:toggle)
+    nmap ,a <Plug>(caw:dollarpos:toggle)
 
     nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
     function! s:cawRangeToggle() abort
@@ -1883,23 +1890,6 @@
     endfunction
 
     Autodein call s:neomruOnSource()
-  endif
-
-  if dein#tap('unite-vimpatches')
-    " ;p: open vimpatches log
-    nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>
-  endif
-"
-  if dein#tap('unite-outline')
-    " ;o: outline
-    nnoremap <silent> ;o :<C-u>Unite outline -toggle -no-empty -winheight=16 -silent<CR>
-  endif
-
-  if dein#tap('unite-filetype')
-    " ;i: filetype change
-    nnoremap <silent> ;z :<C-u>Unite filetype filetype/new -start-insert<CR>
-
-    Autodein call unite#custom#source('filetype', 'sorters', 'sorter_length')
   endif
 
   if dein#tap('unite-tag')
