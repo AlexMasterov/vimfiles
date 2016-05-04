@@ -192,7 +192,18 @@
       \ 'hook_source': "let g:switch_mapping = ''"
       \})
     call dein#add('tyru/caw.vim', {
-      \ 'on_map': [['nx', '<Plug>(caw:']]
+      \ 'on_map': [['nx', '<Plug>(caw:']],
+      \ 'hook_add': join([
+      \   'nmap  q <Plug>(caw:range:toggle)',
+      \   'xmap  q <Plug>(caw:hatpos:toggle)',
+      \   'nmap ,f <Plug>(caw:jump:comment-prev)',
+      \   'nmap ,F <Plug>(caw:jump:comment-next)',
+      \   'nmap ,a <Plug>(caw:dollarpos:toggle)'
+      \], "\n"),
+      \ 'hook_source': join([
+      \   'let g:caw_no_default_keymappings = 1',
+      \   'let g:caw_hatpos_skip_blank_line = 1'
+      \], "\n"),
       \})
     call dein#add('kana/vim-smartchr')
     call dein#add('easymotion/vim-easymotion', {
@@ -240,9 +251,28 @@
       \ 'on_cmd': 'SplitjoinSplit',
       \ 'hook_add': 'nmap <silent> S :<C-u>SplitjoinSplit<CR><CR><Esc>'
       \})
+    call dein#add('AndrewRadev/sideways.vim', {
+      \ 'on_cmd': 'Sideways',
+      \ 'hook_add': join([
+      \   'nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>',
+      \   'nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>',
+      \   'nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>',
+      \   'nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>'
+      \], "\n")
+      \})
     call dein#add('jakobwesthoff/argumentrewrap', {
       \ 'hook_add': 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
       \})
+    call dein#add('gcmt/wildfire.vim', {
+      \ 'on_map': [['nx', '<Plug>(wildfire-']],
+      \ 'hook_add': join([
+      \   'nmap vv    <Plug>(wildfire-fuel)',
+      \   'xmap vv    <Plug>(wildfire-fuel)',
+      \   'xmap <C-v> <Plug>(wildfire-water)'
+      \], "\n"),
+      \ 'hook_source': "let g:wildfire_objects = {'*': split('iw iW i' i\" i) a) a] a}'), 'html,xml,twig,blade': ['at']}"
+      \})
+
     call dein#add('kana/vim-smartword', {
       \ 'on_map': [['nx', '<Plug>(smartword-']],
       \ 'hook_add': join([
@@ -495,12 +525,6 @@
 " Plugin settings
 "---------------------------------------------------------------------------
   if dein#tap('caw.vim')
-    nmap  q <Plug>(caw:range:toggle)
-    xmap  q <Plug>(caw:hatpos:toggle)
-    nmap ,f <Plug>(caw:jump:comment-prev)
-    nmap ,F <Plug>(caw:jump:comment-next)
-    nmap ,a <Plug>(caw:dollarpos:toggle)
-
     nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
     function! s:cawRangeToggle() abort
       if v:count > 1
@@ -511,14 +535,6 @@
         execute "normal \<Plug>(caw:hatpos:toggle)"
       endif
     endfunction
-
-    function! s:cawOnSource() abort
-      let g:foo = 0
-      let g:caw_no_default_keymappings = 1
-      let g:caw_hatpos_skip_blank_line = 1
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:cawOnSource'))
   endif
 
   if dein#tap('vim-easy-align')
