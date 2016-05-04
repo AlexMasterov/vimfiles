@@ -71,7 +71,7 @@
   " Detect Windows OS
   let s:is_windows = has('win32') || has('win64')
 
-  function! IsWindows()
+  function! IsWindows() abort
     return s:is_windows
   endfunction
 
@@ -207,6 +207,15 @@
       \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear'],
       \ 'hook_source': 'let g:colorizer_nomap = 1'
       \})
+    call dein#add('whatyouhide/vim-lengthmatters', {
+      \ 'on_cmd': 'Lengthmatters',
+      \ 'hook_add': 'AutocmdFT php,javascript,haskell,rust LengthmattersEnable',
+      \ 'hook_source': join([
+      \   'let g:lengthmatters_on_by_default = 0',
+      \   "let g:lengthmatters_excluded = split('vim help markdown unite vimfiler undotree qfreplace')",
+      \   "call lengthmatters#highlight_link_to('ColorColumn')"
+      \], "\n")
+      \})
     call dein#add('junegunn/vim-easy-align', {
       \ 'on_map': [['nx', '<Plug>(EasyAlign)']],
       \ 'hook_add': 'vmap <Enter> <Plug>(EasyAlign)'
@@ -241,6 +250,37 @@
       \   "  execute printf('nmap %s <Plug>(smartword-%s)', char, char)",
       \   "  execute printf('vmap %s <Plug>(smartword-%s)', char, char)",
       \   "endfor | unlet char"
+      \], "\n")
+      \})
+    call dein#add('triglav/vim-visual-increment', {
+      \ 'on_map': [['x', '<Plug>Visual']],
+      \ 'hook_add': join([
+      \   'xmap <C-a> <Plug>VisualIncrement',
+      \   'xmap <C-x> <Plug>VisualDecrement'
+      \], "\n"),
+      \ 'hook_source': 'set nrformats+=alpha'
+      \})
+
+    call dein#add('cohama/agit.vim', {
+      \ 'if': executable('git'),
+      \ 'on_cmd': ['Agit', 'AgitFile'],
+      \ 'hook_add': join([
+      \   'nnoremap <silent> ,gg :<C-u>Agit<CR>',
+      \   'nnoremap <silent> ,gf :<C-u>AgitFile<CR>'
+      \], "\n"),
+      \ 'on_source': 'let g:agit_max_log_lines = 100'
+      \})
+
+    call dein#add('lambdalisue/vim-gita', {
+      \ 'if': executable('git'),
+      \ 'on_cmd': 'Gita',
+      \ 'hook_add': join([
+      \   'nnoremap <silent> ,,   :<C-u>Gita status<CR>',
+      \   'nnoremap <silent> ,gs  :<C-u>Gita status<CR>',
+      \   'nnoremap <silent> ,gi  :<C-u>Gita init<CR>',
+      \   'nnoremap <silent> ,gb  :<C-u>Gita branch<CR>',
+      \   'nnoremap <silent> ,gc  :<C-u>Gita commit<CR>',
+      \   'nnoremap <silent> ,gca :<C-u>Gita commit --amend<CR>'
       \], "\n")
       \})
 
@@ -396,6 +436,7 @@
       \})
     call dein#add('tobyS/vmustache')
     call dein#add('tobyS/pdv', {
+      \ 'depends': 'vmustache',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
@@ -451,6 +492,8 @@
     call dein#install()
   endif
 
+" Plugin settings
+"---------------------------------------------------------------------------
   if dein#tap('caw.vim')
     nmap  q <Plug>(caw:range:toggle)
     xmap  q <Plug>(caw:hatpos:toggle)
@@ -830,7 +873,7 @@
       " PHP
       let g:quickrun_config['php/csfixer'] = {
         \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen',
-        \ 'args': '--level=psr2'
+        \ 'args': '--rules=@PSR2'
         \}
       let g:quickrun_config['php/phpunit'] = {
         \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
@@ -881,6 +924,70 @@
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:quickrunOnSource'))
+  endif
+
+  if dein#tap('agit.vim')
+    AutocmdFT agit setlocal cursorline
+    AutocmdFT agit* let &l:statusline = ' '
+    AutocmdFT agit* call s:agitMappings()
+
+    function! s:agitMappings() abort
+      nmap <buffer> u <PLug>(agit-reload)
+      nmap <buffer> r <Plug>(agit-git-reset)
+      nmap <buffer> R <Plug>(agit-git-rebase)
+      nmap <buffer> E <Plug>(agit-print-commitmsg)
+    endfunction
+
+    Autocmd Syntax agit* call s:agitColors()
+    function! s:agitColors() abort
+      hi AgitRef          guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
+      hi agitRemote       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi AgitHead         guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi AgitHeaderLabel  guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi AgitAuthor       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi link AgitDiffAdd       DiffAdd
+      hi link AgitDiffRemove    DiffDelete
+      hi link AgitStatFile      AgitDiffHeader
+      hi link AgitDate          Comment
+      hi link agitTree          Comment
+      hi link agitUntrackedFile Normal
+    endfunction
+  endif
+
+  if dein#tap('vim-gita')
+    AutocmdFT gita,gita*  call s:gitaFiletypes() | call s:gitaBaseMappings()
+    AutocmdFT gita-{branch,status,commit} call s:gitaSpecialMappings()
+
+    function! s:gitaFiletypes() abort
+      let &l:statusline = ' ' | setlocal nonu nornu
+      Autocmd InsertEnter <buffer> setlocal nocursorline
+      Autocmd InsertLeave <buffer> setlocal cursorline
+    endfunction
+
+    function! s:gitaBaseMappings() abort
+      nmap <silent> <buffer> q :<C-u>bdelete<CR>
+      nmap <silent> <buffer> Q :<C-u>bdelete!<CR>
+    endfunction
+
+    function! s:gitaSpecialMappings() abort
+      nmap <buffer> m <Plug>(gita-toggle)
+      nmap <buffer> c <Plug>(gita-commit)
+      nmap <buffer> C <Plug>(gita-commit-do)
+      nmap <buffer> A <Plug>(gita-commit-amend)
+      nmap <buffer> t <Plug>(gita-edit-tab)
+      nmap <buffer> o <Plug>(gita-edit-preview)
+      nmap <buffer> O <Plug>(gita-edit)
+      nmap <buffer> r <Plug>(gita-status)
+      nmap <buffer> R <Plug>(gita-redraw)
+    endfunction
+
+    Autocmd Syntax gita,gita* call s:gitaColors()
+    function! s:gitaColors() abort
+      hi GitaBranch   guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi GitaSelected guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+      hi link GitaUntracked Normal
+      hi link GitaKeyword   MatchParen
+    endfunction
   endif
 
   if dein#tap('neocomplete.vim')
