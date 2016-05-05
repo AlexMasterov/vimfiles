@@ -300,7 +300,6 @@
       \], "\n"),
       \ 'on_source': 'let g:agit_max_log_lines = 100'
       \})
-
     call dein#add('lambdalisue/vim-gita', {
       \ 'if': executable('git'),
       \ 'on_cmd': 'Gita',
@@ -311,6 +310,16 @@
       \   'nnoremap <silent> ,gb  :<C-u>Gita branch<CR>',
       \   'nnoremap <silent> ,gc  :<C-u>Gita commit<CR>',
       \   'nnoremap <silent> ,gca :<C-u>Gita commit --amend<CR>'
+      \], "\n")
+      \})
+
+    call dein#add('dylanaraps/root.vim', {
+      \ 'on_cmd': 'Root',
+      \ 'hook_add': 'Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter * Root',
+      \ 'hook_source': join([
+      \   'let g:root#auto = 0',
+      \   'let g:root#echo = 0',
+      \   "let g:root#patterns = split('.git .git/ .hg .hg/ composer.json package.json .tern-project')"
       \], "\n")
       \})
 
@@ -343,14 +352,22 @@
       \ 'on_source': 'unite.vim',
       \ 'hook_add': 'nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>'
       \})
+    call dein#add('osyo-manga/unite-vimpatches', {
+      \ 'hook_add': 'nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>'
+      \})
     call dein#add('Shougo/neomru.vim', {
       \ 'on_source': 'unite.vim',
       \ 'on_path': '.*',
       \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload'],
-      \ 'hook_add': 'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave'
-      \})
-    call dein#add('osyo-manga/unite-vimpatches', {
-      \ 'hook_add': 'nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>'
+      \ 'hook_add': 'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave',
+      \ 'hook_source': join([
+      \   "let g:neomru#file_mru_path = $CACHE.'/unite/file'",
+      \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
+      \   "let g:neomru#filename_format = ':.'",
+      \   "let g:neomru#directory_mru_path = $CACHE.'/unite/directory'",
+      \   "let g:neomru#time_format = '%d.%m %H:%M — '",
+      \   "call unite#custom#source('neomru/file,neomru/directory', 'limit', 20)"
+      \], "\n")
       \})
 
     " Task Runner
@@ -464,15 +481,25 @@
     call dein#add('c9s/phpunit.vim', {
       \ 'on_cmd': 'PHPUnit'
       \})
-    call dein#add('tobyS/vmustache')
+    call dein#add('tobyS/vmustache', {
+      \ 'depends': 'vmustache'
+      \})
     call dein#add('tobyS/pdv', {
-      \ 'depends': 'vmustache',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
 
     " Blade
     call dein#add('jwalton512/vim-blade')
+
+    " Twig
+    call dein#add('tokutake/twig-indent')
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0,
+      \ 'hook_add': 'AutocmdFT twig '
+      \ . 'Autocmd BufNewFile,BufRead,BufEnter,WinEnter <buffer> runtime! syntax/html.vim'
+      \}, ['twig.vim'])
 
     " JavaScript
     call dein#add('heavenshell/vim-jsdoc', {
@@ -668,7 +695,8 @@
       \ {
       \   '^class\s\(\k\+\)': 'final class \1',
       \   '^final class\s\(\k\+\)': 'abstract class \1',
-      \   '^abstract class\s\(\k\+\)': 'class \1'
+      \   '^abstract class\s\(\k\+\)': 'trait \1',
+      \   '^trait\s\(\k\+\)': 'class \1'
       \ }
       \]
 
@@ -824,8 +852,8 @@
     endfunction
 
     function! s:vimfilerOnSource() abort
-      let g:vimfiler_data_directory = $VIMCACHE.'/vimfiler'
-      let g:unite_kind_file_use_trashbox = s:is_windows
+      let g:vimfiler_data_directory = $CACHE.'/vimfiler'
+      let g:unite_kind_file_use_trashbox = IsWindows()
 
       let g:vimfiler_ignore_pattern =
         \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
@@ -1288,17 +1316,6 @@
       call unite#custom#source('neomru/file', 'matchers', a:matchers)
       Unite neomru/file -toggle
     endfunction
-
-    function! s:neomruOnSource() abort
-      let g:neomru#file_mru_path = $CACHE.'/unite/file'
-      let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'
-      let g:neomru#filename_format = ':.'
-      let g:neomru#directory_mru_path = $CACHE.'/unite/directory'
-      let g:neomru#time_format = '%d.%m %H:%M — '
-      call unite#custom#source('neomru/file,neomru/directory', 'limit', 20)
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:neomruOnSource'))
   endif
 
   if dein#tap('vim-qfreplace')
@@ -1393,6 +1410,20 @@
   AutocmdFT twig setlocal textwidth=120 | Indent 2
   " Syntax
   AutocmdFT twig setlocal commentstring={#<!--%s-->#}
+
+  if dein#tap('twig.vim')
+    function! s:twigColors() abort
+      echo 333
+      hi twigVariable  guifg=#2B2B2B gui=bold
+      hi twigStatement guifg=#008080 gui=NONE
+      hi twigOperator  guifg=#999999 gui=NONE
+      hi link twigBlockName twigVariable
+      hi link twigVarDelim  twigOperator
+      hi link twigTagDelim  twigOperator
+    endfunction
+
+    Autocmd Syntax twig call s:twigColors()
+  endif
 
 " Blade
   Autocmd BufNewFile,BufRead *.blade.php setlocal filetype=blade
@@ -1671,6 +1702,12 @@
   nnoremap <silent> <Space>a :<C-u>tabprev<CR>
   " Space + e: next tab
   nnoremap <silent> <Space>e :<C-u>tabnext<CR>
+  " Space + o: tab only
+  nnoremap <silent> <Space>o :<C-u>tabonly<CR>
+  " Space + t: tab new
+  nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
+  " Space + T: tab new and move
+  nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>:normal! <C-o><CR>
 
   " Windows
   "-----------------------------------------------------------------------
