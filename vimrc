@@ -169,7 +169,15 @@
       \ 'hook_source': 'let g:bufcleaner_max_saved = 9'
       \})
 
-    call dein#add('Shougo/dein.vim', {'rtp': ''})
+    call dein#add('Shougo/dein.vim', {
+      \ 'rtp': '',
+      \ 'hook_add': join([
+      \   'let g:dein#types#git#clone_depth = 1',
+      \   'let g:dein#install_max_processes = 16',
+      \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
+      \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>'
+      \], "\n")
+      \})
     call dein#add('Shougo/vimproc.vim', {
       \ 'lazy': 1,
       \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make'
@@ -319,11 +327,14 @@
       \ 'hook_source': join([
       \   'let g:root#auto = 0',
       \   'let g:root#echo = 0',
-      \   "let g:root#patterns = split('.git .git/ .hg .hg/ composer.json package.json .tern-project')"
+      \   'let g:root#patterns ='
+      \   . "split('.git .git/ .hg .hg/ composer.json package.json .tern-project docker-compose.yml phpunit.xml.dist')"
       \], "\n")
       \})
 
-    call dein#add('Shougo/context_filetype.vim')
+    call dein#add('Shougo/context_filetype.vim', {
+      \ 'hook_add': 'let g:context_filetype#search_offset = 500'
+      \})
     call dein#add('Shougo/neocomplete.vim', {
       \ 'depends': 'context_filetype.vim',
       \ 'on_event': 'InsertEnter'
@@ -479,7 +490,8 @@
       \], "\n")
       \})
     call dein#add('c9s/phpunit.vim', {
-      \ 'on_cmd': 'PHPUnit'
+      \ 'on_cmd': 'PHPUnit',
+      \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
       \})
     call dein#add('tobyS/vmustache', {
       \ 'depends': 'vmustache'
@@ -487,6 +499,12 @@
     call dein#add('tobyS/pdv', {
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
+      \})
+    call dein#add('arnaud-lb/vim-php-namespace', {
+      \ 'on_func': 'PhpSortUse',
+      \ 'hook_add': join([
+      \   'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>call PhpSortUse()<CR>'
+      \], "\n")
       \})
 
     " Blade
@@ -502,6 +520,9 @@
       \}, ['twig.vim'])
 
     " JavaScript
+    call dein#add('othree/jspc.vim')
+    call dein#add('gavocanov/vim-js-indent')
+    call dein#add('othree/jsdoc-syntax.vim')
     call dein#add('heavenshell/vim-jsdoc', {
       \ 'hook_add': join([
       \   'AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)',
@@ -1034,6 +1055,23 @@
     endfunction
   endif
 
+  if dein#tap('context_filetype.vim')
+    function! s:addContext(filetype, rule) abort
+      let context_ft_def = get(context_filetype#default_filetypes(), a:filetype, [])
+      let g:context_filetype#filetypes[a:filetype] = add(context_ft_def, a:rule)
+    endfunction
+
+    " CSS
+    let s:context_ft_css = {
+      \ 'filetype': 'css',
+      \ 'start':    '<script\%( [^>]*\)\?>',
+      \ 'end':      '</style>'
+      \}
+    for filetype in split('html twig blade')
+      call s:addContext(filetype, s:context_ft_css)
+    endfor | unlet filetype
+  endif
+
   if dein#tap('neocomplete.vim')
     imap <Tab> <Plug>(neocomplete)
     imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(neocomplete)"',
@@ -1100,6 +1138,14 @@
         \ 'html,twig,xml', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'css,scss,sass,sss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
+
+      " Dictionary
+      let g:neocomplete#sources#dictionary#dictionaries = {
+        \ 'default' : '',
+        \ 'php' : $VIMFILES.'/dict/phpunit'
+        \}
+      Autocmd BufNewFile,BufRead *Test.php
+        \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:neocompleteOnSource'))
@@ -1366,22 +1412,10 @@
       nnoremap <silent> <buffer> ,T :<C-u>PHPUnitRunAll<CR>
       nnoremap <silent> <buffer> ,t :<C-u>PHPUnitRunCurrentFile<CR>
       " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
-    endfunction
 
-    function! s:phpunitOnSource() abort
-      for char in split("ta tf ts")
+      for char in split('ta tf ts')
         execute printf('silent! iunmap %s', char)
       endfor | unlet char
-
-      AutocmdFT phpunit let &l:statusline = ' '
-
-      " PHPUnit dirty helpers
-      let g:neocomplete#sources#dictionary#dictionaries = {
-        \ 'default' : '',
-        \ 'php' : $VIMFILES.'/dict/phpunit'
-        \}
-      Autocmd BufNewFile,BufRead *Test.php
-        \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
     endfunction
 
     function! s:phpunitColors() abort
@@ -1391,7 +1425,6 @@
       Autocmd Syntax phpunit call s:phpunitColors()
     endfunction
 
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:phpunitOnSource'))
     call dein#set_hook(g:dein#name, 'hook_post_source', function('s:phpunitColors'))
   endif
 
@@ -1560,6 +1593,7 @@
     set whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
   else
     set nowrap
+    set sidescroll=1
   endif
 
   " Folding
@@ -1817,6 +1851,8 @@
   inoremap <silent> <C-s> <Esc> :write!<CR>i
   " Ctrl-c: fast Esc
   inoremap <C-c> <Esc>`^
+  " Ctrl-l: fast Esc
+  inoremap <C-l> <Esc>`^
   " [jj|qq]: smart fast Esc
   inoremap <expr> j getline('.')[getcurpos()[4]-2] ==# 'j' ? "\<BS>\<Esc>`^" : "\j"
   inoremap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : "\q"
@@ -1844,6 +1880,9 @@
   xnoremap Q ==<Esc>
   " L: move to end of line
   xnoremap L $h
+  " [#*]: make # and * work in visual mode too
+  xnoremap # y?<C-r>*<CR>
+  xnoremap * y/<C-r>*<CR>
   " [yY]: keep cursor position when yanking
   xnoremap <silent> <expr> y 'ygv'. mode()
   xnoremap <silent> <expr> Y 'Ygv'. mode()
