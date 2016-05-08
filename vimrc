@@ -175,7 +175,8 @@
       \   'let g:dein#types#git#clone_depth = 1',
       \   'let g:dein#install_max_processes = 16',
       \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
-      \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>'
+      \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>',
+      \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
       \], "\n")
       \})
     call dein#add('Shougo/vimproc.vim', {
@@ -323,7 +324,7 @@
 
     call dein#add('dylanaraps/root.vim', {
       \ 'on_cmd': 'Root',
-      \ 'hook_add': 'Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter * Root',
+      \ 'hook_add': 'Autocmd VimEnter * Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter <buffer> Root',
       \ 'hook_source': join([
       \   'let g:root#auto = 0',
       \   'let g:root#echo = 0',
@@ -429,8 +430,8 @@
       \   'nmap Y <Plug>(operator-flashy)$'
       \], "\n"),
       \ 'hook_source': join([
-      \   "let g:operator#flashy#group = 'Visual'",
-      \   'let g:operator#flashy#flash_time = 280'
+      \   'let g:operator#flashy#flash_time = 280',
+      \   "let g:operator#flashy#group = 'Visual'"
       \], "\n")
       \})
     call dein#add('kusabashira/vim-operator-eval', {
@@ -534,6 +535,17 @@
       \   'let g:jsdoc_input_description = 1',
       \   'let g:jsdoc_additional_descriptions = 0',
       \   'let g:jsdoc_return_description = 0'
+      \], "\n")
+      \})
+
+    " HTML
+    call dein#add('othree/html5.vim', {
+      \ 'hook_add': 'Autocmd Syntax html hi link htmlError htmlTag | hi link htmlTagError htmlTag'
+      \})
+    call dein#add('gregsexton/MatchTag', {
+      \ 'hook_add': join([
+      \   'Autocmd Syntax xml runtime ftplugin/xml.vim',
+      \   'Autocmd Syntax twig,blade runtime ftplugin/html.vim'
       \], "\n")
       \})
 
@@ -1074,8 +1086,7 @@
 
   if dein#tap('neocomplete.vim')
     imap <Tab> <Plug>(neocomplete)
-    imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(neocomplete)"',
-    imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-x>\<C-o>"
+    imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(neocomplete)"
     imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
     imap <expr> <C-k>   pumvisible() ? "\<C-p>" : col('.') ==# col('$') ? "\<C-k>" : "\<C-o>D"
 
@@ -1436,6 +1447,18 @@
 " HTML
   " Indent
   AutocmdFT html setlocal textwidth=120 | Indent 2
+  " Syntax
+  if dein#tap('MatchTag')
+    AutocmdFT php
+      \ Autocmd BufWinEnter <buffer> call s:removeMatchTagEvent()
+
+    function! s:removeMatchTagEvent() abort
+      if !exists('#matchhtmlparen') | return | endif
+      augroup matchhtmlparen
+        autocmd! * <buffer>
+      augroup END
+    endfunction
+  endif
 
 " Twig
   Autocmd BufNewFile,BufRead *.{twig,*.twig} setlocal filetype=twig
@@ -1742,6 +1765,26 @@
   nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
   " Space + T: tab new and move
   nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>:normal! <C-o><CR>
+  " Space + m: tab move
+  nnoremap <silent> <Space>m :<C-u>tabmove<CR>
+  " Space + <: move tab to first spot
+  nnoremap <silent> <Space>< :<C-u>tabmove 0<CR>
+  " Space + >: move tab to last spot
+  nnoremap <silent> <expr> <Space>> ':<C-u>tabmove '.tabpagenr('$').'<CR>'
+  " Space + ,: move tab to left
+  nnoremap <silent> <expr> <Space>,
+    \ ':<C-u>tabmove '.max([tabpagenr() - v:count1 - 1, 0]).'<CR>'
+  " Space + .: move tab to right
+  nnoremap <silent> <expr> <Space>.
+    \ ':<C-u>tabmove '.min([tabpagenr() + v:count1, tabpagenr('$')]).'<CR>'
+  " [N] + Space + c: close tab
+  nnoremap <silent> <expr> <Space>c v:count
+    \ ? ':<C-u>'.v:count.'tabclose<CR>'
+    \ : ':<C-u>tabclose<CR>'
+  " [N] + Space + C: force close tab
+  nnoremap <silent> <expr> <Space>c v:count
+    \ ? ':<C-u>'.v:count.'tabclose!<CR>'
+    \ : ':<C-u>tabclose!<CR>'
 
   " Windows
   "-----------------------------------------------------------------------
@@ -1757,10 +1800,16 @@
   nnoremap <silent> <Space>W :<C-u>wincmd W<CR>
   " Space + I: previous (last accessed) window
   nnoremap <silent> <Space>I :<C-u>wincmd p<CR>
+  " Space + r: rotate windows downwards / rightwards
+  nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
+  " Space + R: rotate windows upwards / leftwards
+  nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
   " Space + v: split window horizontaly
   nnoremap <silent> <expr> <Space>v ':<C-u>'. (v:count ? v:count : '') .'split<CR>'
   " Space + V: split window verticaly
   nnoremap <silent> <expr> <Space>V ':<C-u>vertical '. (v:count ? v:count : '') .'split<CR>'
+  " Space + m: move window to a new tab page
+  nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
   " Space + q: smart close window -> tab -> buffer
   nnoremap <silent> <expr> <Space>q winnr('$') == 1
     \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
@@ -1847,6 +1896,8 @@
   " Ctrl-[pv]: paste
   imap <C-p> <S-Insert>
   imap <C-v> <S-Insert>
+  " Enter: to redo a changes
+  inoremap <CR> <C-g>u<CR>
   " Ctrl-s: force save file
   inoremap <silent> <C-s> <Esc> :write!<CR>i
   " Ctrl-c: fast Esc
