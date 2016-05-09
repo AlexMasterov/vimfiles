@@ -382,6 +382,21 @@
       \], "\n")
       \})
 
+    call dein#add('osyo-manga/vim-reanimate', {
+      \ 'on_source': 'unite.vim',
+      \ 'on_cmd': 'ReanimateSaveInput',
+      \ 'hook_add': join([
+      \   'nnoremap <silent> ,L :<C-u>ReanimateSaveInput<CR>',
+      \   'nnoremap <silent> ,l :<C-u>Unite reanimate -buffer-name=reanimate<CR>'
+      \], "\n"),
+      \ 'hook_source': join([
+      \   "let g:reanimate_event_disables = {'_': {'reanimate_confirm': 1}}",
+      \   "let g:reanimate_default_category = 'project'",
+      \   "let g:reanimate_save_dir = $VIMFILES.'/session'",
+      \   "let g:reanimate_sessionoptions = 'curdir,folds,help,localoptions,slash,tabpages,winsize'"
+      \], "\n")
+      \})
+
     " Task Runner
     call dein#add('thinca/vim-quickrun', {
       \ 'depends': 'vimproc.vim',
@@ -553,6 +568,14 @@
       \ 'hook_add': join([
       \   'Autocmd Syntax xml runtime ftplugin/xml.vim',
       \   'Autocmd Syntax twig,blade runtime ftplugin/html.vim'
+      \], "\n")
+      \})
+    call dein#add('mattn/emmet-vim', {
+      \ 'on_map': [['i', '<Plug>(emmet-']],
+      \ 'hook_source': join([
+      \   "let g:user_emmet_mode = 'i'",
+      \   'let g:user_emmet_complete_tag = 0',
+      \   'let g:user_emmet_install_global = 0'
       \], "\n")
       \})
 
@@ -1411,6 +1434,45 @@
     endfunction
   endif
 
+  if dein#tap('vim-reanimate')
+    AutocmdFT unite call s:reanimateMappings()
+
+    function! s:reanimateMappings() abort
+      let b:unite = unite#get_current_unite()
+      if b:unite.buffer_name ==# 'reanimate'
+        " Normal mode
+        nmap <silent> <buffer> <expr> <CR> unite#do_action('reanimate_load')
+        nmap <silent> <buffer> <expr> o    unite#do_action('reanimate_load')
+        nmap <silent> <buffer> <expr> s    unite#do_action('reanimate_save')
+        nmap <silent> <buffer> <expr> r    unite#do_action('reanimate_rename')
+        nmap <silent> <buffer> <expr> t    unite#do_action('reanimate_switch')
+        nmap <silent> <buffer> <expr> S    unite#do_action('reanimate_new_save')
+        nmap <silent> <buffer> <expr> n    unite#do_action('reanimate_new_save')
+      endif
+    endfunction
+
+    function! s:reanimateOnSource() abort
+      " Custom events
+      let s:event = {'name': 'user_event'}
+
+      function! s:event.load_pre_post(...) abort
+        wall | tabnew | tabonly
+      endfunction
+
+      function! s:event.save_pre(...) abort
+        try | argd * | catch | endtry
+      endfunction
+
+      function! s:event.save(...) abort
+        echom printf(' Session saved (%s)', strftime('%Y/%m/%d %H:%M:%S'))
+      endfunction
+
+      call reanimate#hook(s:event) | unlet s:event
+    endfunction
+
+    call dein#set_hook(g:dein#name, 'hook_source_post', function('s:reanimateOnSource'))
+  endif
+
 " File-types
 "---------------------------------------------------------------------------
 " Rust
@@ -1480,6 +1542,30 @@
       augroup matchhtmlparen
         autocmd! * <buffer>
       augroup END
+    endfunction
+  endif
+
+  if dein#tap('emmet-vim')
+    AutocmdFT html,twig call s:emmetMappings()
+
+    function! s:emmetMappings() abort
+      imap <silent> <buffer> <Tab> <C-r>=<SID>emmetComplete("\<Tab>")<CR>
+    endfunction
+
+    function! s:emmetComplete(key) abort
+      if pumvisible()
+        return "\<C-n>"
+      endif
+      if emmet#isExpandable()
+        let isBackspace = getline('.')[getcurpos()[4]-2] =~ '\s'
+        if !isBackspace
+          return emmet#expandAbbr(0, '')
+        endif
+      endif
+      if exists('*s:neoComplete')
+        return <SID>neoComplete(a:key)
+      endif
+      return a:key
     endfunction
   endif
 
