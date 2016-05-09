@@ -521,6 +521,7 @@
       \}, ['twig.vim'])
 
     " JavaScript
+    call dein#add('othree/yajs.vim')
     call dein#add('othree/jspc.vim')
     call dein#add('gavocanov/vim-js-indent')
     call dein#add('othree/jsdoc-syntax.vim')
@@ -537,6 +538,12 @@
       \   'let g:jsdoc_return_description = 0'
       \], "\n")
       \})
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0,
+      \ 'on_cmd': ['TernjsRun', 'TernjsStop'],
+      \ 'hook_add': 'AutocmdFT javascript TernjsRun'
+      \}, ['ternjs.vim'])
 
     " HTML
     call dein#add('othree/html5.vim', {
@@ -553,6 +560,11 @@
     call dein#add('JulesWang/css.vim')
     call dein#add('hail2u/vim-css3-syntax')
     call dein#add('othree/csscomplete.vim')
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0,
+      \ 'on_map': [['i', '<Plug>(hyperstyle']]
+      \}, ['hyperstyle.vim'])
 
     " SVG
     call dein#add('aur-archive/vim-svg')
@@ -924,7 +936,7 @@
       \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
 
     AutocmdFT javascript
-      \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
+      \  nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
       \| nnoremap <silent> <buffer> ,W :<C-u>call <SID>quickrunType('lint')<CR>
 
     AutocmdFT xml
@@ -1150,13 +1162,24 @@
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'css,scss,sass,sss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
 
-      " Dictionary
-      let g:neocomplete#sources#dictionary#dictionaries = {
-        \ 'default' : '',
-        \ 'php' : $VIMFILES.'/dict/phpunit'
-        \}
-      Autocmd BufNewFile,BufRead *Test.php
-        \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
+      " PHP
+      if dein#tap('phpunit.vim')
+        let g:neocomplete#sources#dictionary#dictionaries = get(g:, 'neocomplete#sources#dictionary#dictionaries', {})
+        let g:neocomplete#sources#dictionary#dictionaries.php = $VIMFILES.'/dict/phpunit'
+        Autocmd BufNewFile,BufRead *Test.php
+          \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
+      endif
+
+      " JavaScript
+      let g:neocomplete#sources#omni#functions = get(g:, 'neocomplete#sources#omni#functions', {})
+      if dein#tap('ternjs.vim')
+        let g:neocomplete#sources#omni#functions.javascript = ['ternjs#Complete']
+      endif
+      if dein#tap('jspc.vim')
+        let g:neocomplete#sources#omni#functions.javascript =
+          \ get(g:neocomplete#sources#omni#functions, 'javascript', [])
+        call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni', 0)
+      endif
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:neocompleteOnSource'))
@@ -1420,13 +1443,13 @@
     AutocmdFT php call s:phpunitMappings()
 
     function! s:phpunitMappings() abort
-      nnoremap <silent> <buffer> ,T :<C-u>PHPUnitRunAll<CR>
-      nnoremap <silent> <buffer> ,t :<C-u>PHPUnitRunCurrentFile<CR>
-      " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
-
       for char in split('ta tf ts')
         execute printf('silent! iunmap %s', char)
       endfor | unlet char
+
+      nnoremap <silent> <buffer> ,T :<C-u>PHPUnitRunAll<CR>
+      nnoremap <silent> <buffer> ,t :<C-u>PHPUnitRunCurrentFile<CR>
+      " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
     endfunction
 
     function! s:phpunitColors() abort
@@ -1469,7 +1492,6 @@
 
   if dein#tap('twig.vim')
     function! s:twigColors() abort
-      echo 333
       hi twigVariable  guifg=#2B2B2B gui=bold
       hi twigStatement guifg=#008080 gui=NONE
       hi twigOperator  guifg=#999999 gui=NONE
@@ -1519,6 +1541,22 @@
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_post_source', function('s:cssColors'))
+  endif
+
+  " Autocomplete
+  if dein#tap('hyperstyle.vim')
+    AutocmdFT css call s:hyperstyleReset()
+
+    function! s:hyperstyleReset() abort
+      let b:hyperstyle = 1
+      let b:hyperstyle_semi = ''
+
+      imap <buffer> <expr> <Space>
+        \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
+      if exists('*neoComplete')
+        imap <Tab> <Plug>(neocomplete)
+      endif
+    endfunction
   endif
 
 " Sugar CSS
@@ -1703,6 +1741,13 @@
   set magic            " change the way backslashes are used in search patterns
   set gdefault         " flag 'g' by default for replacing
 
+  " Autocomplete
+  set complete=.
+  set completeopt=longest
+  set pumheight=13
+  " Syntax complete if nothing else available
+  Autocmd BufEnter,WinEnter * if &omnifunc == '' | setlocal omnifunc=syntaxcomplete#Complete | endif
+
 " Shortcuts
 "---------------------------------------------------------------------------
   " Insert the current file
@@ -1838,7 +1883,7 @@
   nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
   " Ctrl-c: clear highlight after search
   nnoremap <silent> <C-c> :<C-u>let @/ = ""<CR>
-  " [N]+Enter: jump to a line number / mark
+  " [N] + Enter: jump to a line number / mark
   nnoremap <silent> <expr> <Enter> v:count ?
     \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
   nnoremap <silent> <expr> n v:count ?
