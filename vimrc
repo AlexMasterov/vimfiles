@@ -45,6 +45,7 @@
 " Functions
 "---------------------------------------------------------------------------
   " Strip trailing whitespace
+  nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
   Autocmd BufWritePre,FileWritePre * call s:trimWhiteSpace()
   command! -nargs=* -complete=file TrimWhiteSpace f <args> | call s:trimWhiteSpace()
 
@@ -1043,6 +1044,10 @@
     AutocmdFT agit* let &l:statusline = ' '
     AutocmdFT agit* call s:agitMappings()
 
+    AutocmdFT gita-status
+      \  nmap <buffer> cc <Plug>(gita-commit-open)
+      \| nmap <buffer> cA <Plug>(gita-commit-open-amend)
+
     function! s:agitMappings() abort
       nmap <buffer> u <PLug>(agit-reload)
       nmap <buffer> r <Plug>(agit-git-reset)
@@ -1544,7 +1549,7 @@
       augroup END
     endfunction
   endif
-
+  " Autocomplete
   if dein#tap('emmet-vim')
     AutocmdFT html,twig call s:emmetMappings()
 
@@ -1773,6 +1778,7 @@
     \. "%3*%(%{IfFit(70) ? expand('%:~:.:h') : ''}\ %)%*"
     \. "%2*%(%{exists('*BufModified') ? BufModified() : ''}\ %)%*"
     \. "%="
+    \. "%(%{IfFit(100) && exists('*ReanimateIsSaved') ? ReanimateIsSaved() : ''}\ %)"
     \. "%(%{IfFit(100) && exists('*FileSize') ? FileSize() : ''}\ %)"
     \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{IfFit(100) ? &iminsert ? 'RU' : 'EN' : ''}\ %)%*"
@@ -1794,6 +1800,11 @@
       \ : getfsize(expand('%:p'))
     return size <= 0 ? '' :
       \ size < 1024 ? size.'B' : (size / 1024).'K'
+  endfunction
+
+  function! ReanimateIsSaved() abort
+    return exists('*reanimate#is_saved()') && reanimate#is_saved()
+        \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : ''
   endfunction
 
 " Edit
@@ -1985,6 +1996,17 @@
   nnoremap C "_C
   " nnoremap x "_x
   " nnoremap X "_dd
+
+  " gr: replace word under the cursor
+  nnoremap gr :<C-u>%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
+  " gl: select last changed text
+  nnoremap gl `[v`]
+  " gp: select last paste in visual mode
+  nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
+  " gv: last selected text operator
+  onoremap gv :<C-u>normal! gv<CR>
+  " gy: replace last yanked selected text
+  nnoremap <expr> gy ':<C-u>%s/' . @" . '//g<Left><Left>'
 
   " Text objects
   "-----------------------------------------------------------------------
