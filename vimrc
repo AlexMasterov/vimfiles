@@ -351,6 +351,10 @@
       \ 'on_func': 'UltiSnips#FileTypeChanged',
       \ 'hook_source': 'Autocmd VimEnter * silent! au! UltiSnipsFileType'
       \})
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0,
+      \}, ['snippetus'])
 
     " Unite
     call dein#add('Shougo/unite.vim', {'lazy': 1})
@@ -510,10 +514,9 @@
       \ 'on_cmd': 'PHPUnit',
       \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
       \})
-    call dein#add('tobyS/vmustache', {
-      \ 'depends': 'vmustache'
-      \})
+    call dein#add('tobyS/vmustache')
     call dein#add('tobyS/pdv', {
+      \ 'depends': 'vmustache',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
@@ -1218,7 +1221,7 @@
     xmap ` <Plug>(ultisnipsVisual)
     snoremap <C-c> <Esc>
 
-    inoremap <silent> <Plug>(ultisnips) <C-r>=<SID>ultiComplete("\`")<CR>
+    inoremap <silent> <Plug>(ultisnips)        <C-r>=<SID>ultiComplete("\`")<CR>
     xnoremap <silent> <Plug>(ultisnipsVisual) :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
     function! s:ultiComplete(key) abort
       if len(UltiSnips#SnippetsInCurrentScope()) >= 1
@@ -1237,8 +1240,8 @@
       let g:UltiSnipsEnableSnipMate = 0
       let g:UltiSnipsExpandTrigger = '<C-F12>'
       let g:UltiSnipsListSnippets = '<C-F12>'
-      let g:UltiSnipsSnippetsDir = $VIMFILES.'/dev/dotvim/ultisnips'
 
+      AutocmdFT snippets setlocal nowrap foldmethod=manual
       AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
