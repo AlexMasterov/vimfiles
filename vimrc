@@ -160,14 +160,14 @@
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1,
       \ 'merged': 0
-      \}, ['dotvim', 'gist'])
+      \}, ['dotvim'])
 
     " Gist
     call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
       \ 'script_type': 'plugin',
       \ 'on_func': 'CleanBuffers',
       \ 'hook_add': "Autocmd BufHidden * call CleanBuffers('!')",
-      \ 'hook_source': 'let g:bufcleaner_max_saved = 9'
+      \ 'hook_source': 'let g:bufcleaner_max_save = 9'
       \})
 
     call dein#add('Shougo/dein.vim', {
@@ -186,6 +186,9 @@
       \})
     call dein#add('kopischke/vim-stay', {
       \ 'on_path': '.*'
+      \})
+    call dein#add('ap/vim-buftabline', {
+      \ 'hook_add': 'let g:buftabline_numbers = 2'
       \})
     call dein#add('Shougo/vimfiler.vim', {
       \ 'on_if': "isdirectory(bufname('%'))",
@@ -517,6 +520,7 @@
     call dein#add('tobyS/vmustache')
     call dein#add('tobyS/pdv', {
       \ 'depends': 'vmustache',
+      \ 'on_func': 'pdv#',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
@@ -861,6 +865,23 @@
         autocmd!
       augroup END
       augroup! Colorizer
+    endfunction
+  endif
+
+  if dein#tap('vim-buftabline')
+    Autocmd VimEnter * call buftabline#update(0)
+    for n in range(1, 9)
+      execute printf('nnoremap <silent> <nowait> <Space>%d :<C-u>Buffer %d<CR>', n, n)
+    endfor | unlet n
+
+    command! -nargs=1 -bar Buffer call s:jumpToBuffer(<f-args>)
+
+    function! s:jumpToBuffer(index) abort
+      let buffers = filter(range(1, bufnr('$')), 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
+      let index = a:index <= 0 ? 0 : a:index - 1
+      if index < len(buffers)
+        execute ":buffer! ". buffers[index]
+      endif
     endfunction
   endif
 
@@ -1241,7 +1262,7 @@
       let g:UltiSnipsExpandTrigger = '<C-F12>'
       let g:UltiSnipsListSnippets = '<C-F12>'
 
-      AutocmdFT snippets setlocal nowrap foldmethod=manual
+      Autocmd BufNewFile,BufReadPost *.snippets setlocal nowrap foldmethod=manual
       AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
     endfunction
@@ -1729,10 +1750,10 @@
   set shortmess=aoOtTIcF
   set number relativenumber    " show the line number
   set nocursorline             " highlight the current line
+  set noequalalways            " resize windows as little as possible
+  set showtabline=1            " always show the tab pages
   set hidden                   " allows the closing of buffers without saving
   set switchbuf=useopen,split  " orders to open the buffer
-  set showtabline=1            " always show the tab pages
-  set noequalalways            " resize windows as little as possible
   set winminheight=0
   set splitbelow splitright
 
@@ -1873,15 +1894,23 @@
   " Buffers
   "-----------------------------------------------------------------------
   " Space + A: next buffer
-  nnoremap <silent> <Space>A :<C-u>bnext<CR>
+  nnoremap <silent> <Space>a :<C-u>bnext<CR>
   " Space + E: previous buffer
-  nnoremap <silent> <Space>E :<C-u>bprev<CR>
+  nnoremap <silent> <Space>e :<C-u>bprev<CR>
   " Space + d: delete buffer
   nnoremap <silent> <Space>d :<C-u>bdelete<CR>
   " Space + D: force delete buffer
   nnoremap <silent> <Space>D :<C-u>bdelete!<CR>
   " Space + i: jump to alternate buffer
-  nnoremap <silent> <Space>i <C-^>
+  nnoremap <silent> <Space>i :<C-u>buffer#<CR>
+  " Space + t: new buffer
+  nnoremap <silent> <expr> <Space>t ':<C-u>badd buffer'. (max(<SID>getBuffers()) + 1) . '<CR>'
+  " Space + T: force new buffer
+  nnoremap <silent> <expr> <Space>T ':<C-u>badd buffer'. (max(<SID>getBuffers()) + 1) . '<CR>:bnext<CR>'
+
+  function! s:getBuffers() abort
+    return filter(range(1, bufnr('$')), 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
+  endfunction
 
   " Files
   "-----------------------------------------------------------------------
@@ -1897,19 +1926,19 @@
   " Tabs
   "-----------------------------------------------------------------------
   " Space + 1-9: jumps to a tab number
-  for n in range(1, 9)
-    execute printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
-  endfor | unlet n
-  " Space + a: previous tab
-  nnoremap <silent> <Space>a :<C-u>tabprev<CR>
-  " Space + e: next tab
-  nnoremap <silent> <Space>e :<C-u>tabnext<CR>
+  " for n in range(1, 9)
+  "   execute printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
+  " endfor | unlet n
+  " Space + A: previous tab
+  nnoremap <silent> <Space>A :<C-u>tabprev<CR>
+  " Space + E: next tab
+  nnoremap <silent> <Space>E :<C-u>tabnext<CR>
   " Space + o: tab only
   nnoremap <silent> <Space>o :<C-u>tabonly<CR>
   " Space + t: tab new
-  nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
+  " nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
   " Space + T: tab new and move
-  nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>:normal! <C-o><CR>
+  " nnoremap <silent> <Space>T :<C-u>tabnew<CR>:tabmove<CR>:normal! <C-o><CR>
   " Space + m: tab move
   nnoremap <silent> <Space>m :<C-u>tabmove<CR>
   " Space + <: move tab to first spot
@@ -1991,7 +2020,7 @@
   nnoremap <silent> <expr> N v:count ?
     \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
   " ,ev: open .vimrc in a new tab
-  nnoremap <silent> ,ev :<C-u>tabnew $MYVIMRC<CR>
+  nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
   " [dDcC]: don't update register
   nnoremap d "_d
   nnoremap D "_D
