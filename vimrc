@@ -141,16 +141,16 @@
   " Setup Dein plugin manager
   if has('vim_starting')
     let s:deinPath = expand('$VIM/dein')
-    let s:deinRepo = expand(s:deinPath.'/repos/github.com/Shougo/dein.vim')
+    let s:deinRepo = printf('%s/repos/github.com/Shougo/dein.vim', s:deinPath)
     if !isdirectory(s:deinRepo)
       if executable('git')
         let s:deinUri = 'https://github.com/Shougo/dein.vim.git'
-        call system(printf('git clone --depth 1 %s %s', s:deinUri, s:deinRepo))
+        call system(printf('git clone --depth 1 %s %s', s:deinUri, fnameescape(s:deinRepo)))
       else
         echom 'Can`t download Dein: Git not found.'
       endif
     endif
-    execute 'set runtimepath='. s:deinRepo .','. $VIMRUNTIME
+    execute 'set runtimepath='. fnameescape(s:deinRepo) .','. $VIMRUNTIME
   endif
 
   if dein#load_state(s:deinPath)
@@ -167,7 +167,7 @@
       \ 'script_type': 'plugin',
       \ 'on_func': 'CleanBuffers',
       \ 'hook_add': "Autocmd BufHidden * call CleanBuffers('!')",
-      \ 'hook_source': 'let g:bufcleaner_max_save = 9'
+      \ 'hook_source': 'let g:bufcleaner_max_save = 20'
       \})
 
     call dein#add('Shougo/dein.vim', {
@@ -188,12 +188,35 @@
       \ 'on_path': '.*'
       \})
     call dein#add('ap/vim-buftabline', {
-      \ 'hook_add': 'let g:buftabline_numbers = 2'
+      \ 'hook_add': join([
+      \   'let g:buftabline_numbers = 2',
+      \   'let g:buftabline_indicators = 1'
+      \], "\n")
       \})
     call dein#add('Shougo/vimfiler.vim', {
       \ 'on_if': "isdirectory(bufname('%'))",
       \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir'],
       \ 'on_map': [['n', '<Plug>']]
+      \})
+    call dein#add('t9md/vim-choosewin', {
+      \ 'on_map': [['n', '<Plug>(choosewin)']],
+      \ 'hook_add': join([
+      \   'nmap - <Plug>(choosewin)',
+      \   'AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)'
+      \], "\n"),
+      \ 'hook_source': join([
+      \   "let g:choosewin_label = 'WERABC'",
+      \   "let g:choosewin_label_align = 'left'",
+      \   'let g:choosewin_blink_on_land = 0',
+      \   'let g:choosewin_overlay_enable = 2',
+      \   "let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}",
+      \   "let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
+      \   "let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
+      \   "let g:choosewin_color_overlay = {'gui': ['#2B2B2B', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}"
+      \], "\n"),
       \})
     call dein#add('cohama/lexima.vim', {
       \ 'on_event': 'InsertEnter',
@@ -618,6 +641,7 @@
       \})
 
     call dein#end()
+    call dein#clear_state()
     call dein#save_state()
   endif
 
@@ -1335,11 +1359,17 @@
       let b:unite = unite#get_current_unite()
 
       " Normal mode
-      nmap <buffer> <BS> <Nop>
-      nmap <buffer> e <Nop>
+      nmap <buffer> e     <Nop>
+      nmap <buffer> <BS>  <Nop>
       nmap <buffer> <C-k> <C-u>
+      nmap <buffer> <C-e> <Plug>(unite_move_head)
       nmap <buffer> R     <Plug>(unite_redraw)
-      nmap <buffer> <Tab> <Plug>(unite_insert_head)
+      nmap <buffer> <Tab> <Plug>(unite_insert_enter)<Right><Left>
+      nmap <buffer> i     <Plug>(unite_insert_enter)<Right><Left>
+      nmap <buffer> I     <Plug>(unite_insert_enter)<Plug>(unite_move_head)
+      nmap <buffer> e     <Plug>(unite_toggle_mark_current_candidate)
+      nmap <buffer> E     <Plug>(unite_toggle_mark_current_candidate_up)
+      nmap <buffer> <C-o> <Plug>(unite_toggle_transpose_window)
       nmap <silent> <buffer> <nowait> <expr> o unite#do_action('open')
       nmap <silent> <buffer> <nowait> <expr> O unite#do_action('choose')
       nmap <silent> <buffer> <nowait> <expr> s unite#do_action('above')
@@ -1356,13 +1386,15 @@
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
       " Insert mode
-      imap <buffer> <C-e> <C-o>A
-      imap <buffer> <C-a> <Plug>(unite_move_head)
-      imap <buffer> <C-j> <Plug>(unite_move_left)
-      imap <buffer> <C-l> <Plug>(unite_move_right)
-      imap <buffer> <Tab> <Plug>(unite_insert_leave)
-      imap <buffer> <C-j> <Plug>(unite_select_next_line)
-      imap <buffer> <C-k> <Plug>(unite_select_previous_line)
+      imap <buffer> <C-a>   <Plug>(unite_move_head)
+      imap <buffer> <C-e>   <Plug>(unite_move_head)
+      imap <buffer> <C-j>   <Plug>(unite_move_left)
+      imap <buffer> <C-l>   <Plug>(unite_move_right)
+      imap <buffer> <Tab>   <Plug>(unite_insert_leave)
+      imap <buffer> <S-Tab> <Plug>(unite_complete)
+      imap <buffer> <C-j>   <Plug>(unite_select_next_line)
+      imap <buffer> <C-k>   <Plug>(unite_select_previous_line)
+      imap <buffer> <C-o>   <Plug>(unite_toggle_transpose_window)
       imap <buffer> <expr> <C-h>  col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <BS>   col('$') > 2 ? "\<Plug>(unite_delete_backward_char)" : ""
       imap <buffer> <expr> <S-BS> col('$') > 2 ? "\<Plug>(unite_delete_backward_word)" : ""
@@ -1418,8 +1450,9 @@
       call unite#custom#profile('grep', 'context', unite_grep)
       call unite#custom#profile('quickfix', 'context', unite_quickfix)
       " Custom filters
-      call unite#custom#source('file_rec/async', 'max_candidates', 40)
-      call unite#custom#source('file_rec/async', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
+      call unite#custom#source('file_rec/async,file_rec/git', 'max_candidates', 40)
+      call unite#custom#source('file_rec/async,file_rec/git', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
+      call unite#custom#source('file_rec/async,file_rec/git', 'converters', ['converter_uniq_word'])
     endfunction
 
     function! s:uniteColors() abort
@@ -1904,12 +1937,14 @@
   " Space + i: jump to alternate buffer
   nnoremap <silent> <Space>i :<C-u>buffer#<CR>
   " Space + t: new buffer
-  nnoremap <silent> <expr> <Space>t ':<C-u>badd buffer'. (max(<SID>getBuffers()) + 1) . '<CR>'
+  nnoremap <silent> <Space>t :<C-u>call <SID>makeBuffer()<CR>
   " Space + T: force new buffer
-  nnoremap <silent> <expr> <Space>T ':<C-u>badd buffer'. (max(<SID>getBuffers()) + 1) . '<CR>:bnext<CR>'
+  nnoremap <silent> <Space>T :<C-u>call <SID>makeBuffer()<CR>:bnext<CR>
 
-  function! s:getBuffers() abort
-    return filter(range(1, bufnr('$')), 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
+  function! s:makeBuffer() abort
+    let buffers = filter(range(1, bufnr('$')),
+      \ 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
+    execute ':badd buffer'. (max(buffers) + 1)
   endfunction
 
   " Files
@@ -1985,13 +2020,13 @@
   " Space + m: move window to a new tab page
   nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
   " Space + q: smart close window -> tab -> buffer
-  nnoremap <silent> <expr> <Space>q winnr('$') == 1
-    \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
-    \ : ':<C-u>close<CR>'
+  " nnoremap <silent> <expr> <Space>q winnr('$') == 1
+  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
+  "   \ : ':<C-u>close<CR>'
   " Space + Q: force smart close window -> tab -> buffer
-  nnoremap <silent> <expr> <Space>Q winnr('$') == 1
-    \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
-    \ : ':<C-u>close!<CR>'
+  " nnoremap <silent> <expr> <Space>Q winnr('$') == 1
+  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
+  "   \ : ':<C-u>close!<CR>'
 
   " Special
   "-----------------------------------------------------------------------
@@ -2166,3 +2201,5 @@
   cnoremap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
   " qq: smart fast Esc
   cnoremap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
+  " Backspace: don't leave Command mode
+  cnoremap <expr> <BS> getcmdpos() > 1 ? "\<BS>" : ""
