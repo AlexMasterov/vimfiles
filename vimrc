@@ -250,6 +250,9 @@
       \ 'hook_add': 'Autocmd BufReadPre *.{css,sss,json},qfreplace* KeeppadOn',
       \ 'hook_source': 'let g:keeppad_autopadding = 0'
       \})
+    call dein#add('mbbill/undotree', {
+      \ 'on_cmd': 'UndotreeToggle'
+      \})
     call dein#add('lilydjwg/colorizer', {
       \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear'],
       \ 'hook_source': 'let g:colorizer_nomap = 1'
@@ -640,6 +643,9 @@
       \ 'hook_add': 'Autocmd BufNewFile,BufRead */nginx/** setlocal filetype=nginx commentstring=#%s'
       \})
 
+    " Solidity (Blockchain Smart contract)
+    call dein#add('tomlion/vim-solidity')
+
     call dein#end()
     call dein#clear_state()
     call dein#save_state()
@@ -890,6 +896,44 @@
       augroup END
       augroup! Colorizer
     endfunction
+  endif
+
+  if dein#tap('undotree')
+    nnoremap <silent> ,u :<C-u>call <SID>undotreeMyToggle()<CR>
+
+    AutocmdFT undotree,diff setlocal nonu nornu colorcolumn=
+
+    function! s:undotreeMyToggle() abort
+      if &l:filetype != 'php'
+        let s:undotreeLastFiletype = &l:filetype
+        AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
+          \ let &l:syntax = s:undotreeLastFiletype
+      endif
+      UndotreeToggle
+    endfunction
+
+    function! s:undotreeOnSource() abort
+      function! g:Undotree_CustomMap() abort
+        nmap <buffer> o <Enter>
+        nmap <buffer> u <Plug>UndotreeUndo
+        nmap <buffer> r <Plug>UndotreeRedo
+        nmap <buffer> h <Plug>UndotreeGoNextState
+        nmap <buffer> l <Plug>UndotreeGoPreviousState
+        nmap <buffer> d <Plug>UndotreeDiffToggle
+        nmap <buffer> t <Plug>UndotreeTimestampToggle
+        nmap <buffer> C <Plug>UndotreeClearHistory
+      endfunction
+
+      let g:undotree_WindowLayout = 4
+      let g:undotree_SplitWidth = 36
+      let g:undotree_SetFocusWhenToggle = 1
+
+      AutocmdFT diff Autocmd BufEnter,WinEnter <buffer>
+        \  nnoremap <silent> <buffer> q :<C-u>UndotreeHide<CR>
+        \| nnoremap <silent> <buffer> ` :<C-u>UndotreeHide<CR>
+    endfunction
+
+    call dein#set_hook(g:dein#name, 'hook_source', function('s:undotreeOnSource'))
   endif
 
   if dein#tap('vim-buftabline')
