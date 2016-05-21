@@ -245,6 +245,12 @@
     call dein#add('easymotion/vim-easymotion', {
       \ 'on_map': [['nx', '<Plug>(easymotion-']]
       \})
+    call dein#add('haya14busa/incsearch.vim', {
+      \ 'hook_add': 'let g:incsearch#auto_nohlsearch = 1'
+      \})
+    call dein#add('haya14busa/incsearch-easymotion.vim', {
+      \ 'on_map': [['n', '<Plug>(incsearch-']]
+      \})
     call dein#add('haya14busa/vim-keeppad', {
       \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
       \ 'hook_add': 'Autocmd BufReadPre *.{css,sss,json},qfreplace* KeeppadOn',
@@ -546,7 +552,6 @@
     call dein#add('tobyS/vmustache')
     call dein#add('tobyS/pdv', {
       \ 'depends': 'vmustache',
-      \ 'on_func': 'pdv#',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
@@ -1371,6 +1376,23 @@
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:easymotionOnSource'))
     call dein#set_hook(g:dein#name, 'hook_post_source', function('s:easymotionColors'))
+  endif
+
+  if dein#tap('incsearch.vim')
+    noremap <silent> <expr> /  incsearch#go(<SID>incsearchConfig())
+    noremap <silent> <expr> ?  incsearch#go(<SID>incsearchConfig({'command': '?'}))
+    noremap <silent> <expr> g/ incsearch#go(<SID>incsearchConfig({'is_stay': 1}))
+
+    function! s:incsearchConfig(...) abort
+      return incsearch#util#deepextend(deepcopy({
+        \ 'modules': [incsearch#config#easymotion#module({'overwin': 1})],
+        \ 'keymap': {
+        \   "\<C-CR>": '<Over>(easymotion)',
+        \   "\<S-CR>": '<Over>(easymotion)'
+        \ },
+        \ 'is_expr': 0
+        \}), get(a:, 1, {}))
+    endfunction
   endif
 
   if dein#tap('unite.vim')
