@@ -7,7 +7,7 @@
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
   " Vimfiles
-  let $VIMFILES = expand('$VIM/vimfiles')
+  let $VIMFILES = substitute(expand('$VIM/vimfiles'), '[\\/]\+', '/', 'g')
   let $CACHE = expand('$VIMFILES/cache')
   let &viminfo = '200,<1000,s10,no h,rA:,rB:,n'. expand('$VIMFILES/viminfo')
 
@@ -29,6 +29,8 @@
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
   command! -nargs=1 Indent
     \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
+  " Shows the syntax stack under the cursor
+  command! SS echo map(synstack(line('.'), col('.')), "synIDattr(v:val, 'name')")
 
 " Events
 "---------------------------------------------------------------------------
@@ -244,7 +246,7 @@
     call dein#add('kana/vim-smartchr')
     call dein#add('haya14busa/vim-keeppad', {
       \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
-      \ 'hook_add': 'Autocmd BufReadPre *.{css,sss,json},qfreplace* KeeppadOn',
+      \ 'hook_add': 'Autocmd BufReadPre *.{json,css,sss,sugarss},qfreplace* KeeppadOn',
       \ 'hook_source': 'let g:keeppad_autopadding = 0'
       \})
     call dein#add('mbbill/undotree', {
@@ -628,6 +630,20 @@
       \ 'on_map': [['i', '<Plug>(hyperstyle']]
       \}, ['hyperstyle.vim'])
 
+    " Sugar CSS
+    call dein#add('hhsnopek/vim-sugarss', {
+      \ 'hook_add': join([
+      \   'Autocmd BufNewFile,BufRead *.sss setlocal filetype=sugarss syntax=sss commentstring=//%s',
+      \   'AutocmdFT sugarss setlocal nonumber norelativenumber nowrap | Indent 2',
+      \   'Autocmd Syntax sugarss',
+      \     '\  hi sssClass            guifg=#2B2B2B guibg=#F6F7F7 gui=bold',
+      \     '\| hi sssElement          guifg=#2B2B2B guibg=#F6F7F7 gui=NONE',
+      \     '\| hi sssProperty         guifg=#0050B0 guibg=#F6F7F7 gui=NONE',
+      \     '\| hi sssPropertyOverride guifg=#999999 guibg=#F6F7F7 gui=NONE',
+      \     '\| hi sssAbsoluteUnit     guifg=#A67F59 guibg=#F6F7F7 gui=NONE'
+      \], "\n")
+      \})
+
     " SVG
     call dein#add('aur-archive/vim-svg')
     call dein#add('jasonshell/vim-svg-indent')
@@ -887,7 +903,7 @@
   endif
 
   if dein#tap('colorizer')
-    let s:color_codes_ft = split('css html twig')
+    let s:color_codes_ft = split('css html twig sugarss')
 
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter *
       \ execute index(s:color_codes_ft, &filetype) == -1
@@ -1053,8 +1069,8 @@
       \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('csfixer')<CR>
       \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
 
-    AutocmdFT javascript,html,twig,css,json
-      \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
+    AutocmdFT javascript,html,twig,json,css,sugarss
+      \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
 
     AutocmdFT javascript
       \  nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
@@ -1111,6 +1127,7 @@
         \ 'command': 'postcss', 'exec': '%c %a %s', 'outputter': 'rebuffer',
         \ 'args': printf('--use postcss-sorting --config %s/preset/postcss_sort.js', $VIMFILES)
         \}
+      let g:quickrun_config['sugarss/formatter'] = g:quickrun_config['css/formatter']
 
       " HTML
       let g:quickrun_config['html/formatter'] = {
@@ -1268,6 +1285,7 @@
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'css':        ['omni', 'file/include', 'ultisnips'],
+        \ 'sugarss':    ['omni', 'file/include', 'ultisnips'],
         \ 'html':       ['omni', 'file/include', 'ultisnips'],
         \ 'xml':        ['omni', 'file/include', 'ultisnips', 'buffer'],
         \ 'twig':       ['omni', 'file/include', 'ultisnips'],
@@ -1285,7 +1303,7 @@
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'html,twig,xml', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
-        \ 'css,scss,sass,sss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
+        \ 'css,scss,sass,sss,sugarss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
 
       " PHP
       if dein#tap('phpunit.vim')
@@ -1520,6 +1538,7 @@
       call unite#custom#source('file_rec/async,file_rec/git', 'max_candidates', 40)
       call unite#custom#source('file_rec/async,file_rec/git', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
       call unite#custom#source('file_rec/async,file_rec/git', 'converters', ['converter_uniq_word'])
+      call unite#custom#source('buffer', 'converters', ['converter_uniq_word', 'converter_word_abbr'])
     endfunction
 
     function! s:uniteColors() abort
@@ -1760,7 +1779,7 @@
 
   " Autocomplete
   if dein#tap('hyperstyle.vim')
-    AutocmdFT css call s:hyperstyleReset()
+    AutocmdFT css,sass,sss,sugarss call s:hyperstyleReset()
 
     function! s:hyperstyleReset() abort
       let b:hyperstyle = 1
@@ -1774,15 +1793,16 @@
     endfunction
   endif
 
-" Sugar CSS
-  Autocmd BufNewFile,BufRead *.{scss,sss}
+" SASS
+  Autocmd BufNewFile,BufRead *.scss
     \ setlocal filetype=css syntax=sass commentstring=//%s
   " Syntax
   Autocmd Syntax sass
     \ hi sassClass guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-  " Mappings
-  AutocmdFT css
-    \ nnoremap <silent> <buffer> <C-Enter> :<C-u>TrimWhiteSpace<CR>:write!<CR>
+
+" Sugar CSS
+  " Autocomplete
+  AutocmdFT sugarss setlocal omnifunc=csscomplete#CompleteCSS
 
 " JSON
   Autocmd BufNewFile,BufRead .{babelrc,eslintrc} setlocal filetype=json
