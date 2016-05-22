@@ -242,15 +242,6 @@
       \], "\n"),
       \})
     call dein#add('kana/vim-smartchr')
-    call dein#add('easymotion/vim-easymotion', {
-      \ 'on_map': [['nx', '<Plug>(easymotion-']]
-      \})
-    call dein#add('haya14busa/incsearch.vim', {
-      \ 'hook_add': 'let g:incsearch#auto_nohlsearch = 1'
-      \})
-    call dein#add('haya14busa/incsearch-easymotion.vim', {
-      \ 'on_map': [['n', '<Plug>(incsearch-']]
-      \})
     call dein#add('haya14busa/vim-keeppad', {
       \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
       \ 'hook_add': 'Autocmd BufReadPre *.{css,sss,json},qfreplace* KeeppadOn',
@@ -336,6 +327,15 @@
       \ 'hook_source': 'set nrformats+=alpha'
       \})
 
+    call dein#add('easymotion/vim-easymotion', {
+      \ 'on_map': [['nx', '<Plug>(easymotion-']],
+      \ 'on_func': 'EasyMotion#go'
+      \})
+    call dein#add('haya14busa/incsearch-easymotion.vim')
+    call dein#add('haya14busa/incsearch.vim', {
+      \ 'on_func': 'incsearch#'
+      \})
+
     call dein#add('cohama/agit.vim', {
       \ 'if': executable('git'),
       \ 'on_cmd': ['Agit', 'AgitFile'],
@@ -383,7 +383,7 @@
 
     call dein#add('SirVer/ultisnips', {
       \ 'on_event': 'InsertCharPre',
-      \ 'on_func': 'UltiSnips#FileTypeChanged',
+      \ 'on_func': ['UltiSnips#FileTypeChanged', 'UltiSnips#Anon'],
       \ 'hook_source': 'Autocmd VimEnter * silent! au! UltiSnipsFileType'
       \})
     call dein#local($VIMFILES.'/dev', {
@@ -1379,14 +1379,15 @@
   endif
 
   if dein#tap('incsearch.vim')
-    noremap <silent> <expr> /  incsearch#go(<SID>incsearchConfig())
-    noremap <silent> <expr> ?  incsearch#go(<SID>incsearchConfig({'command': '?'}))
-    noremap <silent> <expr> g/ incsearch#go(<SID>incsearchConfig({'is_stay': 1}))
+    nnoremap <silent> <expr> /  incsearch#go(<SID>incsearchConfig())
+    nnoremap <silent> <expr> ?  incsearch#go(<SID>incsearchConfig({'command': '?'}))
+    nnoremap <silent> <expr> g/ incsearch#go(<SID>incsearchConfig({'is_stay': 1}))
 
     function! s:incsearchConfig(...) abort
       return incsearch#util#deepextend(deepcopy({
         \ 'modules': [incsearch#config#easymotion#module({'overwin': 1})],
         \ 'keymap': {
+        \   "\<BS>": "\<Left>\<Del>",
         \   "\<C-CR>": '<Over>(easymotion)',
         \   "\<S-CR>": '<Over>(easymotion)'
         \ },
@@ -1452,8 +1453,8 @@
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
       " Insert mode
+      imap <buffer> <C-e>   <End>
       imap <buffer> <C-a>   <Plug>(unite_move_head)
-      imap <buffer> <C-e>   <Plug>(unite_move_head)
       imap <buffer> <C-j>   <Plug>(unite_move_left)
       imap <buffer> <C-l>   <Plug>(unite_move_right)
       imap <buffer> <Tab>   <Plug>(unite_insert_leave)
@@ -2006,11 +2007,31 @@
   nnoremap <silent> <Space>t :<C-u>call <SID>makeBuffer()<CR>
   " Space + T: force new buffer
   nnoremap <silent> <Space>T :<C-u>call <SID>makeBuffer()<CR>:bnext<CR>
+  " Space + q: smart close tab -> window -> buffer
+  nnoremap <silent> <Space>q :<C-u>call <SID>smartClose()<CR>
 
   function! s:makeBuffer() abort
     let buffers = filter(range(1, bufnr('$')),
       \ 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
     execute ':badd buffer'. (max(buffers) + 1)
+  endfunction
+
+  function! s:smartClose() abort
+    let tabPageNr = tabpagenr('$')
+    if tabPageNr > 1
+      tabclose | return
+    endif
+    if winnr('$') > 1
+      let buffers = filter(tabpagebuflist(tabPageNr),
+          \ 'bufname(v:val) =~? "vimfiler"')
+      if empty(buffers)
+        close | return
+      endif
+    endif
+    if empty(bufname('#'))
+      silent! bwipeout | return
+    endif
+    bprev | silent! bwipeout # | return
   endfunction
 
   " Files
