@@ -415,12 +415,13 @@
       \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload'],
       \ 'hook_add': 'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave',
       \ 'hook_source': join([
+      \   'let g:neomru#file_mru_limit = 400',
+      \   'let g:neomru#directory_mru_limit = 400',
       \   "let g:neomru#file_mru_path = $CACHE.'/unite/file'",
       \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
       \   "let g:neomru#filename_format = ':.'",
       \   "let g:neomru#directory_mru_path = $CACHE.'/unite/directory'",
-      \   "let g:neomru#time_format = '%d.%m %H:%M — '",
-      \   "call unite#custom#source('neomru/file,neomru/directory', 'limit', 20)"
+      \   "let g:neomru#time_format = '%d.%m %H:%M — '"
       \], "\n")
       \})
 
@@ -554,6 +555,7 @@
     call dein#add('tobyS/vmustache')
     call dein#add('tobyS/pdv', {
       \ 'depends': 'vmustache',
+      \ 'on_func': 'pdv#',
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>',
       \ 'hook_source': "let g:pdv_template_dir = $VIMFILES.'/dev/dotvim/templates'"
       \})
@@ -2013,10 +2015,10 @@
 "---------------------------------------------------------------------------
   " Buffers
   "-----------------------------------------------------------------------
-  " Space + A: next buffer
-  nnoremap <silent> <Space>a :<C-u>bnext<CR>
-  " Space + E: previous buffer
-  nnoremap <silent> <Space>e :<C-u>bprev<CR>
+  " Space + a: previous buffer
+  nnoremap <silent> <Space>a :<C-u>bprev<CR>
+  " Space + e: next buffer
+  nnoremap <silent> <Space>e :<C-u>bnext<CR>
   " Space + d: delete buffer
   nnoremap <silent> <Space>d :<C-u>bdelete<CR>
   " Space + D: force delete buffer
