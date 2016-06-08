@@ -166,6 +166,7 @@
 
     " Gist
     call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
+      \ 'if': 0,
       \ 'script_type': 'plugin',
       \ 'on_func': 'CleanBuffers',
       \ 'hook_add': "Autocmd BufHidden * call CleanBuffers('!')",
@@ -190,6 +191,7 @@
       \ 'on_path': '.*'
       \})
     call dein#add('ap/vim-buftabline', {
+      \ 'if': 0,
       \ 'hook_add': join([
       \   'let g:buftabline_numbers = 2',
       \   'let g:buftabline_indicators = 1'
@@ -302,6 +304,7 @@
       \ 'hook_add': 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
       \})
     call dein#add('gcmt/wildfire.vim', {
+      \ 'if': 0,
       \ 'on_map': [['nx', '<Plug>(wildfire-']],
       \ 'hook_add': join([
       \   'nmap vv    <Plug>(wildfire-fuel)',
@@ -415,8 +418,6 @@
       \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload'],
       \ 'hook_add': 'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave',
       \ 'hook_source': join([
-      \   'let g:neomru#file_mru_limit = 400',
-      \   'let g:neomru#directory_mru_limit = 400',
       \   "let g:neomru#file_mru_path = $CACHE.'/unite/file'",
       \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
       \   "let g:neomru#filename_format = ':.'",
@@ -562,7 +563,7 @@
     call dein#add('arnaud-lb/vim-php-namespace', {
       \ 'on_func': 'PhpSortUse',
       \ 'hook_add': join([
-      \   'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>call PhpSortUse()<CR>'
+      \   'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>silent! call PhpSortUse()<CR>'
       \], "\n")
       \})
 
@@ -1873,7 +1874,7 @@
   set number relativenumber    " show the line number
   set nocursorline             " highlight the current line
   set noequalalways            " resize windows as little as possible
-  set showtabline=1            " always show the tab pages
+  set showtabline=0            " always show the tab pages
   set hidden                   " allows the closing of buffers without saving
   set switchbuf=useopen,split  " orders to open the buffer
   set winminheight=0
