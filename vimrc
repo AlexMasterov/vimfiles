@@ -994,6 +994,7 @@
     endfunction
 
     " Vimfiler tuning
+    AutocmdFT vimfiler let &l:statusline = ' '
     Autocmd BufEnter,WinEnter vimfiler* nested
       \  let &l:statusline = ' '
       \| setlocal nonu nornu nolist cursorline colorcolumn=
@@ -2197,6 +2198,9 @@
   for char in split(') ] } >')
     execute printf('nmap ;%s <Esc>va%s', char, char)
   endfor | unlet char
+  " <>
+  nmap < <Esc>vi<
+  nmap > <Esc>va<
 
   " Unbinds
   "-----------------------------------------------------------------------
