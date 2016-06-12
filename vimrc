@@ -166,11 +166,10 @@
 
     " Gist
     call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
-      \ 'if': 0,
       \ 'script_type': 'plugin',
       \ 'on_func': 'CleanBuffers',
       \ 'hook_add': "Autocmd BufHidden * call CleanBuffers('!')",
-      \ 'hook_source': 'let g:bufcleaner_max_save = 20'
+      \ 'hook_source': 'let g:bufcleaner_max_save = 10'
       \})
 
     call dein#add('Shougo/dein.vim', {
@@ -575,8 +574,6 @@
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1,
       \ 'merged': 0,
-      \ 'hook_add': 'AutocmdFT twig '
-      \ . 'Autocmd BufNewFile,BufRead,BufEnter,WinEnter <buffer> runtime! syntax/html.vim'
       \}, ['twig.vim'])
 
     " JavaScript
