@@ -164,6 +164,11 @@
       \ 'merged': 0
       \}, ['dotvim'])
 
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0
+      \}, ['phptest.vim'])
+
     " Gist
     call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
       \ 'script_type': 'plugin',
@@ -1720,6 +1725,8 @@
 
 " Twig
   Autocmd BufNewFile,BufRead *.{twig,*.twig} setlocal filetype=twig
+  " Autocomplete
+  AutocmdFT twig setlocal omnifunc=htmlcomplete#CompleteTags
   " Indent
   AutocmdFT twig setlocal textwidth=120 | Indent 2
   " Syntax
