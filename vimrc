@@ -2169,6 +2169,11 @@
     \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
   nnoremap <silent> <expr> N v:count ?
     \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
+  " ,r: replace a word under cursor
+  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
+  " :s::: is more useful than :s/// when replacing paths
+  " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272
+  nnoremap ,R :%s:<C-R><C-w>:<C-r><C-w>:<Left>
   " ,ev: open .vimrc in a new tab
   nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
   " [dDcC]: don't update register
