@@ -420,13 +420,19 @@
       \ 'on_source': 'unite.vim',
       \ 'on_path': '.*',
       \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload'],
-      \ 'hook_add': 'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave',
+      \ 'hook_add': join([
+      \   'nnoremap <silent> ;w :<C-u>Unite neomru/file -toggle -profile-name=neomru/project<CR>',
+      \   'nnoremap <silent> ;W :<C-u>Unite neomru/file -toggle<CR>',
+      \   'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave'
+      \], "\n"),
       \ 'hook_source': join([
-      \   "let g:neomru#file_mru_path = $CACHE.'/unite/file'",
-      \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
       \   "let g:neomru#filename_format = ':.'",
-      \   "let g:neomru#directory_mru_path = $CACHE.'/unite/directory'",
-      \   "let g:neomru#time_format = '%d.%m %H:%M — '"
+      \   "let g:neomru#time_format = '%m.%d %H:%M — '",
+      \   "let g:neomru#file_mru_path = $CACHE.'/unite/mru_file'",
+      \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
+      \   "let g:neomru#directory_mru_path = $CACHE.'/unite/mru_directory'",
+      \   "call unite#custom#profile('neomru/project', 'matchers',"
+      \   . "['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])"
       \], "\n")
       \})
 
@@ -1068,7 +1074,6 @@
   endif
 
   if dein#tap('vim-quickrun')
-    nmap ;q <Plug>(quickrun)
     nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
     AutocmdFT php
@@ -1559,20 +1564,6 @@
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:uniteOnSource'))
     call dein#set_hook(g:dein#name, 'hook_post_source', function('s:uniteColors'))
-  endif
-
-  if dein#tap('neomru.vim')
-    " ;w: open recently-opened files in project
-    nnoremap <silent> ;w
-      \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])<CR>
-    " ;W: open recently-opened files
-    nnoremap <silent> ;W
-      \ :<C-u>call <SID>openMRU(['matcher_fuzzy', 'matcher_hide_current_file'])<CR>
-
-    function! s:openMRU(matchers) abort
-      call unite#custom#source('neomru/file', 'matchers', a:matchers)
-      Unite neomru/file -toggle
-    endfunction
   endif
 
   if dein#tap('vim-qfreplace')
