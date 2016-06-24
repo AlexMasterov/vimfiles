@@ -1,4 +1,4 @@
-" .vimrc / 2016 May
+" .vimrc / 2016 June
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -374,7 +374,7 @@
       \   'let g:root#auto = 0',
       \   'let g:root#echo = 0',
       \   'let g:root#patterns ='
-      \   . "split('.git .git/ .hg .hg/ composer.json package.json .tern-project docker-compose.yml phpunit.xml.dist')"
+      \   . "split('.git .git/ .hg .hg/ composer.json package.json .tern-project')"
       \], "\n")
       \})
 
