@@ -4,12 +4,13 @@
 
 " Environment
 "---------------------------------------------------------------------------
-  set noexrc          " avoid reading local (g)vimrc, exrc
-  set modelines=0     " prevents security exploits
   " Vimfiles
   let $VIMFILES = substitute(expand('$VIM/vimfiles'), '[\\/]\+', '/', 'g')
   let $CACHE = expand('$VIMFILES/cache')
-  let &viminfo = '200,<1000,s10,no h,rA:,rB:,n'. expand('$VIMFILES/viminfo')
+
+  set viminfo+=n$VIMFILES/viminfo
+  set noexrc          " avoid reading local (g)vimrc, exrc
+  set modelines=0     " prevents security exploits
 
   " Initialize autogroup in MyVimrc
   augroup MyVimrc | execute 'autocmd!' | augroup END
@@ -1641,6 +1642,7 @@
   endif
 
 " PHP
+  Autocmd BufNewFile,BufRead *.php let b:did_ftplugin = 1
   " Indent
   AutocmdFT php setlocal nowrap textwidth=120 | Indent 4
   " Syntax
@@ -2189,18 +2191,15 @@
   " Text objects
   "-----------------------------------------------------------------------
   " vi
-  nmap " <Esc>vi"
-  for char in split(''' " ` ( [ { <')
+  for char in split('( [ { < '' " `')
+    execute printf('nmap %s  <Esc>vi%s', char, char)
     execute printf('nmap ;%s <Esc>vi%s', char, char)
   endfor | unlet char
   " va
-  nmap ' <Esc>vi'
   for char in split(') ] } >')
+    execute printf('nmap %s  <Esc>va%s', char, char)
     execute printf('nmap ;%s <Esc>va%s', char, char)
   endfor | unlet char
-  " <>
-  nmap < <Esc>vi<
-  nmap > <Esc>va<
 
   " Unbinds
   "-----------------------------------------------------------------------
@@ -2282,6 +2281,7 @@
   " xnoremap X "_X
 
   " Space: fast Esc
+  xnoremap <Space> <Esc>
   snoremap <Space> <Esc>
 
 " Command mode
