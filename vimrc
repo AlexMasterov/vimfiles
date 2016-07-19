@@ -1,4 +1,4 @@
-" .vimrc / 2016 June
+" .vimrc / 2016 July
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -39,6 +39,8 @@
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   Autocmd VimEnter * filetype plugin indent on
+  " Don't auto comment new line made with 'o', 'O', or <CR>
+  AutocmdFT * execute 'set formatoptions-=o' | exe 'set formatoptions-=r'
   " Toggle settings between modes
   Autocmd InsertEnter * setlocal list
   Autocmd InsertLeave * setlocal nolist
@@ -424,6 +426,7 @@
       \ 'hook_add': join([
       \   'nnoremap <silent> ;w :<C-u>Unite neomru/file -toggle -profile-name=neomru/project<CR>',
       \   'nnoremap <silent> ;W :<C-u>Unite neomru/file -toggle<CR>',
+      \   "nnoremap <silent> ;v :<C-u>Unite line:all -input=`expand('<lt>cword>')`<CR>",
       \   'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave'
       \], "\n"),
       \ 'hook_source': join([
@@ -1255,6 +1258,8 @@
     imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(neocomplete)"
     imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
     imap <expr> <C-k>   pumvisible() ? "\<C-p>" : col('.') ==# col('$') ? "\<C-k>" : "\<C-o>D"
+    " Make <BS> delete letter instead of clearing completion
+    inoremap <BS> <BS>
 
     inoremap <silent> <Plug>(neocomplete) <C-r>=<SID>neoComplete("\<Tab>")<CR>
     function! s:neoComplete(key) abort
@@ -1264,7 +1269,7 @@
       let [curPos, lineLength] = [getcurpos()[4], col('$')]
       let isText = curPos <= lineLength
       let isStartLine = curPos <= 1
-      let isBackspace = getline('.')[curPos-2] =~ '\s'
+      let isBackspace = getline('.')[curPos-2] =~ '\S'
       if isText && !isStartLine && !isBackspace
         return neocomplete#helper#get_force_omni_complete_pos(neocomplete#get_cur_text(1)) >= 0
           \ ? "\<C-x>\<C-o>\<C-r>=neocomplete#mappings#popup_post()\<CR>"
@@ -1288,6 +1293,13 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
+      " Don't re-sort omnifunc completions
+      call neocomplete#custom#source('omni', 'sorters', [])
+      " Disable abbr entries for include source
+      call neocomplete#custom#source('include', 'converters', [
+        \ 'converter_remove_overlap', 'converter_remove_last_paren', 'converter_delimiter',
+        \ 'converter_case', 'converter_disable_abbr', 'converter_abbr'
+        \])
 
       " Sources
       let g:neocomplete#sources = {
@@ -2191,7 +2203,7 @@
   " Text objects
   "-----------------------------------------------------------------------
   " vi
-  for char in split('( [ { < '' " `')
+  for char in split('( [ { < '' "')
     execute printf('nmap %s  <Esc>vi%s', char, char)
     execute printf('nmap ;%s <Esc>vi%s', char, char)
   endfor | unlet char
@@ -2215,7 +2227,7 @@
   inoremap <A-k> <C-o>gk
   inoremap <A-l> <C-o>l
   " Ctrl-a: jump to head
-  inoremap <C-a> <C-o>I
+  inoremap <expr> <C-a> getline('.')[getcurpos()[4]-2] ==# '' ? "<Home>" : "<C-o>I"
   " Ctrl-e: jump to end
   inoremap <C-e> <C-o>A
   " Ctrl-d: delete next char
@@ -2306,6 +2318,8 @@
   cnoremap <C-e> <End>
   " Ctrl-v: open the command-line window
   cnoremap <C-v> <C-f>a
+  " !: faster repeat of previous shell command
+  cnoremap <expr> ! getcmdtype() == ':' && getcmdline() == '!' ? '!<CR>' : '!'
 
   " Special
   "-----------------------------------------------------------------------
