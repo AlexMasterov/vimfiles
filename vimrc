@@ -261,6 +261,10 @@
     call dein#add('mbbill/undotree', {
       \ 'on_cmd': 'UndotreeToggle'
       \})
+    call dein#add('tyru/restart.vim', {
+      \ 'on_cmd': 'Restart',
+      \ 'hook_add': 'nmap <silent> <F9> :<C-u>Restart<CR>'
+      \})
     call dein#add('lilydjwg/colorizer', {
       \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear'],
       \ 'hook_source': 'let g:colorizer_nomap = 1'
@@ -1269,7 +1273,7 @@
       let [curPos, lineLength] = [getcurpos()[4], col('$')]
       let isText = curPos <= lineLength
       let isStartLine = curPos <= 1
-      let isBackspace = getline('.')[curPos-2] =~ '\S'
+      let isBackspace = getline('.')[curPos-2] =~ '\s'
       if isText && !isStartLine && !isBackspace
         return neocomplete#helper#get_force_omni_complete_pos(neocomplete#get_cur_text(1)) >= 0
           \ ? "\<C-x>\<C-o>\<C-r>=neocomplete#mappings#popup_post()\<CR>"
@@ -1293,8 +1297,6 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
-      " Don't re-sort omnifunc completions
-      call neocomplete#custom#source('omni', 'sorters', [])
       " Disable abbr entries for include source
       call neocomplete#custom#source('include', 'converters', [
         \ 'converter_remove_overlap', 'converter_remove_last_paren', 'converter_delimiter',
@@ -2181,6 +2183,9 @@
   nnoremap ,R :%s:<C-R><C-w>:<C-r><C-w>:<Left>
   " ,ev: open .vimrc in a new tab
   nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
+  " [*#]: with use 'smartcase'
+  nnoremap * /\<<C-r>=expand('<cword>')<CR>\><CR>zv
+  nnoremap # ?\<<C-r>=expand('<cword>')<CR>\><CR>zv
   " [dDcC]: don't update register
   nnoremap d "_d
   nnoremap D "_D
@@ -2318,8 +2323,6 @@
   cnoremap <C-e> <End>
   " Ctrl-v: open the command-line window
   cnoremap <C-v> <C-f>a
-  " !: faster repeat of previous shell command
-  cnoremap <expr> ! getcmdtype() == ':' && getcmdline() == '!' ? '!<CR>' : '!'
 
   " Special
   "-----------------------------------------------------------------------
