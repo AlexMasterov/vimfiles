@@ -374,23 +374,15 @@
       \], "\n")
       \})
 
-    call dein#add('dylanaraps/root.vim', {
-      \ 'on_cmd': 'Root',
-      \ 'hook_add': 'Autocmd VimEnter * Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter <buffer> Root',
-      \ 'hook_source': join([
-      \   'let g:root#auto = 0',
-      \   'let g:root#echo = 0',
-      \   'let g:root#patterns ='
-      \   . "split('.git .git/ .hg .hg/ composer.json package.json .tern-project')"
-      \], "\n")
-      \})
-
     call dein#add('Shougo/context_filetype.vim', {
       \ 'hook_add': 'let g:context_filetype#search_offset = 500'
       \})
     call dein#add('Shougo/neocomplete.vim', {
       \ 'depends': 'context_filetype.vim',
       \ 'on_event': 'InsertEnter'
+      \})
+    call dein#add('Shougo/neco-vim', {
+      \ 'on_ft': 'vim'
       \})
     call dein#add('Shougo/neco-syntax')
     call dein#add('Shougo/neoinclude.vim', {
@@ -557,14 +549,10 @@
 
     " PHP
     call dein#add('2072/PHP-Indenting-for-VIm')
-    call dein#add('shawncplus/phpcomplete.vim', {
+    call dein#add('phpvim/phpcd.vim', {
+      \ 'build': executable('composer') ? 'composer update' : '',
       \ 'hook_add': join([
-      \   'let g:phpcomplete_relax_static_constraint = 0',
-      \   'let g:phpcomplete_parse_docblock_comments = 0',
-      \   'let g:phpcomplete_search_tags_for_variables = 1',
-      \   'let g:phpcomplete_complete_for_unknown_classes = 0',
-      \   "let g:phpcomplete_remove_function_extensions = split('apache dba dbase odbc msql mssql')",
-      \   "let g:phpcomplete_remove_constant_extensions = split('ms_sql_server_pdo msql mssql')"
+      \   'AutocmdFT php setlocal omnifunc=phpcd#CompletePHP'
       \], "\n")
       \})
     call dein#add('c9s/phpunit.vim', {
@@ -1297,15 +1285,11 @@
       call neocomplete#custom#source('omni', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'rank', 100)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
-      " Disable abbr entries for include source
-      call neocomplete#custom#source('include', 'converters', [
-        \ 'converter_remove_overlap', 'converter_remove_last_paren', 'converter_delimiter',
-        \ 'converter_case', 'converter_disable_abbr', 'converter_abbr'
-        \])
 
       " Sources
       let g:neocomplete#sources = {
         \ '_':          ['buffer', 'file/include'],
+        \ 'vim':        ['vim',  'file/include', 'ultisnips'],
         \ 'rust':       ['omni', 'file/include', 'ultisnips'],
         \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
@@ -1345,8 +1329,7 @@
         let g:neocomplete#sources#omni#functions.javascript = ['ternjs#Complete']
       endif
       if dein#tap('jspc.vim')
-        let g:neocomplete#sources#omni#functions.javascript =
-          \ get(g:neocomplete#sources#omni#functions, 'javascript', [])
+        let g:neocomplete#sources#omni#functions.javascript = get(g:neocomplete#sources#omni#functions, 'javascript', [])
         call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni', 0)
       endif
     endfunction
@@ -2232,7 +2215,7 @@
   inoremap <A-k> <C-o>gk
   inoremap <A-l> <C-o>l
   " Ctrl-a: jump to head
-  inoremap <expr> <C-a> getline('.')[getcurpos()[4]-2] ==# '' ? "<Home>" : "<C-o>I"
+  inoremap <expr> <C-a> getline('.')[getcurpos()[4]-2] ==# '' ? "<C-o>I" : "<Home>"
   " Ctrl-e: jump to end
   inoremap <C-e> <C-o>A
   " Ctrl-d: delete next char
