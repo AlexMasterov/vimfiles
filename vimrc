@@ -1,4 +1,4 @@
-" .vimrc / 2016 July
+" .vimrc / 2016 August
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -36,9 +36,9 @@
 " Events
 "---------------------------------------------------------------------------
   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
+  Autocmd VimEnter * filetype plugin indent on
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
-  Autocmd VimEnter * filetype plugin indent on
   " Don't auto comment new line made with 'o', 'O', or <CR>
   AutocmdFT * execute 'set formatoptions-=o' | exe 'set formatoptions-=r'
   " Toggle settings between modes
@@ -184,7 +184,7 @@
       \ 'rtp': '',
       \ 'hook_add': join([
       \   'let g:dein#types#git#clone_depth = 1',
-      \   'let g:dein#install_max_processes = 16',
+      \   'let g:dein#install_max_processes = 20',
       \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
       \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>',
       \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
@@ -549,12 +549,6 @@
 
     " PHP
     call dein#add('2072/PHP-Indenting-for-VIm')
-    call dein#add('phpvim/phpcd.vim', {
-      \ 'build': executable('composer') ? 'composer update' : '',
-      \ 'hook_add': join([
-      \   'AutocmdFT php setlocal omnifunc=phpcd#CompletePHP'
-      \], "\n")
-      \})
     call dein#add('c9s/phpunit.vim', {
       \ 'on_cmd': 'PHPUnit',
       \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
@@ -1105,8 +1099,8 @@
 
       " PHP
       let g:quickrun_config['php/csfixer'] = {
-        \ 'command': 'php-cs-fixer', 'exec': '%c -q fix %a -- %s', 'outputter': 'reopen',
-        \ 'args': '--rules=@PSR2'
+        \ 'command': 'php-cs-fixer', 'exec': '%c %a -- %s', 'outputter': 'reopen',
+        \ 'args': '-q fix --rules=@PSR2'
         \}
       let g:quickrun_config['php/phpunit'] = {
         \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
@@ -1121,12 +1115,12 @@
         \ 'outputter/buffer/running_mark': '...'
         \}
       let g:quickrun_config['javascript/formatter'] = {
-        \ 'command': 'esformatter', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-        \ 'args': printf('--config %s/preset/esformatter_js.json --no-color', $VIMFILES)
+        \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'reopen',
+        \ 'args': printf('--config %s/preset/eslint.js --cache --no-color --fix', $VIMFILES)
         \}
       let g:quickrun_config['javascript/lint'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'eslint',
-        \ 'args': printf('-c %s/preset/.eslintrc --no-color -f compact', $VIMFILES)
+        \ 'args': printf('-config %s/preset/.eslintrc --no-color -f compact', $VIMFILES)
         \}
 
       " CSS
@@ -1134,6 +1128,10 @@
         \ 'command': 'postcss', 'exec': '%c %a %s', 'outputter': 'rebuffer',
         \ 'args': printf('--use postcss-sorting --config %s/preset/postcss_sort.js', $VIMFILES)
         \}
+      " let g:quickrun_config['css/formatter'] = {
+      "   \ 'command': 'postcss', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+      "   \ 'args': printf('--config %s/preset/stylelint.js --no-color', $VIMFILES)
+      "   \}
       let g:quickrun_config['sugarss/formatter'] = g:quickrun_config['css/formatter']
 
       " HTML
@@ -1290,6 +1288,7 @@
       let g:neocomplete#sources = {
         \ '_':          ['buffer', 'file/include'],
         \ 'vim':        ['vim',  'file/include', 'ultisnips'],
+        \ 'lua':        ['omni', 'file/include', 'ultisnips'],
         \ 'rust':       ['omni', 'file/include', 'ultisnips'],
         \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
@@ -1305,8 +1304,9 @@
       " Completion patterns
       let g:neocomplete#sources#omni#input_patterns = {
         \ 'haskell':    '\h\w*\|\(import\|from\)\s',
-        \ 'rust':       '[^.[:digit:] *\t]\%(\.\|\::\)\%(\h\w*\)\?',
+        \ 'lua':        '\w\+[.:]\|require\s*(\?["'']\w*',
         \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
+        \ 'rust':       '[^.[:digit:] *\t]\%(\.\|\::\)\%(\h\w*\)\?',
         \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
         \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
         \}
@@ -1391,6 +1391,7 @@
       let g:EasyMotion_enter_jump_first = 1
     endfunction
 
+    Autocmd ColorScheme * call s:easymotionColors()
     function! s:easymotionColors() abort
       hi EasyMotionTarget       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
       hi EasyMotionTarget2First guifg=#FF0000 guibg=#F6F7F7 gui=bold
@@ -1398,11 +1399,9 @@
       hi link EasyMotionMoveHL        Search
       hi link EasyMotionIncCursor     Cursor
       hi link EasyMotionTarget2Second EasyMotionTarget
-      Autocmd ColorScheme * call s:easymotionColors()
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:easymotionOnSource'))
-    call dein#set_hook(g:dein#name, 'hook_post_source', function('s:easymotionColors'))
   endif
 
   if dein#tap('incsearch.vim')
@@ -1550,6 +1549,7 @@
       call unite#custom#source('buffer', 'converters', ['converter_uniq_word', 'converter_word_abbr'])
     endfunction
 
+    Autocmd Syntax unite call s:uniteColors()
     function! s:uniteColors() abort
       hi link uniteStatusHead             StatusLine
       hi link uniteStatusNormal           StatusLine
@@ -1557,11 +1557,9 @@
       hi link uniteStatusSourceNames      StatusLine
       hi link uniteStatusSourceCandidates User1
       hi link uniteStatusLineNR           User2
-      Autocmd Syntax unite call s:uniteColors()
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:uniteOnSource'))
-    call dein#set_hook(g:dein#name, 'hook_post_source', function('s:uniteColors'))
   endif
 
   if dein#tap('vim-qfreplace')
@@ -1658,14 +1656,12 @@
       " nnoremap <silent> <buffer> ,f :<C-u>PHPUnitRunFilter<CR>
     endfunction
 
+    Autocmd Syntax phpunit call s:phpunitColors()
     function! s:phpunitColors() abort
       hi! link PHPUnitOK         Todo
       hi! link PHPUnitFail       WarningMsg
       hi! link PHPUnitAssertFail Error
-      Autocmd Syntax phpunit call s:phpunitColors()
     endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_post_source', function('s:phpunitColors'))
   endif
 
 " JavaScript
@@ -1743,6 +1739,7 @@
   AutocmdFT blade setlocal commentstring={{--%s--}}
 
   if dein#tap('vim-blade')
+    Autocmd Syntax blade call s:bladeColors()
     function! s:bladeColors() abort
       hi bladeEcho          guifg=#2B2B2B gui=bold
       hi bladeKeyword       guifg=#008080 gui=NONE
@@ -1751,10 +1748,7 @@
       " Reset SQL syntax
       hi link sqlStatement phpString
       hi link sqlKeyword   phpString
-      Autocmd Syntax blade call s:bladeColors()
     endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_post_source', function('s:bladeColors'))
   endif
 
 " CSS
@@ -1765,14 +1759,12 @@
   AutocmdFT css setlocal iskeyword+=-,%,:
 
   if dein#tap('css.vim')
+    Autocmd Syntax css call s:cssColors()
     function! s:cssColors() abort
       hi link cssError Normal
       hi link cssBraceError Normal
       hi link cssDeprecated Normal
-      Autocmd Syntax css call s:cssColors()
     endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_post_source', function('s:cssColors'))
   endif
 
   " Autocomplete
@@ -2215,7 +2207,7 @@
   inoremap <A-k> <C-o>gk
   inoremap <A-l> <C-o>l
   " Ctrl-a: jump to head
-  inoremap <expr> <C-a> getline('.')[getcurpos()[4]-2] ==# '' ? "<C-o>I" : "<Home>"
+  inoremap <expr> <C-a> empty(getline('.')[getcurpos()[4]-2]) ? "<Home>" : "<C-o>I"
   " Ctrl-e: jump to end
   inoremap <C-e> <C-o>A
   " Ctrl-d: delete next char
