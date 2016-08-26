@@ -401,7 +401,12 @@
 
     " Unite
     call dein#add('Shougo/unite.vim', {'lazy': 1})
-    call dein#add('chemzqm/unite-location')
+    call dein#add('chemzqm/unite-location', {
+      \ 'hook_add': join([
+      \   'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
+      \   'Autocmd Syntax unite hi uniteSource__LocationListName guifg=#2B2B2B guibg=#F6F7F7 gui=bold'
+      \], "\n")
+      \})
     call dein#add('thinca/vim-qfreplace', {
       \ 'on_source': 'unite.vim'
       \})
@@ -916,7 +921,6 @@
       augroup Colorizer
         autocmd!
       augroup END
-      augroup! Colorizer
     endfunction
   endif
 
@@ -1066,6 +1070,7 @@
   if dein#tap('vim-quickrun')
     nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
+    AutocmdFT php Autocmd BufWritePost <buffer> call <SID>quickrunType('lint')
     AutocmdFT php
       \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('csfixer')<CR>
       \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
@@ -1098,6 +1103,10 @@
         \}
 
       " PHP
+      let g:quickrun_config['php/lint'] = {
+        \ 'command': 'php', 'exec': '%c -l %s', 'outputter': 'unite',
+        \ 'errorformat': '%*[^:]: %m in %f on line %l'
+        \}
       let g:quickrun_config['php/csfixer'] = {
         \ 'command': 'php-cs-fixer', 'exec': '%c %a -- %s', 'outputter': 'reopen',
         \ 'args': '-q fix --rules=@PSR2'
@@ -1621,6 +1630,7 @@
 
 " Haskell
   AutocmdFT haskell setlocal nowrap textwidth=120 | Indent 4
+  AutocmdFT haskell setlocal cpoptions+=M
   if dein#tap('ghcmod-vim')
     AutocmdFT haskell
       \  nnoremap <silent> <buffer> ;t :<C-u>GhcModType!<CR>
@@ -1719,6 +1729,7 @@
   AutocmdFT twig setlocal commentstring={#<!--%s-->#}
 
   if dein#tap('twig.vim')
+    Autocmd Syntax twig call s:twigColors()
     function! s:twigColors() abort
       hi twigVariable  guifg=#2B2B2B gui=bold
       hi twigStatement guifg=#008080 gui=NONE
@@ -1727,8 +1738,6 @@
       hi link twigVarDelim  twigOperator
       hi link twigTagDelim  twigOperator
     endfunction
-
-    Autocmd Syntax twig call s:twigColors()
   endif
 
 " Blade
