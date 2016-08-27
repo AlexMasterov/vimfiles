@@ -35,12 +35,14 @@
 
 " Events
 "---------------------------------------------------------------------------
-  Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
   Autocmd VimEnter * filetype plugin indent on
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
+  Autocmd WinEnter * checktime
+  Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
+  Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
   " Don't auto comment new line made with 'o', 'O', or <CR>
-  AutocmdFT * execute 'set formatoptions-=o' | exe 'set formatoptions-=r'
+  AutocmdFT * set formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setlocal list
   Autocmd InsertLeave * setlocal nolist
@@ -249,7 +251,8 @@
       \], "\n"),
       \ 'hook_source': join([
       \   'let g:caw_no_default_keymappings = 1',
-      \   'let g:caw_hatpos_skip_blank_line = 1'
+      \   'let g:caw_hatpos_skip_blank_line = 1',
+      \   "let g:caw_dollarpos_sp_left = repeat(' ', 2)"
       \], "\n"),
       \})
     call dein#add('kana/vim-smartchr')
@@ -400,7 +403,7 @@
       \}, ['snippetus'])
 
     " Unite
-    call dein#add('Shougo/unite.vim', {'lazy': 1})
+    call dein#add('Shougo/unite.vim', {'lazy': 1, 'on_cmd': 'Unite'})
     call dein#add('chemzqm/unite-location', {
       \ 'hook_add': join([
       \   'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
@@ -463,6 +466,7 @@
       \ 'on_cmd': 'QuickRun',
       \ 'on_map': [['n', '<Plug>(quickrun)']]
       \})
+    call dein#add('miyakogi/vim-quickrun-job')
     " vim-quickrun bundles
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1,
@@ -981,9 +985,18 @@
 
   if dein#tap('vimfiler.vim')
     " ;d: open vimfiler explrer
-    nnoremap <silent> ;d :<C-u>VimFiler -split -invisible -create -no-quit<CR>
+    nnoremap <silent> ;d :<C-u>call <SID>createVimFiler()<CR>
     " Tab: jump to vimfiler window
     nnoremap <silent> <Tab> :<C-u>call <SID>jumpToVimfiler()<CR>
+
+    function! s:createVimFiler() abort
+      for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
+        if !empty(winnr)
+          execute winnr . 'wincmd w' | return
+        endif
+      endfor
+      VimFiler -split -invisible -create -no-quit
+    endfunction
 
     function! s:jumpToVimfiler() abort
       if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
@@ -1096,15 +1109,12 @@
 
     function! s:quickrunOnSource() abort
       let g:quickrun_config = get(g:, 'quickrun_config', {})
-      let g:quickrun_config._ = {
-        \ 'outputter': 'null',
-        \ 'runner': 'vimproc',
-        \ 'runner/vimproc/updatetime': 30
-        \}
+      let g:quickrun_config._ = {'runner': 'job', 'runner/job/updatetime': 10}
 
       " PHP
       let g:quickrun_config['php/lint'] = {
-        \ 'command': 'php', 'exec': '%c -l %s', 'outputter': 'unite',
+        \ 'command': 'php', 'exec': '%c %a %s', 'outputter': 'unite',
+        \ 'args': '-l',
         \ 'errorformat': '%*[^:]: %m in %f on line %l'
         \}
       let g:quickrun_config['php/csfixer'] = {
@@ -1400,7 +1410,7 @@
       let g:EasyMotion_enter_jump_first = 1
     endfunction
 
-    Autocmd ColorScheme * call s:easymotionColors()
+    Autocmd ColorScheme,Syntax * call s:easymotionColors()
     function! s:easymotionColors() abort
       hi EasyMotionTarget       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
       hi EasyMotionTarget2First guifg=#FF0000 guibg=#F6F7F7 gui=bold
