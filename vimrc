@@ -38,11 +38,11 @@
   Autocmd VimEnter * filetype plugin indent on
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
+  " Don't auto comment new line made with 'o', 'O', or <CR>
+  Autocmd VimEnter,BufEnter,WinEnter * setlocal formatoptions-=ro
   Autocmd WinEnter * checktime
   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
   Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
-  " Don't auto comment new line made with 'o', 'O', or <CR>
-  AutocmdFT * set formatoptions-=ro
   " Toggle settings between modes
   Autocmd InsertEnter * setlocal list
   Autocmd InsertLeave * setlocal nolist
@@ -198,13 +198,6 @@
       \})
     call dein#add('kopischke/vim-stay', {
       \ 'on_path': '.*'
-      \})
-    call dein#add('ap/vim-buftabline', {
-      \ 'if': 0,
-      \ 'hook_add': join([
-      \   'let g:buftabline_numbers = 2',
-      \   'let g:buftabline_indicators = 1'
-      \], "\n")
       \})
     call dein#add('Shougo/vimfiler.vim', {
       \ 'on_if': "isdirectory(bufname('%'))",
@@ -558,6 +551,16 @@
 
     " PHP
     call dein#add('2072/PHP-Indenting-for-VIm')
+    call dein#add('shawncplus/phpcomplete.vim', {
+      \ 'hook_add': join([
+      \   'let g:phpcomplete_relax_static_constraint = 0',
+      \   'let g:phpcomplete_parse_docblock_comments = 0',
+      \   'let g:phpcomplete_search_tags_for_variables = 1',
+      \   'let g:phpcomplete_complete_for_unknown_classes = 0',
+      \   "let g:phpcomplete_remove_function_extensions = split('apache dba dbase odbc msql mssql')",
+      \   "let g:phpcomplete_remove_constant_extensions = split('ms_sql_server_pdo msql mssql')"
+      \], "\n")
+      \})
     call dein#add('c9s/phpunit.vim', {
       \ 'on_cmd': 'PHPUnit',
       \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
