@@ -1,4 +1,4 @@
-" .vimrc / 2016 August
+" .vimrc / 2016 September
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -39,7 +39,7 @@
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Don't auto comment new line made with 'o', 'O', or <CR>
-  Autocmd VimEnter,BufEnter,WinEnter * setlocal formatoptions-=ro
+  Autocmd VimEnter,BufEnter,WinEnter * nested setlocal formatoptions-=ro
   Autocmd WinEnter * checktime
   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
   Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
@@ -53,8 +53,8 @@
 "---------------------------------------------------------------------------
   " Strip trailing whitespace
   nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
-  Autocmd BufWritePre,FileWritePre * call s:trimWhiteSpace()
   command! -nargs=* -complete=file TrimWhiteSpace f <args> | call s:trimWhiteSpace()
+  Autocmd BufWritePre,FileWritePre * call s:trimWhiteSpace()
 
   function! s:trimWhiteSpace() abort
     if &binary | return | endif
@@ -64,8 +64,8 @@
   endfunction
 
   " Create a directory
-  Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
   command! -nargs=1 -bang Mkdir call s:makeDir(<f-args>, "<bang>")
+  Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
 
   function! s:makeDir(dir, ...) abort
     let force = a:0 >= 1 && a:1 ==# '!'
@@ -453,7 +453,7 @@
       \})
 
     " Task Runner
-    call dein#add('thinca/vim-quickrun', {
+    call dein#add('thinca/vim-quickrun', {'rev': '5149ecd',
       \ 'depends': 'vimproc.vim',
       \ 'on_func': 'quickrun#',
       \ 'on_cmd': 'QuickRun',
@@ -551,16 +551,6 @@
 
     " PHP
     call dein#add('2072/PHP-Indenting-for-VIm')
-    call dein#add('shawncplus/phpcomplete.vim', {
-      \ 'hook_add': join([
-      \   'let g:phpcomplete_relax_static_constraint = 0',
-      \   'let g:phpcomplete_parse_docblock_comments = 0',
-      \   'let g:phpcomplete_search_tags_for_variables = 1',
-      \   'let g:phpcomplete_complete_for_unknown_classes = 0',
-      \   "let g:phpcomplete_remove_function_extensions = split('apache dba dbase odbc msql mssql')",
-      \   "let g:phpcomplete_remove_constant_extensions = split('ms_sql_server_pdo msql mssql')"
-      \], "\n")
-      \})
     call dein#add('c9s/phpunit.vim', {
       \ 'on_cmd': 'PHPUnit',
       \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
@@ -1060,7 +1050,7 @@
       let g:unite_kind_file_use_trashbox = IsWindows()
 
       let g:vimfiler_ignore_pattern =
-        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
+        \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|dist\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
 
       " Icons
       let g:vimfiler_file_icon = ' '
@@ -1086,20 +1076,20 @@
   if dein#tap('vim-quickrun')
     nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
-    AutocmdFT php Autocmd BufWritePost <buffer> call <SID>quickrunType('lint')
+    " Runner
     AutocmdFT php
-      \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('csfixer')<CR>
-      \| nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
-
-    AutocmdFT javascript,html,twig,json,css,sugarss
-      \  nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
-
+      \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
     AutocmdFT javascript
-      \  nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
-      \| nnoremap <silent> <buffer> ,W :<C-u>call <SID>quickrunType('lint')<CR>
+      \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
 
-    AutocmdFT xml
+    " Formatters
+    AutocmdFT php,javascript,json,xml,html,twig,css,sugarss
       \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
+
+    " Linters
+    AutocmdFT php,javascript
+      \  Autocmd BufWritePost <buffer> call <SID>quickrunType('lint')
+      \| nnoremap <silent> <buffer> ,W :<C-u>call <SID>quickrunType('lint')<CR>
 
     Autocmd BufEnter,WinEnter runner:*
       \ let &l:statusline = ' ' | setlocal nonu nornu nolist colorcolumn=
@@ -1120,7 +1110,7 @@
         \ 'args': '-l',
         \ 'errorformat': '%*[^:]: %m in %f on line %l'
         \}
-      let g:quickrun_config['php/csfixer'] = {
+      let g:quickrun_config['php/formatter'] = {
         \ 'command': 'php-cs-fixer', 'exec': '%c %a -- %s', 'outputter': 'reopen',
         \ 'args': '-q fix --rules=@PSR2'
         \}
@@ -1136,13 +1126,14 @@
         \ 'outputter/buffer/filetype': 'json',
         \ 'outputter/buffer/running_mark': '...'
         \}
+      let g:quickrun_config['javascript/lint'] = {
+        \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'unite',
+        \ 'args': printf('--config %s/preset/eslint.js --cache -f compact', $VIMFILES),
+        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m, %W%f: line %l\, col %c\, Warning - %m'
+        \}
       let g:quickrun_config['javascript/formatter'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'reopen',
-        \ 'args': printf('--config %s/preset/eslint.js --cache --no-color --fix', $VIMFILES)
-        \}
-      let g:quickrun_config['javascript/lint'] = {
-        \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'eslint',
-        \ 'args': printf('-config %s/preset/.eslintrc --no-color -f compact', $VIMFILES)
+        \ 'args': printf('--config %s/preset/eslint-fix.js --cache --no-color --fix', $VIMFILES)
         \}
 
       " CSS
@@ -1172,8 +1163,8 @@
 
       " JSON
       let g:quickrun_config['json/formatter'] = {
-        \ 'command': 'js-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
-        \ 'args': '--indent-size 2'
+        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'rebuffer',
+        \ 'args': '--indent-size 2 -f'
         \}
     endfunction
 
@@ -1665,6 +1656,8 @@
   AutocmdFT php setlocal nowrap textwidth=120 | Indent 4
   " Syntax
   AutocmdFT php let [g:php_sql_query, g:php_highlight_html] = [1, 1]
+  " Autocomplete
+  AutocmdFT php setlocal omnifunc=phpcomplete#CompletePHP
 
   if dein#tap('phpunit.vim')
     AutocmdFT php call s:phpunitMappings()
