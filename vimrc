@@ -376,13 +376,16 @@
       \ 'on_ft': 'vim'
       \})
     call dein#add('Shougo/neco-syntax')
+    call dein#add('hrsh7th/vim-neco-calc', {
+      \ 'on_source': 'neocomplete.vim'
+      \})
     call dein#add('Shougo/neoinclude.vim', {
       \ 'on_source': 'neocomplete.vim'
       \})
 
     call dein#add('SirVer/ultisnips', {
       \ 'on_event': 'InsertCharPre',
-      \ 'on_func': ['UltiSnips#FileTypeChanged', 'UltiSnips#Anon'],
+      \ 'pre_func': 'vimfiler#',
       \ 'hook_source': 'Autocmd VimEnter * silent! au! UltiSnipsFileType'
       \})
     call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0}, ['snippetus'])
@@ -399,6 +402,10 @@
       \ 'on_source': 'unite.vim',
       \ 'hook_add': 'nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>'
       \})
+    call dein#add('pasela/unite-webcolorname', {
+      \ 'on_source': 'unite.vim',
+      \ 'hook_add': 'nnoremap <silent> <F11> :<C-u>Unite webcolorname -buffer-name=colors -start-insert<CR>'
+      \})
     call dein#add('osyo-manga/unite-vimpatches', {
       \ 'hook_add': 'nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>'
       \})
@@ -413,11 +420,12 @@
       \   'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave'
       \], "\n"),
       \ 'hook_source': join([
+      \   'let g:neomru#do_validate = 0',
       \   "let g:neomru#filename_format = ':.'",
       \   "let g:neomru#time_format = '%m.%d %H:%M — '",
-      \   "let g:neomru#file_mru_path = $CACHE.'/unite/mru_file'",
+      \   "let g:neomru#file_mru_path = expand('$CACHE/unite/mru_file')",
       \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
-      \   "let g:neomru#directory_mru_path = $CACHE.'/unite/mru_directory'",
+      \   "let g:neomru#directory_mru_path = expand('$CACHE/unite/mru_directory')",
       \   "call unite#custom#profile('neomru/project', 'matchers',"
       \   . "['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])"
       \], "\n")
@@ -705,7 +713,7 @@
 
   if dein#tap('lexima.vim')
     function! s:leximaOnSource() abort
-      silent! call remove(g:lexima#default_rules, 11, -1)
+      silent! call remove(g:lexima#default_rules, 30, -1) " prev 11
       for rule in g:lexima#default_rules + g:lexima#newline_rules
         call lexima#add_rule(rule)
       endfor | unlet rule
@@ -1248,14 +1256,20 @@
       let g:context_filetype#filetypes[a:filetype] = add(context_ft_def, a:rule)
     endfunction
 
-    " CSS
     let s:context_ft_css = {
       \ 'filetype': 'css',
       \ 'start':    '<script\%( [^>]*\)\?>',
       \ 'end':      '</style>'
       \}
+    let s:context_ft_javascript = {
+      \ 'filetype': 'javascript',
+      \ 'start':    '<script\%( [^>]*\)\?>',
+      \ 'end':      '</script>'
+      \}
+
     for filetype in split('html twig blade')
       call s:addContext(filetype, s:context_ft_css)
+      call s:addContext(filetype, s:context_ft_javascript)
     endfor | unlet filetype
   endif
 
@@ -1279,7 +1293,8 @@
       if isText && !isStartLine && !isBackspace
         return neocomplete#helper#get_force_omni_complete_pos(neocomplete#get_cur_text(1)) >= 0
           \ ? "\<C-x>\<C-o>\<C-r>=neocomplete#mappings#popup_post()\<CR>"
-          \ : neocomplete#start_manual_complete()
+          \ : "\<C-x>\<C-o>"
+          " \ : neocomplete#start_manual_complete()
       endif
       return a:key
     endfunction
@@ -1291,30 +1306,33 @@
       let g:neocomplete#enable_auto_delimiter = 1
       let g:neocomplete#min_keyword_length = 2
       let g:neocomplete#auto_completion_start_length = 2
-      let g:neocomplete#manual_completion_start_length = 2
-      let g:neocomplete#data_directory = $CACHE.'/neocomplete'
+      let g:neocomplete#manual_completion_start_length = 1
+
+      let g:neocomplete#data_directory = expand('$CACHE/neocomplete')
+      let g:neocomplete#lock_buffer_name_pattern = '\.log\|.*;tail\|.*quickrun.*'
+      let g:neocomplete#sources#buffer#disabled_pattern = g:neocomplete#lock_buffer_name_pattern
 
       " Custom settings
       call neocomplete#custom#source('tag', 'rank', 60)
-      call neocomplete#custom#source('omni', 'rank', 80)
-      call neocomplete#custom#source('ultisnips', 'rank', 100)
+      call neocomplete#custom#source('omni', 'rank', 60)
+      call neocomplete#custom#source('ultisnips', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
 
       " Sources
       let g:neocomplete#sources = {
         \ '_':          ['buffer', 'file/include'],
-        \ 'vim':        ['vim',  'file/include', 'ultisnips'],
-        \ 'lua':        ['omni', 'file/include', 'ultisnips'],
-        \ 'rust':       ['omni', 'file/include', 'ultisnips'],
-        \ 'javascript': ['omni', 'file/include', 'ultisnips', 'tag'],
-        \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'tag'],
-        \ 'php':        ['omni', 'file/include', 'ultisnips', 'tag'],
+        \ 'vim':        ['vim',  'file/include', 'ultisnips', 'calc'],
+        \ 'lua':        ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'rust':       ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'javascript': ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'php':        ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'html':       ['omni', 'file/include', 'ultisnips'],
+        \ 'twig':       ['omni', 'file/include', 'ultisnips'],
+        \ 'blade':      ['omni', 'file/include', 'ultisnips'],
         \ 'css':        ['omni', 'file/include', 'ultisnips'],
         \ 'sugarss':    ['omni', 'file/include', 'ultisnips'],
-        \ 'html':       ['omni', 'file/include', 'ultisnips'],
-        \ 'xml':        ['omni', 'file/include', 'ultisnips', 'buffer'],
-        \ 'twig':       ['omni', 'file/include', 'ultisnips'],
-        \ 'blade':      ['omni', 'file/include', 'ultisnips']
+        \ 'xml':        ['omni', 'file/include', 'ultisnips', 'buffer']
         \}
 
       " Completion patterns
@@ -1323,9 +1341,10 @@
         \ 'lua':        '\w\+[.:]\|require\s*(\?["'']\w*',
         \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
         \ 'rust':       '[^.[:digit:] *\t]\%(\.\|\::\)\%(\h\w*\)\?',
-        \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\?\|[^. \t]\.\%(\h\w*\)\?\|\(import\|from\)\s',
-        \ 'php':        '[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
+        \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\|[^. \t]\.\%(\h\w*\)',
+        \ 'php':        '[^. \t]->\%(\h\w*\)\|\h\w*::\%(\h\w*\)\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
         \}
+
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'html,twig,xml', '<\|\s[[:alnum:]-]*')
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
@@ -1343,10 +1362,12 @@
       let g:neocomplete#sources#omni#functions = get(g:, 'neocomplete#sources#omni#functions', {})
       if dein#tap('ternjs.vim')
         let g:neocomplete#sources#omni#functions.javascript = ['ternjs#Complete']
+        " let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
+        " let g:neocomplete#force_omni_input_patterns.javascript =  g:neocomplete#sources#omni#input_patterns.javascript
       endif
       if dein#tap('jspc.vim')
         let g:neocomplete#sources#omni#functions.javascript = get(g:neocomplete#sources#omni#functions, 'javascript', [])
-        call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni', 1)
+        call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni')
       endif
     endfunction
 
@@ -1494,6 +1515,11 @@
       nmap <buffer> <expr> <C-x> unite#mappings#set_current_sorters(
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
+      " unite-webcolorname
+      if b:unite.buffer_name ==# 'colors'
+        nmap <silent> <buffer> o <CR>
+      endif
+
       " Insert mode
       imap <buffer> <C-e>   <End>
       imap <buffer> <C-a>   <Plug>(unite_move_head)
@@ -1550,8 +1576,8 @@
       " Quickfix profile
       let unite_quickfix = {
         \ 'winheight': 16,
-        \ 'no_quit': 1,
-        \ 'keep_focus': 1
+        \ 'keep_focus': 1,
+        \ 'no_quit': 1
         \}
 
       " Custom profiles
