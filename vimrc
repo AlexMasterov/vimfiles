@@ -167,12 +167,7 @@
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1,
       \ 'merged': 0
-      \}, ['dotvim'])
-
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0
-      \}, ['phptest.vim'])
+      \}, ['dotvim', 'phptest.vim'])
 
     " Gist
     call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
@@ -390,19 +385,10 @@
       \ 'on_func': ['UltiSnips#FileTypeChanged', 'UltiSnips#Anon'],
       \ 'hook_source': 'Autocmd VimEnter * silent! au! UltiSnipsFileType'
       \})
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0,
-      \}, ['snippetus'])
+    call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0}, ['snippetus'])
 
     " Unite
     call dein#add('Shougo/unite.vim', {'lazy': 1, 'on_cmd': 'Unite'})
-    call dein#add('chemzqm/unite-location', {
-      \ 'hook_add': join([
-      \   'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
-      \   'Autocmd Syntax unite hi uniteSource__LocationListName guifg=#2B2B2B guibg=#F6F7F7 gui=bold'
-      \], "\n")
-      \})
     call dein#add('thinca/vim-qfreplace', {
       \ 'on_source': 'unite.vim'
       \})
@@ -436,6 +422,11 @@
       \   . "['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])"
       \], "\n")
       \})
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1,
+      \ 'merged': 0,
+      \ 'hook_add': 'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
+      \}, ['unite-location'])
 
     call dein#add('osyo-manga/vim-reanimate', {
       \ 'on_source': 'unite.vim',
@@ -1080,16 +1071,17 @@
     AutocmdFT php
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
     AutocmdFT javascript
-      \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('nodejs')<CR>
-
-    " Formatters
-    AutocmdFT php,javascript,json,xml,html,twig,css,sugarss
-      \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
+      \  nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('jest')<CR>
+      \| nnoremap <silent> <buffer> ,T :<C-u>call <SID>quickrunType('nodejs')<CR>
 
     " Linters
     AutocmdFT php,javascript
       \  Autocmd BufWritePost <buffer> call <SID>quickrunType('lint')
       \| nnoremap <silent> <buffer> ,W :<C-u>call <SID>quickrunType('lint')<CR>
+
+    " Formatters
+    AutocmdFT php,javascript,json,xml,html,twig,css,sugarss
+      \ nnoremap <silent> <buffer> ,w :<C-u>call <SID>quickrunType('formatter')<CR>
 
     Autocmd BufEnter,WinEnter runner:*
       \ let &l:statusline = ' ' | setlocal nonu nornu nolist colorcolumn=
@@ -1128,12 +1120,17 @@
         \}
       let g:quickrun_config['javascript/lint'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'unite',
-        \ 'args': printf('--config %s/preset/eslint.js --cache -f compact', $VIMFILES),
-        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m, %W%f: line %l\, col %c\, Warning - %m'
+        \ 'args': printf('--config %s/preset/eslint.js -f compact', $VIMFILES),
+        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m, %W%f: line %l\, col %c\, Warning - %m, %-G%.%#'
         \}
       let g:quickrun_config['javascript/formatter'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'reopen',
-        \ 'args': printf('--config %s/preset/eslint-fix.js --cache --no-color --fix', $VIMFILES)
+        \ 'args': printf('--config %s/preset/eslint-fix.js --no-color --fix', $VIMFILES)
+        \}
+      let g:quickrun_config['javascript/jest'] = {
+        \ 'runner': 'vimproc', 'runner/vimproc/updatetime': 120,
+        \ 'command': 'jest', 'exec': '%c %a', 'outputter': 'jest',
+        \ 'args': printf('--config %s/preset/jest.json', $VIMFILES)
         \}
 
       " CSS
@@ -1162,9 +1159,15 @@
         \}
 
       " JSON
+      " let g:quickrun_config['json/lint'] = {
+      "   \ 'runner': 'vimproc', 'runner/vimproc/updatetime': 120,
+      "   \ 'command': 'jsonlint', 'exec': '%c %s %a', 'outputter': 'unite',
+      "   \ 'args': '--compact -q',
+      "   \ 'errorformat': '%ELine %l:%c, %Z\\s%#Reason: %m, %C%.%#, %f: line %l\, col %c\, %m, %-G%.%#'
+      "   \}
       let g:quickrun_config['json/formatter'] = {
-        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-        \ 'args': '--indent-size 2 -f'
+        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'reopen',
+        \ 'args': '--indent-size 2 -q -o'
         \}
     endfunction
 
@@ -1343,7 +1346,7 @@
       endif
       if dein#tap('jspc.vim')
         let g:neocomplete#sources#omni#functions.javascript = get(g:neocomplete#sources#omni#functions, 'javascript', [])
-        call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni', 0)
+        call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni', 1)
       endif
     endfunction
 
@@ -1530,7 +1533,7 @@
       " Default profile
       let unite_default = {
         \ 'winheight': 20,
-        \ 'direction': 'botright',
+        \ 'direction': 'dynamicbottom',
         \ 'prompt_direction': 'bellow',
         \ 'cursor_line_time': '0.0',
         \ 'short_source_names': 1,
@@ -1684,6 +1687,15 @@
   Autocmd BufNewFile,BufRead *.{jsx,es6} setlocal filetype=javascript
   " Indent
   AutocmdFT javascript setlocal nowrap textwidth=120 | Indent 2
+
+" Jest
+  AutocmdFT jest Autocmd Syntax jest call s:jestColors()
+  function! s:jestColors() abort
+    syntax match jestPass /\vPASS/
+    syntax match jestFail /\vFAIL/
+    hi link jestPass Todo
+    hi link jestFail WarningMsg
+  endfunction
 
 " HTML
   " Indent
@@ -2066,9 +2078,9 @@
   " Shift-Enter: force save file
   nnoremap <silent> <S-Enter> :<C-u>update!<CR>
   " ;e: reopen file
-  nnoremap <silent> ;e :<C-u>edit<CR>
+  nnoremap <silent> ;e :<C-u>open<CR>
   " ;E: force reopen file
-  nnoremap <silent> ;E :<C-u>edit!<CR>
+  nnoremap <silent> ;E :<C-u>open!<CR>
 
   " Tabs
   "-----------------------------------------------------------------------
