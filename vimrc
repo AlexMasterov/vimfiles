@@ -5,10 +5,10 @@
 " Environment
 "---------------------------------------------------------------------------
   " Vimfiles
-  let $VIMFILES = substitute(expand('$VIM/vimfiles'), '[\\/]\+', '/', 'g')
-  let $CACHE = expand('$VIMFILES/cache')
+  let $VIMFILES = fnamemodify($VIM, ':h') . '/vimfiles'
+  let $CACHE = $VIMFILES.'/cache'
 
-  set viminfo+=n$VIMFILES/viminfo
+  set viminfo=!,'300,<50,s10,h,n$VIMFILES/viminfo
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
 
@@ -147,7 +147,7 @@
 
   " Setup Dein plugin manager
   if has('vim_starting')
-    let s:deinPath = expand('$VIM/dein')
+    let s:deinPath = $VIMFILES.'/dein'
     let s:deinRepo = printf('%s/repos/github.com/Shougo/dein.vim', s:deinPath)
     if !isdirectory(s:deinRepo)
       if executable('git')
@@ -412,22 +412,20 @@
     call dein#add('Shougo/neomru.vim', {
       \ 'on_source': 'unite.vim',
       \ 'on_path': '.*',
-      \ 'on_cmd': ['NeoMRUSave', 'NeoMRUReload'],
+      \ 'on_func': 'neomru#_save',
       \ 'hook_add': join([
       \   'nnoremap <silent> ;w :<C-u>Unite neomru/file -toggle -profile-name=neomru/project<CR>',
       \   'nnoremap <silent> ;W :<C-u>Unite neomru/file -toggle<CR>',
-      \   "nnoremap <silent> ;v :<C-u>Unite line:all -input=`expand('<lt>cword>')`<CR>",
-      \   'Autocmd BufWipeout,BufLeave,WinLeave,BufWinLeave,VimLeavePre * NeoMRUSave'
+      \   'Autocmd VimLeavePre,BufWipeout,BufLeave,WinLeave * call neomru#_save()'
       \], "\n"),
       \ 'hook_source': join([
-      \   'let g:neomru#do_validate = 0',
       \   "let g:neomru#filename_format = ':.'",
       \   "let g:neomru#time_format = '%m.%d %H:%M — '",
-      \   "let g:neomru#file_mru_path = expand('$CACHE/unite/mru_file')",
-      \   "let g:neomru#file_mru_ignore_pattern = '\.\%([_]vimrc\|txt\)$\|\gita.*'",
-      \   "let g:neomru#directory_mru_path = expand('$CACHE/unite/mru_directory')",
-      \   "call unite#custom#profile('neomru/project', 'matchers',"
-      \   . "['matcher_fuzzy', 'matcher_hide_current_file', 'matcher_project_files'])"
+      \   "let g:neomru#file_mru_limit = 180",
+      \   "let g:neomru#file_mru_path = $CACHE.'/unite/mru_file'",
+      \   "let g:neomru#file_mru_ignore_pattern = '\.\%(log\|vimrc\)$'",
+      \   "let g:neomru#directory_mru_path = $CACHE.'/unite/mru_directory'",
+      \   "call unite#custom#profile('neomru/project', 'matchers', ['matcher_hide_current_file', 'matcher_project_files', 'matcher_fuzzy'])"
       \], "\n")
       \})
     call dein#local($VIMFILES.'/dev', {
@@ -574,8 +572,7 @@
     " Twig
     call dein#add('tokutake/twig-indent')
     call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0,
+      \ 'frozen': 1, 'merged': 0,
       \}, ['twig.vim'])
 
     " JavaScript
@@ -597,8 +594,7 @@
       \], "\n")
       \})
     call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0,
+      \ 'frozen': 1, 'merged': 0,
       \ 'on_cmd': ['TernjsRun', 'TernjsStop'],
       \ 'hook_add': 'AutocmdFT javascript TernjsRun'
       \}, ['ternjs.vim'])
@@ -623,16 +619,17 @@
       \})
 
     " CSS
+    " call dein#add('hail2u/vim-css3-syntax')
     call dein#add('JulesWang/css.vim')
-    call dein#add('hail2u/vim-css3-syntax')
     call dein#add('othree/csscomplete.vim')
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0,
-      \ 'on_map': [['i', '<Plug>(hyperstyle']]
-      \}, ['hyperstyle.vim'])
+    call dein#add('rstacruz/vim-hyperstyle', {
+      \ 'build':
+      \   'rm -f ' . dein#util#_get_base_path() . '/repos/github.com/rstacruz/vim-hyperstyle/doc/hyperstyle.txt',
+      \ 'on_map': [['i', '<Plug>(hyperstyle']],
+      \ 'hook_post_source': 'augroup hyperstyle | autocmd! | augroup END'
+      \})
 
-    " Sugar CSS
+    " PostCSS (Sugar)
     call dein#add('hhsnopek/vim-sugarss', {
       \ 'hook_add': join([
       \   'Autocmd BufNewFile,BufRead *.sss setlocal filetype=sugarss syntax=sss commentstring=//%s',
@@ -956,23 +953,6 @@
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:undotreeOnSource'))
-  endif
-
-  if dein#tap('vim-buftabline')
-    Autocmd VimEnter * call buftabline#update(0)
-    for n in range(1, 9)
-      execute printf('nnoremap <silent> <nowait> <Space>%d :<C-u>Buffer %d<CR>', n, n)
-    endfor | unlet n
-
-    command! -nargs=1 -bar Buffer call s:jumpToBuffer(<f-args>)
-
-    function! s:jumpToBuffer(index) abort
-      let buffers = filter(range(1, bufnr('$')), 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
-      let index = a:index <= 0 ? 0 : a:index - 1
-      if index < len(buffers)
-        execute ":buffer! ". buffers[index]
-      endif
-    endfunction
   endif
 
   if dein#tap('vimfiler.vim')
@@ -1703,9 +1683,9 @@
 
     Autocmd Syntax phpunit call s:phpunitColors()
     function! s:phpunitColors() abort
-      hi! link PHPUnitOK         Todo
-      hi! link PHPUnitFail       WarningMsg
-      hi! link PHPUnitAssertFail Error
+      hi link PHPUnitOK         Todo
+      hi link PHPUnitFail       WarningMsg
+      hi link PHPUnitAssertFail Error
     endfunction
   endif
 
@@ -1821,18 +1801,14 @@
   endif
 
   " Autocomplete
-  if dein#tap('hyperstyle.vim')
-    AutocmdFT css,sass,sss,sugarss call s:hyperstyleReset()
-
-    function! s:hyperstyleReset() abort
+  if dein#tap('vim-hyperstyle')
+    AutocmdFT css,sass,sss,sugarss  call s:hyperstyleSettings()
+    function! s:hyperstyleSettings() abort
       let b:hyperstyle = 1
       let b:hyperstyle_semi = ''
 
       imap <buffer> <expr> <Space>
-        \ getline('.')[getcurpos()[4]-2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
-      if exists('*neoComplete')
-        imap <Tab> <Plug>(neocomplete)
-      endif
+        \ getline('.')[getcurpos()[4] - 2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
     endfunction
   endif
 
@@ -1859,7 +1835,7 @@
         \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
 
     Autocmd Syntax json
-      \ syntax match jsonComment "//.\{-}$" | hi! link jsonComment Comment
+      \ syntax match jsonComment "//.\{-}$" | hi link jsonComment Comment
   endif
 
 " XML
@@ -1882,11 +1858,11 @@
 "---------------------------------------------------------------------------
   if has('gui_running')
     if has('vim_starting')
-      winsize 190 34 | winpos 492 326
+      winsize 190 34 | winpos 492 350
     endif
     set guioptions=ac
     set guicursor=a:blinkon0  " turn off blinking the cursor
-    set linespace=3           " extra spaces between rows
+    set linespace=4           " extra spaces between rows
 
     if IsWindows()
       set guifont=Droid_Sans_Mono:h10,Consolas:h11
@@ -2014,7 +1990,6 @@
   set shiftwidth=2     " number of spaces per tab in insert mode
   set softtabstop=2    " number of spaces when indenting
   set nojoinspaces     " prevents inserting two spaces after punctuation on a join (J)
-  " Backspacing setting
   set backspace=indent,eol,start
 
   " Search
