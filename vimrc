@@ -1231,26 +1231,28 @@
   endif
 
   if dein#tap('context_filetype.vim')
-    function! s:addContext(filetype, rule) abort
-      let context_ft_def = get(context_filetype#default_filetypes(), a:filetype, [])
-      let g:context_filetype#filetypes[a:filetype] = add(context_ft_def, a:rule)
+    function! s:addContext(filetype, context) abort
+      let filetype = get(context_filetype#default_filetypes(), a:filetype, [])
+      let g:context_filetype#filetypes[a:filetype] = add(filetype, a:context)
     endfunction
 
-    let s:context_ft_css = {
-      \ 'filetype': 'css',
-      \ 'start':    '<script\%( [^>]*\)\?>',
-      \ 'end':      '</style>'
-      \}
-    let s:context_ft_javascript = {
-      \ 'filetype': 'javascript',
-      \ 'start':    '<script\%( [^>]*\)\?>',
-      \ 'end':      '</script>'
-      \}
+    function! s:contextFiletypeOnSource() abort
+      let css = {
+        \ 'filetype': 'css',
+        \ 'start': '<style\%( [^>]*\)\?>', 'end': '</style>'
+        \}
+      let javascript = {
+        \ 'filetype': 'javascript',
+        \ 'start': '<script\%( [^>]*\)\?>', 'end': '</script>'
+        \}
 
-    for filetype in split('html twig blade')
-      call s:addContext(filetype, s:context_ft_css)
-      call s:addContext(filetype, s:context_ft_javascript)
-    endfor | unlet filetype
+      for filetype in split('html twig blade')
+        call s:addContext(filetype, css)
+        call s:addContext(filetype, javascript)
+      endfor | unlet filetype
+    endfunction
+
+    call dein#set_hook(g:dein#name, 'hook_source', function('s:contextFiletypeOnSource'))
   endif
 
   if dein#tap('neocomplete.vim')
@@ -1274,7 +1276,6 @@
         return neocomplete#helper#get_force_omni_complete_pos(neocomplete#get_cur_text(1)) >= 0
           \ ? "\<C-x>\<C-o>\<C-r>=neocomplete#mappings#popup_post()\<CR>"
           \ : "\<C-x>\<C-o>"
-          " \ : neocomplete#start_manual_complete()
       endif
       return a:key
     endfunction
