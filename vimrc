@@ -710,12 +710,12 @@
 
   if dein#tap('lexima.vim')
     function! s:leximaOnSource() abort
-      silent! call remove(g:lexima#default_rules, 30, -1) " prev 11
+      silent! call remove(g:lexima#default_rules, 11, -1) " prev 30
       for rule in g:lexima#default_rules + g:lexima#newline_rules
         call lexima#add_rule(rule)
       endfor | unlet rule
 
-      function! s:disable_lexima_inside_regexp(char) abort
+      function! s:disableLeximaInsideRegexp(char) abort
         call lexima#add_rule({'at': '\(...........\)\?/\S.*\%#.*\S/', 'char': a:char, 'input': a:char})
       endfunction
 
@@ -731,7 +731,7 @@
         call lexima#add_rule({'at': '\(.......\)\?'. quote .'\%#', 'char': quote, 'input': quote})
         call lexima#add_rule({'at': '\(...........\)\?\%#'. quote, 'char': quote, 'input': '<Right>'})
         call lexima#add_rule({'at': '\(.......\)\?'. quote .'\%#'. quote, 'char': '<BS>', 'delete': 1})
-        call s:disable_lexima_inside_regexp(quote)
+        call s:disableLeximaInsideRegexp(quote)
       endfor | unlet quote
 
       " { <Space> }
@@ -740,7 +740,6 @@
         \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
         \})
 
-      " Twig / Blade
       " {{ <Space> }}
       call lexima#add_rule({
         \ 'filetype': ['twig', 'blade'],
@@ -776,110 +775,114 @@
   if dein#tap('switch.vim')
     nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
     xnoremap <silent> <S-Tab> :silent! Switch<CR>
-    nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switch_def_quotes, {'reverse': 1})<CR>
-    nnoremap <silent> ` :<C-u>silent! call switch#Switch(g:switch_def_camelcase, {'reverse': 1})<CR>
+    nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switchQuotes, {'reverse': 1})<CR>
+    nnoremap <silent> @ :<C-u>silent! call switch#Switch(g:switchCamelCase, {'reverse': 1})<CR>
 
-    let g:switch_def_quotes = [{
-      \ '''\(.\{-}\)''': '"\1"',
-      \ '"\(.\{-}\)"':  '''\1''',
-      \ '`\(.\{-}\)`':  '''\1'''
-      \}]
-    let g:switch_def_camelcase = [{
-      \ '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-      \ '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-      \ '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
-      \ '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-      \ '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
-      \}]
-
-    " PHP
-    AutocmdFT php let b:switch_custom_definitions = [
-      \ ['prod', 'dev', 'test'],
-      \ ['&&', '||'],
-      \ ['and', 'or'],
-      \ ['public', 'protected', 'private'],
-      \ ['extends', 'implements'],
-      \ ['string ', 'int ', 'array '],
-      \ ['use', 'namespace'],
-      \ ['var_dump', 'print_r'],
-      \ ['include', 'require'],
-      \ ['include_once', 'require_once'],
-      \ ['$_GET', '$_POST', '$_REQUEST'],
-      \ ['__DIR__', '__FILE__'],
+    let g:switchQuotes = [
       \ {
-      \   '\([^=]\)===\([^=]\)': '\1==\2',
-      \   '\([^=]\)==\([^=]\)': '\1===\2'
-      \ },
+      \  '''\(.\{-}\)''': '"\1"',
+      \  '"\(.\{-}\)"':   '''\1''',
+      \  '`\(.\{-}\)`':   '''\1'''
+      \ }
+      \]
+    let g:switchCamelCase = [
       \ {
-      \   '\[[''"]\(\k\+\)[''"]\]': '->\1',
-      \   '\->\(\k\+\)': '[''\1'']'
-      \ },
-      \ {
-      \   '\array(\(.\{-}\))': '[\1]',
-      \   '\[\(.\{-}\)]': '\array(\1)'
-      \ },
-      \ {
-      \   '^class\s\(\k\+\)': 'final class \1',
-      \   '^final class\s\(\k\+\)': 'abstract class \1',
-      \   '^abstract class\s\(\k\+\)': 'trait \1',
-      \   '^trait\s\(\k\+\)': 'class \1'
+      \  '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+      \  '\<\(\u\l\+\)\(\u\l\+\)\+\>':     "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+      \  '\<\(\l\+\)\(_\l\+\)\+\>':        '\U\0',
+      \  '\<\(\u\+\)\(_\u\+\)\+\>':        "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+      \  '\<\(\l\+\)\(-\l\+\)\+\>':        "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
       \ }
       \]
 
-    " JavaScript
-    AutocmdFT javascript let b:switch_custom_definitions = [
-      \ ['get', 'set'],
-      \ ['var', 'const', 'let'],
-      \ ['<', '>'], ['==', '!=', '==='],
-      \ ['left', 'right'], ['top', 'bottom'],
-      \ ['getElementById', 'getElementByClassName'],
-      \ {
-      \   '\function\s*(\(.\{-}\))': '(\1) =>'
-      \ }
+    AutocmdFT php
+      \ let b:switch_custom_definitions = [
+      \  ['prod', 'dev', 'test'],
+      \  ['&&', '||'],
+      \  ['and', 'or'],
+      \  ['public', 'protected', 'private'],
+      \  ['extends', 'implements'],
+      \  ['string ', 'int ', 'array '],
+      \  ['use', 'namespace'],
+      \  ['var_dump', 'print_r'],
+      \  ['include', 'require'],
+      \  ['include_once', 'require_once'],
+      \  ['$_GET', '$_POST', '$_REQUEST'],
+      \  ['__DIR__', '__FILE__'],
+      \  {
+      \    '\([^=]\)===\([^=]\)': '\1==\2',
+      \    '\([^=]\)==\([^=]\)': '\1===\2'
+      \  },
+      \  {
+      \    '\[[''"]\(\k\+\)[''"]\]': '->\1',
+      \    '\->\(\k\+\)': '[''\1'']'
+      \  },
+      \  {
+      \    '\array(\(.\{-}\))': '[\1]',
+      \    '\[\(.\{-}\)]': '\array(\1)'
+      \  },
+      \  {
+      \    '^class\s\(\k\+\)': 'final class \1',
+      \    '^final class\s\(\k\+\)': 'abstract class \1',
+      \    '^abstract class\s\(\k\+\)': 'trait \1',
+      \    '^trait\s\(\k\+\)': 'class \1'
+      \  }
       \]
 
-    " HTML
-    AutocmdFT html,twig let b:switch_custom_definitions = [
-      \ ['h1', 'h2', 'h3'],
-      \ ['png', 'jpg', 'gif'],
-      \ ['id=', 'class=', 'style='],
-      \ {
-      \   '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
-      \   '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
-      \ },
-      \ {
-      \   '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
-      \   '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
-      \ }
+    AutocmdFT javascript
+      \ let b:switch_custom_definitions = [
+      \  ['get', 'set'],
+      \  ['var', 'const', 'let'],
+      \  ['<', '>'], ['==', '!=', '==='],
+      \  ['left', 'right'], ['top', 'bottom'],
+      \  ['getElementById', 'getElementByClassName'],
+      \  {
+      \    '\function\s*(\(.\{-}\))': '(\1) =>'
+      \  }
       \]
 
-    " CSS
-    AutocmdFT css let b:switch_custom_definitions = [
-      \ ['border-top', 'border-bottom'],
-      \ ['border-left', 'border-right'],
-      \ ['border-left-width', 'border-right-width'],
-      \ ['border-top-width', 'border-bottom-width'],
-      \ ['border-left-style', 'border-right-style'],
-      \ ['border-top-style', 'border-bottom-style'],
-      \ ['margin-left', 'margin-right'],
-      \ ['margin-top', 'margin-bottom'],
-      \ ['padding-left', 'padding-right'],
-      \ ['padding-top', 'padding-bottom'],
-      \ ['margin', 'padding'],
-      \ ['height', 'width'],
-      \ ['min-width', 'max-width'],
-      \ ['min-height', 'max-height'],
-      \ ['transition', 'animation'],
-      \ ['absolute', 'relative', 'fixed'],
-      \ ['inline', 'inline-block', 'block', 'flex'],
-      \ ['overflow', 'overflow-x', 'overflow-y'],
-      \ ['before', 'after'],
-      \ ['none', 'block'],
-      \ ['left', 'right'],
-      \ ['top', 'bottom'],
-      \ ['em', 'px', '%'],
-      \ ['bold', 'normal'],
-      \ ['hover', 'active']
+    AutocmdFT html,twig,blade
+      \ let b:switch_custom_definitions = [
+      \  ['h1', 'h2', 'h3'],
+      \  ['png', 'jpg', 'gif'],
+      \  ['id=', 'class=', 'style='],
+      \  {
+      \    '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
+      \    '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
+      \  },
+      \  {
+      \    '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
+      \    '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
+      \  }
+      \]
+
+    AutocmdFT css
+      \ let b:switch_custom_definitions = [
+      \  ['border-top', 'border-bottom'],
+      \  ['border-left', 'border-right'],
+      \  ['border-left-width', 'border-right-width'],
+      \  ['border-top-width', 'border-bottom-width'],
+      \  ['border-left-style', 'border-right-style'],
+      \  ['border-top-style', 'border-bottom-style'],
+      \  ['margin-left', 'margin-right'],
+      \  ['margin-top', 'margin-bottom'],
+      \  ['padding-left', 'padding-right'],
+      \  ['padding-top', 'padding-bottom'],
+      \  ['margin', 'padding'],
+      \  ['height', 'width'],
+      \  ['min-width', 'max-width'],
+      \  ['min-height', 'max-height'],
+      \  ['transition', 'animation'],
+      \  ['absolute', 'relative', 'fixed'],
+      \  ['inline', 'inline-block', 'block', 'flex'],
+      \  ['overflow', 'overflow-x', 'overflow-y'],
+      \  ['before', 'after'],
+      \  ['none', 'block'],
+      \  ['left', 'right'],
+      \  ['top', 'bottom'],
+      \  ['em', 'px', '%'],
+      \  ['bold', 'normal'],
+      \  ['hover', 'active']
       \]
   endif
 
