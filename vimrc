@@ -181,7 +181,7 @@
       \ 'rtp': '',
       \ 'hook_add': join([
       \   'let g:dein#types#git#clone_depth = 1',
-      \   'let g:dein#install_max_processes = 20',
+      \   'let g:dein#install_max_processes = 8',
       \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
       \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>',
       \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
@@ -546,13 +546,12 @@
       \ 'hook_source': 'let g:necoghc_enable_detailed_browse = 1'
       \})
 
+    " File-types
+    "-----------------------------------------------------------------------
     " PHP
     call dein#add('2072/PHP-Indenting-for-VIm')
-    call dein#add('c9s/phpunit.vim', {
-      \ 'on_cmd': 'PHPUnit',
-      \ 'hook_add': "AutocmdFT phpunit let &l:statusline = ' '"
-      \})
     call dein#add('tobyS/vmustache')
+    call dein#add('shawncplus/phpcomplete.vim')
     call dein#add('tobyS/pdv', {
       \ 'depends': 'vmustache',
       \ 'on_func': 'pdv#',
@@ -561,9 +560,7 @@
       \})
     call dein#add('arnaud-lb/vim-php-namespace', {
       \ 'on_func': 'PhpSortUse',
-      \ 'hook_add': join([
-      \   'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>silent! call PhpSortUse()<CR>'
-      \], "\n")
+      \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>silent! call PhpSortUse()<CR>'
       \})
 
     " Blade
@@ -574,6 +571,9 @@
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1, 'merged': 0,
       \}, ['twig.vim'])
+
+    " Blade
+    call dein#add('jwalton512/vim-blade')
 
     " JavaScript
     call dein#add('othree/yajs.vim')
@@ -658,16 +658,16 @@
     " CSV
     call dein#add('chrisbra/csv.vim')
 
+    " SVG
+    call dein#add('aur-archive/vim-svg')
+    call dein#add('jasonshell/vim-svg-indent')
+
     " Nginx
     call dein#add('yaroot/vim-nginx', {
       \ 'hook_add': 'Autocmd BufNewFile,BufRead */nginx/** setlocal filetype=nginx commentstring=#%s'
       \})
 
-    " Solidity (Blockchain Smart contract)
-    call dein#add('tomlion/vim-solidity')
-
     call dein#end()
-    call dein#clear_state()
     call dein#save_state()
   endif
 
@@ -1383,9 +1383,9 @@
       let g:UltiSnipsExpandTrigger = '<C-F12>'
       let g:UltiSnipsListSnippets = '<C-F12>'
 
-      Autocmd BufNewFile,BufReadPost *.snippets setlocal nowrap foldmethod=manual
       AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
       AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+      Autocmd BufNewFile,BufReadPost *.snippets setlocal nowrap foldmethod=manual
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:ultiOnSource'))
