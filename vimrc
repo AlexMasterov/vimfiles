@@ -1058,17 +1058,12 @@
   if dein#tap('vim-quickrun')
     nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
-    " Runner
+    " Runners
     AutocmdFT php
       \ nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('phpunit')<CR>
     AutocmdFT javascript
       \  nnoremap <silent> <buffer> ,t :<C-u>call <SID>quickrunType('jest')<CR>
       \| nnoremap <silent> <buffer> ,T :<C-u>call <SID>quickrunType('nodejs')<CR>
-
-    " Linters
-    AutocmdFT php,javascript
-      \  Autocmd BufWritePost <buffer> call <SID>quickrunType('lint')
-      \| nnoremap <silent> <buffer> ,W :<C-u>call <SID>quickrunType('lint')<CR>
 
     " Formatters
     AutocmdFT php,javascript,json,xml,html,twig,css,sugarss
@@ -1088,18 +1083,13 @@
       let g:quickrun_config._ = {'runner': 'job', 'runner/job/updatetime': 10}
 
       " PHP
-      let g:quickrun_config['php/lint'] = {
-        \ 'command': 'php', 'exec': '%c %a %s', 'outputter': 'unite',
-        \ 'args': '-l',
-        \ 'errorformat': '%*[^:]: %m in %f on line %l'
-        \}
       let g:quickrun_config['php/formatter'] = {
-        \ 'command': 'php-cs-fixer', 'exec': '%c %a -- %s', 'outputter': 'reopen',
-        \ 'args': '-q fix --rules=@PSR2'
+        \ 'command': 'php-cs-fixer', 'exec': '%c %a %s', 'outputter': 'reopen',
+        \ 'args': printf('fix -q --config=%s/preset/.php_cs', $VIMFILES)
         \}
       let g:quickrun_config['php/phpunit'] = {
-        \ 'command': 'phpunit', 'exec': '%c %a', 'outputter': 'phpunit',
-        \ 'args': printf('-c %s/preset/phpunit.xml.dist', $VIMFILES)
+        \ 'command': 'phpunit', 'exec': '%c %a %s', 'outputter': 'phpunit',
+        \ 'args': '-c phpunit.xml --tap --stop-on-failure'
         \}
 
       " JavaScript
@@ -1108,11 +1098,6 @@
         \ 'outputter/buffer/name': 'runner:nodejs',
         \ 'outputter/buffer/filetype': 'json',
         \ 'outputter/buffer/running_mark': '...'
-        \}
-      let g:quickrun_config['javascript/lint'] = {
-        \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'unite',
-        \ 'args': printf('--config %s/preset/eslint.js -f compact', $VIMFILES),
-        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m, %W%f: line %l\, col %c\, Warning - %m, %-G%.%#'
         \}
       let g:quickrun_config['javascript/formatter'] = {
         \ 'command': 'eslint', 'exec': '%c %a %s', 'outputter': 'reopen',
@@ -1138,7 +1123,7 @@
       " HTML
       let g:quickrun_config['html/formatter'] = {
         \ 'command': 'html-beautify', 'exec': '%c -f %s %a', 'outputter': 'rebuffer',
-        \ 'args': '--indent-size 2 --unformatted script'
+        \ 'args': printf('--config %s/preset/beautify.json -q -o', $VIMFILES)
         \}
       " Twig
       let g:quickrun_config['twig/formatter'] = g:quickrun_config['html/formatter']
@@ -1146,20 +1131,28 @@
       " XML
       let g:quickrun_config['xml/formatter'] = {
         \ 'command': 'tidy', 'exec': '%c %a %s', 'outputter': 'rebuffer',
-        \ 'args': printf('-config %s/preset/tidy_xml.config', $VIMFILES)
+        \ 'args': printf('-config %s/preset/tidy_xml.config', $VIMFILES),
+        \}
+
+      " Lua
+      let g:quickrun_config['lua/lint'] = {
+        \ 'command': IsWindows() ? 'luac53' : 'luac',
+        \ 'exec': '%c %a %s', 'args': '-p',
+        \ 'outputter': 'luac',
+        \ 'errorformat': '%*\f: %#%f:%l: %m'
         \}
 
       " JSON
+      let g:quickrun_config['json/formatter'] = {
+        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'reopen',
+        \ 'args': printf('--config %s/preset/beautify.json -q -o', $VIMFILES)
+        \}
       " let g:quickrun_config['json/lint'] = {
       "   \ 'runner': 'vimproc', 'runner/vimproc/updatetime': 120,
       "   \ 'command': 'jsonlint', 'exec': '%c %s %a', 'outputter': 'unite',
       "   \ 'args': '--compact -q',
       "   \ 'errorformat': '%ELine %l:%c, %Z\\s%#Reason: %m, %C%.%#, %f: line %l\, col %c\, %m, %-G%.%#'
       "   \}
-      let g:quickrun_config['json/formatter'] = {
-        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'reopen',
-        \ 'args': '--indent-size 2 -q -o'
-        \}
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:quickrunOnSource'))
@@ -1290,9 +1283,10 @@
       let g:neocomplete#enable_auto_delimiter = 1
       let g:neocomplete#min_keyword_length = 2
       let g:neocomplete#auto_completion_start_length = 2
-      let g:neocomplete#manual_completion_start_length = 1
+      let g:neocomplete#manual_completion_start_length = 2
+      let g:neocomplete#fallback_mappings = ["\<C-x>\<C-o>", "\<C-x>\<C-n>"]
 
-      let g:neocomplete#data_directory = expand('$CACHE/neocomplete')
+      let g:neocomplete#data_directory = $CACHE.'/neocomplete'
       let g:neocomplete#lock_buffer_name_pattern = '\.log\|.*;tail\|.*quickrun.*'
       let g:neocomplete#sources#buffer#disabled_pattern = g:neocomplete#lock_buffer_name_pattern
 
@@ -1301,6 +1295,12 @@
       call neocomplete#custom#source('omni', 'rank', 60)
       call neocomplete#custom#source('ultisnips', 'rank', 80)
       call neocomplete#custom#source('ultisnips', 'min_pattern_length', 1)
+      call neocomplete#custom#source('_', 'converters', [
+        \ 'converter_add_paren',
+        \ 'converter_remove_overlap',
+        \ 'converter_delimiter',
+        \ 'converter_abbr'
+        \])
 
       " Sources
       let g:neocomplete#sources = {
