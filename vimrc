@@ -163,20 +163,6 @@
   if dein#load_state(s:deinPath)
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
-    " Load develop version plugins
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0
-      \}, ['dotvim', 'phptest.vim'])
-
-    " Gist
-    call dein#add('https://gist.github.com/AlexMasterov/e81093a7b4cf14413b2b04abcf83ffe2', {
-      \ 'script_type': 'plugin',
-      \ 'on_func': 'CleanBuffers',
-      \ 'hook_add': "Autocmd BufHidden * call CleanBuffers('!')",
-      \ 'hook_source': 'let g:bufcleaner_max_save = 10'
-      \})
-
     call dein#add('Shougo/dein.vim', {
       \ 'rtp': '',
       \ 'hook_add': join([
@@ -187,9 +173,11 @@
       \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
       \], "\n")
       \})
+    " Load develop version plugins
+    call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0},  ['dotvim'])
     call dein#add('Shougo/vimproc.vim', {
-      \ 'lazy': 1,
-      \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make'
+      \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make',
+      \ 'on_source': 'unite.vim'
       \})
     call dein#add('kopischke/vim-stay', {
       \ 'on_path': '.*'
@@ -463,7 +451,20 @@
       \ 'merged': 0
       \}, ['quickrun'])
 
+    " Text-objects
+    "-----------------------------------------------------------------------
+    call dein#add('kana/vim-textobj-user')
+    call dein#add('machakann/vim-textobj-delimited', {
+      \ 'depends': 'vim-textobj-user',
+      \ 'on_map': ['vid', 'viD', 'vad', 'vaD']
+      \})
+    call dein#add('whatyouhide/vim-textobj-xmlattr', {
+      \ 'depends': 'vim-textobj-user',
+      \ 'on_map': ['vix', 'vax']
+      \})
+
     " Operators
+    "-----------------------------------------------------------------------
     call dein#add('kana/vim-operator-user')
     call dein#add('kana/vim-operator-replace', {
       \ 'depends': 'vim-operator-user',
@@ -502,48 +503,154 @@
       \   "let g:operator#flashy#group = 'Visual'"
       \], "\n")
       \})
-    call dein#add('kusabashira/vim-operator-eval', {
-      \ 'depends': 'vim-operator-user',
-      \ 'on_map': [['v', '<Plug>(operator-eval-']],
-      \ 'hook_add': 'vmap <silent> se <Plug>(operator-eval-vim)'
-      \})
 
-    " Text-objects
-    call dein#add('kana/vim-textobj-user')
-    call dein#add('machakann/vim-textobj-delimited', {
-      \ 'depends': 'vim-textobj-user',
-      \ 'on_map': ['vid', 'viD', 'vad', 'vaD']
-      \})
-    call dein#add('whatyouhide/vim-textobj-xmlattr', {
-      \ 'depends': 'vim-textobj-user',
-      \ 'on_map': ['vix', 'vax']
-      \})
-
-    " Rust
-    call dein#add('rust-lang/rust.vim', {
-      \ 'on_ft': 'rust',
-      \ 'hook_source': join([
-      \   'let g:rustfmt_autosave = 0',
-      \   "let g:ftplugin_rust_source_path = exists('$RUST_SRC_PATH') ? $RUST_SRC_PATH : ''"
-      \], "\n")
-      \})
-    call dein#add('ebfe/vim-racer', {
-      \ 'if': executable('racer'),
+    call dein#add('tpope/vim-surround', {
+      \ 'on_map': [['n', '<Plug>D'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']],
       \ 'hook_add': join([
-      \   'AutocmdFT rust setlocal omnifunc=racer#Complete',
-      \   'AutocmdFT rust nnoremap <silent> <buffer> gd :<C-u>call racer#JumpToDefinition()<CR>'
+      \   'nmap ,d <Plug>Dsurround',
+      \   'nmap ,i <Plug>Csurround',
+      \   'nmap ,I <Plug>CSurround',
+      \   'nmap ,t <Plug>Yssurround',
+      \   'nmap ,T <Plug>YSsurround',
+      \   'xmap ,s <Plug>VSurround',
+      \   'xmap ,S <Plug>VgSurround',
+      \   "for char in split('` '' \" ( ) { } [ ]')",
+      \   "  execute printf('nmap ,%s ,Iw%s', char, char)",
+      \   "endfor | unlet char"
+      \], "\n"),
+      \ 'hook_source': 'let g:surround_no_mappings = 1'
+      \})
+
+    call dein#add('triglav/vim-visual-increment', {
+      \ 'on_map': [['x', '<Plug>Visual']],
+      \ 'hook_add': join([
+      \   'xmap <C-a> <Plug>VisualIncrement',
+      \   'xmap <C-x> <Plug>VisualDecrement'
+      \], "\n"),
+      \ 'hook_source': 'set nrformats+=alpha'
+      \})
+
+    call dein#add('haya14busa/vim-keeppad', {
+      \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
+      \ 'hook_add': 'Autocmd BufReadPre *.{json,css,sss,sugarss},qfreplace* KeeppadOn',
+      \ 'hook_source': 'let g:keeppad_autopadding = 0'
+      \})
+
+    call dein#add('kana/vim-smartword', {
+      \ 'on_map': [['nx', '<Plug>(smartword-']],
+      \ 'hook_add': join([
+      \   "for char in split('w e b ge')",
+      \   "  execute printf('nmap %s <Plug>(smartword-%s)', char, char)",
+      \   "  execute printf('vmap %s <Plug>(smartword-%s)', char, char)",
+      \   "endfor | unlet char"
       \], "\n")
       \})
 
-    " Haskell
-    call dein#add('itchyny/vim-haskell-indent')
-    call dein#add('Twinside/vim-syntax-haskell-cabal')
-    call dein#add('eagletmt/ghcmod-vim', {
-      \ 'on_cmd': ['GhcModCheck', 'GhcModLint', 'GhcModCheckAndLintAsync']
+    call dein#add('tyru/caw.vim', {
+      \ 'on_map': [['nx', '<Plug>(caw:']],
+      \ 'hook_add': join([
+      \   'nmap  q <Plug>(caw:range:toggle)',
+      \   'xmap  q <Plug>(caw:hatpos:toggle)',
+      \   'nmap ,f <Plug>(caw:jump:comment-prev)',
+      \   'nmap ,F <Plug>(caw:jump:comment-next)',
+      \   'nmap ,a <Plug>(caw:dollarpos:toggle)'
+      \], "\n"),
+      \ 'hook_source': join([
+      \   'let g:caw_no_default_keymappings = 1',
+      \   'let g:caw_hatpos_skip_blank_line = 1',
+      \   'let g:caw_dollarpos_sp_left = repeat("\u0020", 2)'
+      \], "\n"),
       \})
-    call dein#add('eagletmt/neco-ghc', {
-      \ 'hook_add': 'AutocmdFT haskell setlocal omnifunc=necoghc#omnifunc',
-      \ 'hook_source': 'let g:necoghc_enable_detailed_browse = 1'
+
+    call dein#add('AndrewRadev/splitjoin.vim', {
+      \ 'on_cmd': 'SplitjoinSplit',
+      \ 'hook_add': 'nmap <silent> S :<C-u>SplitjoinSplit<CR><CR><Esc>'
+      \})
+
+    call dein#add('jakobwesthoff/argumentrewrap', {
+      \ 'hook_add': 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
+      \})
+
+    call dein#add('junegunn/vim-easy-align', {
+      \ 'on_map': [['nx', '<Plug>(EasyAlign)']],
+      \ 'hook_add': 'vmap <Enter> <Plug>(EasyAlign)'
+      \})
+
+    call dein#add('easymotion/vim-easymotion', {
+      \ 'on_func': 'EasyMotion#go',
+      \ 'on_map': [['nx', '<Plug>(easymotion-']]
+      \})
+
+    call dein#add('AndrewRadev/sideways.vim', {
+      \ 'on_cmd': 'Sideways',
+      \ 'hook_add': join([
+      \   'nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>',
+      \   'nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>',
+      \   'nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>',
+      \   'nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>'
+      \], "\n")
+      \})
+
+    call dein#add('cohama/lexima.vim', {
+      \ 'on_event': 'InsertEnter',
+      \ 'hook_add': 'let g:lexima_no_default_rules = 1'
+      \})
+
+    call dein#add('AndrewRadev/switch.vim', {
+      \ 'on_func': 'switch#',
+      \ 'on_cmd': 'Switch',
+      \ 'hook_source': "let g:switch_mapping = ''"
+      \})
+
+    call dein#add('Shougo/vimfiler.vim', {
+      \ 'on_if': "isdirectory(bufname('%'))",
+      \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir'],
+      \ 'on_map': [['n', '<Plug>']]
+      \})
+
+    call dein#add('t9md/vim-choosewin', {
+      \ 'on_map': [['n', '<Plug>(choosewin)']],
+      \ 'hook_add': join([
+      \   'nmap - <Plug>(choosewin)',
+      \   'AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)'
+      \], "\n"),
+      \ 'hook_source': join([
+      \   "let g:choosewin_label = 'WERABC'",
+      \   "let g:choosewin_label_align = 'left'",
+      \   'let g:choosewin_blink_on_land = 0',
+      \   'let g:choosewin_overlay_enable = 2',
+      \   "let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}",
+      \   "let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
+      \   "let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
+      \   "let g:choosewin_color_overlay = {'gui': ['#2B2B2B', '#2B2B2B', 'bold']}",
+      \   "let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}"
+      \], "\n")
+      \})
+
+    call dein#add('whatyouhide/vim-lengthmatters', {
+      \ 'on_cmd': 'Lengthmatters',
+      \ 'hook_add': 'AutocmdFT php,javascript,haskell,rust LengthmattersEnable',
+      \ 'hook_source': join([
+      \   'let g:lengthmatters_on_by_default = 0',
+      \   "let g:lengthmatters_excluded = split('vim help markdown unite vimfiler undotree qfreplace')",
+      \   "call lengthmatters#highlight_link_to('ColorColumn')"
+      \], "\n")
+      \})
+
+    call dein#add('itchyny/vim-parenmatch', {
+      \ 'hook_add': join([
+      \   'let g:parenmatch = 0',
+      \   'Autocmd ColorScheme,Syntax * hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE',
+      \   'AutocmdFT php,javascript,json,css'
+      \   . ' Autocmd BufRead,BufEnter <buffer> let b:parenmatch = 1'
+      \], "\n")
+      \})
+
+    call dein#add('lilydjwg/colorizer', {
+      \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear'],
+      \ 'hook_source': 'let g:colorizer_nomap = 1'
       \})
 
     " File-types
@@ -601,7 +708,7 @@
 
     " HTML
     call dein#add('othree/html5.vim', {
-      \ 'hook_add': 'Autocmd Syntax html hi link htmlError htmlTag | hi link htmlTagError htmlTag'
+      \ 'hook_add': 'Autocmd Syntax html hi! link htmlError htmlTag | hi! link htmlTagError htmlTag'
       \})
     call dein#add('gregsexton/MatchTag', {
       \ 'hook_add': join([
@@ -694,14 +801,38 @@
     function! s:vimEasyAlignOnSource() abort
       let g:easy_align_ignore_groups = ['Comment', 'String']
       let g:easy_align_delimiters = {
-        \ '>': {'pattern': '>>\|=>\|>' },
-        \ ']': {'pattern': '[[\]]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-        \ ')': {'pattern': '[()]', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0},
-        \ 'f': {'pattern': ' \(\S\+(\)\@=', 'left_margin': 0, 'right_margin': 0 },
-        \ 'd': {'pattern': ' \(\S\+\s*[;=]\)\@=', 'left_margin': 0, 'right_margin': 0},
-        \ ';': {'pattern': ':', 'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1},
-        \ '/': {'pattern': '//\+\|/\*\|\*/', 'delimiter_align': 'l', 'ignore_groups': ['^\(.\(Comment\)\@!\)*$']},
-        \ '=': {'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]', 'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0}
+        \ '>': {
+        \   'pattern': '>>\|=>\|>'
+        \ },
+        \ ']': {
+        \   'pattern': '[[\]]',
+        \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
+        \ },
+        \ ')': {
+        \   'pattern': '[()]',
+        \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
+        \ },
+        \ 'f': {
+        \   'pattern': ' \(\S\+(\)\@=',
+        \   'left_margin': 0, 'right_margin': 0
+        \ },
+        \ 'd': {
+        \   'pattern': ' \(\S\+\s*[;=]\)\@=',
+        \   'left_margin': 0, 'right_margin': 0
+        \ },
+        \ ';': {
+        \   'pattern': ':',
+        \   'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1
+        \ },
+        \ '/': {
+        \   'pattern': '//\+\|/\*\|\*/',
+        \   'ignore_groups': ['^\(.\(Comment\)\@!\)*$'],
+        \   'delimiter_align': 'l'
+        \ },
+        \ '=': {
+        \   'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]',
+        \   'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0
+        \ }
         \}
     endfunction
 
