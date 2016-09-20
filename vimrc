@@ -179,16 +179,15 @@
       \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make',
       \ 'on_source': 'unite.vim'
       \})
-    call dein#add('kopischke/vim-stay', {
-      \ 'on_path': '.*'
-      \})
-    call dein#add('Shougo/vimfiler.vim', {
-      \ 'on_if': "isdirectory(bufname('%'))",
-      \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir'],
-      \ 'on_map': [['n', '<Plug>']]
-      \})
-    call dein#add('t9md/vim-choosewin', {
-      \ 'on_map': [['n', '<Plug>(choosewin)']],
+
+    call dein#add('kopischke/vim-stay', {'on_path': '.*'})
+    call dein#add('mbbill/undotree', {'on_cmd': 'UndotreeToggle'})
+    call dein#add('kana/vim-smartchr')
+
+    " Lint
+    "-----------------------------------------------------------------------
+    call dein#add('w0rp/ale', {
+      \ 'on_func': 'ale#Queue',
       \ 'hook_add': join([
       \   'nmap - <Plug>(choosewin)',
       \   'AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)'
@@ -257,148 +256,74 @@
       \   "call lengthmatters#highlight_link_to('ColorColumn')"
       \], "\n")
       \})
-    call dein#add('junegunn/vim-easy-align', {
-      \ 'on_map': [['nx', '<Plug>(EasyAlign)']],
-      \ 'hook_add': 'vmap <Enter> <Plug>(EasyAlign)'
-      \})
-    call dein#add('tpope/vim-surround', {
-      \ 'on_map': [['n', '<Plug>D'], ['n', '<Plug>C'], ['n', '<Plug>Y'], ['x', '<Plug>V']],
-      \ 'hook_add': join([
-      \   'nmap ,d <Plug>Dsurround',
-      \   'nmap ,i <Plug>Csurround',
-      \   'nmap ,I <Plug>CSurround',
-      \   'nmap ,t <Plug>Yssurround',
-      \   'nmap ,T <Plug>YSsurround',
-      \   'xmap ,s <Plug>VSurround',
-      \   'xmap ,S <Plug>VgSurround',
-      \   "for char in split('` '' \" ( ) { } [ ]')",
-      \   "  execute printf('nmap ,%s ,Iw%s', char, char)",
-      \   "endfor | unlet char"
-      \], "\n"),
-      \ 'hook_source': 'let g:surround_no_mappings = 1'
-      \})
-    call dein#add('AndrewRadev/splitjoin.vim', {
-      \ 'on_cmd': 'SplitjoinSplit',
-      \ 'hook_add': 'nmap <silent> S :<C-u>SplitjoinSplit<CR><CR><Esc>'
-      \})
-    call dein#add('AndrewRadev/sideways.vim', {
-      \ 'on_cmd': 'Sideways',
-      \ 'hook_add': join([
-      \   'nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>',
-      \   'nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>',
-      \   'nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>',
-      \   'nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>'
-      \], "\n")
-      \})
-    call dein#add('jakobwesthoff/argumentrewrap', {
-      \ 'hook_add': 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
-      \})
-    call dein#add('gcmt/wildfire.vim', {
-      \ 'if': 0,
-      \ 'on_map': [['nx', '<Plug>(wildfire-']],
-      \ 'hook_add': join([
-      \   'nmap vv    <Plug>(wildfire-fuel)',
-      \   'xmap vv    <Plug>(wildfire-fuel)',
-      \   'xmap <C-v> <Plug>(wildfire-water)'
-      \], "\n"),
-      \ 'hook_source': "let g:wildfire_objects = {'*': split('iw iW i' i\" i) a) a] a}'), 'html,xml,twig,blade': ['at']}"
-      \})
 
-    call dein#add('kana/vim-smartword', {
-      \ 'on_map': [['nx', '<Plug>(smartword-']],
-      \ 'hook_add': join([
-      \   "for char in split('w e b ge')",
-      \   "  execute printf('nmap %s <Plug>(smartword-%s)', char, char)",
-      \   "  execute printf('vmap %s <Plug>(smartword-%s)', char, char)",
-      \   "endfor | unlet char"
-      \], "\n")
+    " Task Runner
+    "-----------------------------------------------------------------------
+    call dein#add('thinca/vim-quickrun', {
+      \ 'rev': 'v0.7.0',
+      \ 'frozen': 1,
+      \ 'depends': 'vimproc.vim',
+      \ 'on_func': 'quickrun#',
+      \ 'on_cmd': 'QuickRun',
+      \ 'on_map': [['n', '<Plug>(quickrun)']]
       \})
-    call dein#add('triglav/vim-visual-increment', {
-      \ 'on_map': [['x', '<Plug>Visual']],
-      \ 'hook_add': join([
-      \   'xmap <C-a> <Plug>VisualIncrement',
-      \   'xmap <C-x> <Plug>VisualDecrement'
-      \], "\n"),
-      \ 'hook_source': 'set nrformats+=alpha'
-      \})
+    call dein#add('miyakogi/vim-quickrun-job')
 
-    call dein#add('easymotion/vim-easymotion', {
-      \ 'on_map': [['nx', '<Plug>(easymotion-']],
-      \ 'on_func': 'EasyMotion#go'
-      \})
-    call dein#add('haya14busa/incsearch-easymotion.vim')
-    call dein#add('haya14busa/incsearch.vim', {
-      \ 'on_func': 'incsearch#'
-      \})
+    " Bundles
+    call dein#local($VIMFILES.'/dev', {
+      \ 'frozen': 1, 'merged': 0
+      \}, ['quickrun'])
+    call dein#local('D:\Lab\viml', {
+      \ 'frozen': 1,'merged': 0
+      \}, ['phptest.vim'])
 
-    call dein#add('cohama/agit.vim', {
-      \ 'if': executable('git'),
-      \ 'on_cmd': ['Agit', 'AgitFile'],
-      \ 'hook_add': join([
-      \   'nnoremap <silent> ,gg :<C-u>Agit<CR>',
-      \   'nnoremap <silent> ,gf :<C-u>AgitFile<CR>'
-      \], "\n"),
-      \ 'on_source': 'let g:agit_max_log_lines = 100'
-      \})
-    call dein#add('lambdalisue/vim-gita', {
-      \ 'if': executable('git'),
-      \ 'on_cmd': 'Gita',
-      \ 'hook_add': join([
-      \   'nnoremap <silent> ,,   :<C-u>Gita status<CR>',
-      \   'nnoremap <silent> ,gs  :<C-u>Gita status<CR>',
-      \   'nnoremap <silent> ,gi  :<C-u>Gita init<CR>',
-      \   'nnoremap <silent> ,gb  :<C-u>Gita branch<CR>',
-      \   'nnoremap <silent> ,gc  :<C-u>Gita commit<CR>',
-      \   'nnoremap <silent> ,gca :<C-u>Gita commit --amend<CR>'
-      \], "\n")
-      \})
-
-    call dein#add('Shougo/context_filetype.vim', {
-      \ 'hook_add': 'let g:context_filetype#search_offset = 500'
-      \})
+    " Neocomplete
+    "-----------------------------------------------------------------------
     call dein#add('Shougo/neocomplete.vim', {
       \ 'depends': 'context_filetype.vim',
       \ 'on_event': 'InsertEnter'
       \})
-    call dein#add('Shougo/neco-vim', {
-      \ 'on_ft': 'vim'
+
+    " Plugins
+    call dein#add('Shougo/context_filetype.vim', {
+      \ 'hook_add': 'let g:context_filetype#search_offset = 500'
       \})
-    call dein#add('Shougo/neco-syntax')
-    call dein#add('hrsh7th/vim-neco-calc', {
+    call dein#add('Shougo/echodoc.vim', {
+      \ 'on_source': 'neocomplete.vim',
+      \ 'hook_source': 'let g:echodoc_enable_at_startup = 1'
+      \})
+
+    " Sources
+    call dein#add('Shougo/neco-vim', {
       \ 'on_source': 'neocomplete.vim'
       \})
     call dein#add('Shougo/neoinclude.vim', {
       \ 'on_source': 'neocomplete.vim'
       \})
+    call dein#add('hrsh7th/vim-neco-calc')
+    " call dein#add('racer-rust/vim-racer', {
+    "   \ 'if': executable('racer'),
+    "   \ 'on_source': 'neocomplete.vim'
+    "   \})
 
+    " Snippets
     call dein#add('SirVer/ultisnips', {
-      \ 'on_event': 'InsertCharPre',
-      \ 'pre_func': 'vimfiler#',
+      \ 'on_source': 'neocomplete.vim',
       \ 'hook_source': 'Autocmd VimEnter * silent! au! UltiSnipsFileType'
       \})
     call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0}, ['snippetus'])
 
-    " Unite
-    call dein#add('Shougo/unite.vim', {'lazy': 1, 'on_cmd': 'Unite'})
-    call dein#add('thinca/vim-qfreplace', {
-      \ 'on_source': 'unite.vim'
-      \})
-    call dein#add('Shougo/unite-outline', {
-      \ 'hook_add': 'nnoremap <silent> ;o :<C-u>Unite outline -silent -no-empty -toggle -winheight=16<CR>'
-      \})
-    call dein#add('mattn/httpstatus-vim', {
-      \ 'on_source': 'unite.vim',
-      \ 'hook_add': 'nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>'
-      \})
-    call dein#add('pasela/unite-webcolorname', {
-      \ 'on_source': 'unite.vim',
-      \ 'hook_add': 'nnoremap <silent> <F11> :<C-u>Unite webcolorname -buffer-name=colors -start-insert<CR>'
-      \})
-    call dein#add('osyo-manga/unite-vimpatches', {
-      \ 'hook_add': 'nnoremap <silent> ;U :<C-u>Unite vimpatches -buffer-name=dein<CR>'
-      \})
+    " Unite / Denite
+    "-----------------------------------------------------------------------
+    call dein#add('Shougo/unite.vim', {'on_cmd': 'Unite'})
+    call dein#add('Shougo/denite.nvim', {'on_cmd': 'Denite'})
+
+    " Plugins
+    call dein#add('thinca/vim-qfreplace', {'on_source': 'unite.vim'})
+
+    " Sources
     call dein#add('Shougo/neomru.vim', {
-      \ 'on_source': 'unite.vim',
+      \ 'on_source': ['unite.vim', 'denite.nvim'],
       \ 'on_path': '.*',
       \ 'on_func': 'neomru#_save',
       \ 'hook_add': join([
@@ -416,40 +341,27 @@
       \   "call unite#custom#profile('neomru/project', 'matchers', ['matcher_hide_current_file', 'matcher_project_files', 'matcher_fuzzy'])"
       \], "\n")
       \})
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0,
-      \ 'hook_add': 'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
-      \}, ['unite-location'])
-
-    call dein#add('osyo-manga/vim-reanimate', {
-      \ 'on_source': 'unite.vim',
-      \ 'on_cmd': 'ReanimateSaveInput',
-      \ 'hook_add': join([
-      \   'nnoremap <silent> ,L :<C-u>ReanimateSaveInput<CR>',
-      \   'nnoremap <silent> ,l :<C-u>Unite reanimate -buffer-name=reanimate<CR>'
-      \], "\n"),
+    call dein#add('Shougo/neoyank.vim', {
+      \ 'on_source': ['unite.vim', 'denite.nvim'],
+      \ 'hook_add': 'nnoremap <silent> ;y :<C-u>Denite neoyank -no-statusline -mode=normal<CR>',
       \ 'hook_source': join([
-      \   "let g:reanimate_event_disables = {'_': {'reanimate_confirm': 1}}",
-      \   "let g:reanimate_default_category = 'project'",
-      \   "let g:reanimate_save_dir = $VIMFILES.'/session'",
-      \   "let g:reanimate_sessionoptions = 'curdir,folds,help,localoptions,slash,tabpages,winsize'"
+      \   "let g:neoyank#limit = 50",
+      \   "let g:neoyank#file = $CACHE.'/unite/yank_file'"
       \], "\n")
       \})
-
-    " Task Runner
-    call dein#add('thinca/vim-quickrun', {'rev': '5149ecd',
-      \ 'depends': 'vimproc.vim',
-      \ 'on_func': 'quickrun#',
-      \ 'on_cmd': 'QuickRun',
-      \ 'on_map': [['n', '<Plug>(quickrun)']]
+    call dein#add('Shougo/unite-outline', {
+      \ 'hook_add': 'nnoremap <silent> ;; :<C-u>Unite outline -silent -no-empty -toggle -winheight=16<CR>'
       \})
-    call dein#add('miyakogi/vim-quickrun-job')
-    " vim-quickrun bundles
+    call dein#add('mattn/httpstatus-vim', {
+      \ 'hook_add': 'nnoremap <silent> <F12> :<C-u>Unite httpstatus -start-insert<CR>'
+      \})
+    call dein#add('pasela/unite-webcolorname', {
+      \ 'hook_add': 'nnoremap <silent> <F11> :<C-u>Unite webcolorname -buffer-name=colors -start-insert<CR>'
+      \})
     call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1,
-      \ 'merged': 0
-      \}, ['quickrun'])
+      \ 'frozen': 1, 'merged': 0,
+      \ 'hook_add': 'nnoremap <silent> ;l :<C-u>Unite location_list -no-empty -toggle<CR>',
+      \}, ['unite-location'])
 
     " Text-objects
     "-----------------------------------------------------------------------
@@ -1441,7 +1353,7 @@
         \ 'rust':       ['omni', 'file/include', 'ultisnips', 'calc'],
         \ 'javascript': ['omni', 'file/include', 'ultisnips', 'calc'],
         \ 'haskell':    ['omni', 'file/include', 'ultisnips', 'calc'],
-        \ 'php':        ['omni', 'file/include', 'ultisnips', 'calc'],
+        \ 'php':        ['omni', 'file/include', 'ultisnips', 'calc', 'buffer'],
         \ 'html':       ['omni', 'file/include', 'ultisnips'],
         \ 'twig':       ['omni', 'file/include', 'ultisnips'],
         \ 'blade':      ['omni', 'file/include', 'ultisnips'],
@@ -1457,7 +1369,7 @@
         \ 'sql':        '\h\w*\|[^.[:digit:] *\t]\%(\.\)\%(\h\w*\)\?',
         \ 'rust':       '[^.[:digit:] *\t]\%(\.\|\::\)\%(\h\w*\)\?',
         \ 'javascript': '\h\w*\|\h\w*\.\%(\h\w*\)\|[^. \t]\.\%(\h\w*\)',
-        \ 'php':        '[^. \t]->\%(\h\w*\)\|\h\w*::\%(\h\w*\)\|\(new\|use\|extends\|implements\|instanceof\)\%(\s\|\s\\\)'
+        \ 'php':        '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
         \}
 
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
@@ -1465,16 +1377,10 @@
       call neocomplete#util#set_default_dictionary('g:neocomplete#sources#omni#input_patterns',
         \ 'css,scss,sass,sss,sugarss', '\w\+\|\w\+[):;]\?\s\+\w*\|[@!]')
 
-      " PHP
-      if dein#tap('phpunit.vim')
-        let g:neocomplete#sources#dictionary#dictionaries = get(g:, 'neocomplete#sources#dictionary#dictionaries', {})
-        let g:neocomplete#sources#dictionary#dictionaries.php = $VIMFILES.'/dict/phpunit'
-        Autocmd BufNewFile,BufRead *Test.php
-          \ let b:neocomplete_sources = ['omni', 'file/include', 'ultisnips', 'tag', 'dictionary']
-      endif
+      let g:neocomplete#sources#omni#functions = get(g:, 'neocomplete#sources#omni#functions', {})
+      let g:neocomplete#sources#dictionary#dictionaries = get(g:, 'neocomplete#sources#dictionary#dictionaries', {})
 
       " JavaScript
-      let g:neocomplete#sources#omni#functions = get(g:, 'neocomplete#sources#omni#functions', {})
       if dein#tap('ternjs.vim')
         let g:neocomplete#sources#omni#functions.javascript = ['ternjs#Complete']
         " let g:neocomplete#force_omni_input_patterns = get(g:, 'neocomplete#force_omni_input_patterns', {})
@@ -1484,6 +1390,19 @@
         let g:neocomplete#sources#omni#functions.javascript = get(g:neocomplete#sources#omni#functions, 'javascript', [])
         call insert(g:neocomplete#sources#omni#functions.javascript, 'jspc#omni')
       endif
+
+      " PHP
+      if dein#tap('phpunit.vim')
+        let g:neocomplete#sources#dictionary#dictionaries.php = $VIMFILES.'/dict/phpunit'
+        Autocmd BufNewFile,BufRead *Test.php
+          \ let b:neocomplete_sources = g:neocomplete#sources.javascript + ['dictionary']
+      endif
+
+      " Jest
+      let g:neocomplete#sources#dictionary#dictionaries.javascript = $VIMFILES.'/dict/jest'
+      Autocmd BufNewFile,BufRead *.{test,spec}.js
+        \ let b:neocomplete_sources = g:neocomplete#sources.javascript + ['dictionary']
+        \| let &l:dictionary = g:neocomplete#sources#dictionary#dictionaries.javascript
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:neocompleteOnSource'))
@@ -1556,43 +1475,28 @@
     call dein#set_hook(g:dein#name, 'hook_source', function('s:easymotionOnSource'))
   endif
 
-  if dein#tap('incsearch.vim')
-    nnoremap <silent> <expr> /  incsearch#go(<SID>incsearchConfig())
-    nnoremap <silent> <expr> ?  incsearch#go(<SID>incsearchConfig({'command': '?'}))
-    nnoremap <silent> <expr> g/ incsearch#go(<SID>incsearchConfig({'is_stay': 1}))
+  if dein#tap('denite.nvim')
+    nnoremap <silent> ;g :<C-u>Denite grep     -no-statusline -mode=normal<CR>
+    nnoremap <silent> `  :<C-u>Denite buffer   -no-statusline -mode=normal<CR>
+    nnoremap <silent> ;f :<C-u>Denite file_rec -no-statusline<CR>
+    nnoremap <silent> ;s :<C-u>Denite line     -no-statusline<CR>
+    nnoremap <silent> ;S :<C-u>Denite line     -no-statusline -resume -buffer-name=search%`bufnr('%')`<CR>
+    nnoremap <silent> ;v :<C-u>Denite line     -no-statusline -input=`expand('<lt>cword>')`<CR>
 
-    function! s:incsearchConfig(...) abort
-      return incsearch#util#deepextend(deepcopy({
-        \ 'modules': [incsearch#config#easymotion#module({'overwin': 1})],
-        \ 'keymap': {
-        \   "\<BS>": "\<Left>\<Del>",
-        \   "\<C-CR>": '<Over>(easymotion)',
-        \   "\<S-CR>": '<Over>(easymotion)'
-        \ },
-        \ 'is_expr': 0
-        \}), get(a:, 1, {}))
+    function! s:deniteOnSource() abort
+      call denite#custom#option('default', 'prompt', ' ❯')
+
+      " Sources
+      call denite#custom#source('file_mru', 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
+      call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+
     endfunction
   endif
 
   if dein#tap('unite.vim')
-    " ;b: open buffers
+    nnoremap <silent> `  :<C-u>Unite buffer -toggle<CR>
+    nnoremap <silent> ;` :<C-u>Unite buffer -toggle -start-insert<CR>
     nnoremap <silent> ;b :<C-u>Unite buffer -toggle<CR>
-    " ;f: open files
-    nnoremap <silent> ;f
-      \ :<C-u>UniteWithCurrentDir file_rec/async file/new directory/new -start-insert<CR>
-    " ;H: open tab pages
-    nnoremap <silent> ;H
-      \ :<C-u>Unite tab -buffer-name=tabs -select=`tabpagenr()-1` -toggle<CR>
-    " ;h: open windows
-    nnoremap <silent> ;h :<C-u>Unite window:all:no-current -toggle<CR>
-
-    " ;s: search
-    nnoremap <silent> ;s
-      \ :<C-u>Unite line:all -buffer-name=search%`bufnr('%')` -no-wipe -no-split -start-insert<CR>
-
-    " ;r: resume search buffer
-    nnoremap <silent> ;r
-      \ :<C-u>UniteResume search%`bufnr('%')` -no-start-insert -force-redraw<CR>
 
     " Unite tuning
     AutocmdFT unite* setlocal nolist
@@ -1602,6 +1506,11 @@
     AutocmdFT unite* call s:uniteMappings()
     function! s:uniteMappings() abort
       let b:unite = unite#get_current_unite()
+
+      " unite-webcolorname
+      if b:unite.buffer_name ==# 'colors'
+        nmap <silent> <buffer> o <CR>
+      endif
 
       " Normal mode
       nmap <buffer> e     <Nop>
@@ -1629,11 +1538,6 @@
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
       nmap <buffer> <expr> <C-x> unite#mappings#set_current_sorters(
         \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
-
-      " unite-webcolorname
-      if b:unite.buffer_name ==# 'colors'
-        nmap <silent> <buffer> o <CR>
-      endif
 
       " Insert mode
       imap <buffer> <C-e>   <End>
@@ -1730,45 +1634,6 @@
       Autocmd BufLeave,BufDelete <buffer> set laststatus=2
       Autocmd InsertEnter,InsertLeave <buffer> setlocal nonu nornu colorcolumn=
     endfunction
-  endif
-
-  if dein#tap('vim-reanimate')
-    AutocmdFT unite call s:reanimateMappings()
-
-    function! s:reanimateMappings() abort
-      let b:unite = unite#get_current_unite()
-      if b:unite.buffer_name ==# 'reanimate'
-        " Normal mode
-        nmap <silent> <buffer> <expr> <CR> unite#do_action('reanimate_load')
-        nmap <silent> <buffer> <expr> o    unite#do_action('reanimate_load')
-        nmap <silent> <buffer> <expr> s    unite#do_action('reanimate_save')
-        nmap <silent> <buffer> <expr> r    unite#do_action('reanimate_rename')
-        nmap <silent> <buffer> <expr> t    unite#do_action('reanimate_switch')
-        nmap <silent> <buffer> <expr> S    unite#do_action('reanimate_new_save')
-        nmap <silent> <buffer> <expr> n    unite#do_action('reanimate_new_save')
-      endif
-    endfunction
-
-    function! s:reanimateOnSource() abort
-      " Custom events
-      let s:event = {'name': 'user_event'}
-
-      function! s:event.load_pre_post(...) abort
-        wall | tabnew | tabonly
-      endfunction
-
-      function! s:event.save_pre(...) abort
-        try | argd * | catch | endtry
-      endfunction
-
-      function! s:event.save(...) abort
-        echom printf(' Session saved (%s)', strftime('%Y/%m/%d %H:%M:%S'))
-      endfunction
-
-      call reanimate#hook(s:event) | unlet s:event
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source_post', function('s:reanimateOnSource'))
   endif
 
 " File-types
