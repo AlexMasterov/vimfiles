@@ -1201,74 +1201,6 @@
     call dein#set_hook(g:dein#name, 'hook_source', function('s:quickrunOnSource'))
   endif
 
-  if dein#tap('agit.vim')
-    AutocmdFT agit setlocal cursorline
-    AutocmdFT agit* let &l:statusline = ' '
-    AutocmdFT agit* call s:agitMappings()
-
-    AutocmdFT gita-status
-      \  nmap <buffer> cc <Plug>(gita-commit-open)
-      \| nmap <buffer> cA <Plug>(gita-commit-open-amend)
-
-    function! s:agitMappings() abort
-      nmap <buffer> u <PLug>(agit-reload)
-      nmap <buffer> r <Plug>(agit-git-reset)
-      nmap <buffer> R <Plug>(agit-git-rebase)
-      nmap <buffer> E <Plug>(agit-print-commitmsg)
-    endfunction
-
-    Autocmd Syntax agit* call s:agitColors()
-    function! s:agitColors() abort
-      hi AgitRef          guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
-      hi agitRemote       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi AgitHead         guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi AgitHeaderLabel  guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi AgitAuthor       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi link AgitDiffAdd       DiffAdd
-      hi link AgitDiffRemove    DiffDelete
-      hi link AgitStatFile      AgitDiffHeader
-      hi link AgitDate          Comment
-      hi link agitTree          Comment
-      hi link agitUntrackedFile Normal
-    endfunction
-  endif
-
-  if dein#tap('vim-gita')
-    AutocmdFT gita,gita*  call s:gitaFiletypes() | call s:gitaBaseMappings()
-    AutocmdFT gita-{branch,status,commit} call s:gitaSpecialMappings()
-
-    function! s:gitaFiletypes() abort
-      let &l:statusline = ' ' | setlocal nonu nornu
-      Autocmd InsertEnter <buffer> setlocal nocursorline
-      Autocmd InsertLeave <buffer> setlocal cursorline
-    endfunction
-
-    function! s:gitaBaseMappings() abort
-      nmap <silent> <buffer> q :<C-u>bdelete<CR>
-      nmap <silent> <buffer> Q :<C-u>bdelete!<CR>
-    endfunction
-
-    function! s:gitaSpecialMappings() abort
-      nmap <buffer> m <Plug>(gita-toggle)
-      nmap <buffer> c <Plug>(gita-commit)
-      nmap <buffer> C <Plug>(gita-commit-do)
-      nmap <buffer> A <Plug>(gita-commit-amend)
-      nmap <buffer> t <Plug>(gita-edit-tab)
-      nmap <buffer> o <Plug>(gita-edit-preview)
-      nmap <buffer> O <Plug>(gita-edit)
-      nmap <buffer> r <Plug>(gita-status)
-      nmap <buffer> R <Plug>(gita-redraw)
-    endfunction
-
-    Autocmd Syntax gita,gita* call s:gitaColors()
-    function! s:gitaColors() abort
-      hi GitaBranch   guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi GitaSelected guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi link GitaUntracked Normal
-      hi link GitaKeyword   MatchParen
-    endfunction
-  endif
-
   if dein#tap('context_filetype.vim')
     function! s:addContext(filetype, context) abort
       let filetype = get(context_filetype#default_filetypes(), a:filetype, [])
@@ -2074,9 +2006,11 @@
 
   " Files
   "-----------------------------------------------------------------------
-  " Ctrl-Enter: save file
+  " Shift-m: save file
+  nnoremap <silent> <S-m> :<C-u>write!<CR>
+  " Ctrl-Enter: force save file
   nnoremap <silent> <C-Enter> :<C-u>write!<CR>
-  " Shift-Enter: force save file
+  " Shift-Enter: force save file when buffer was changed
   nnoremap <silent> <S-Enter> :<C-u>update!<CR>
   " ;e: reopen file
   nnoremap <silent> ;e :<C-u>open<CR>
@@ -2191,11 +2125,9 @@
   nnoremap # ?\<<C-r>=expand('<cword>')<CR>\><CR>zv
   " [dDcC]: don't update register
   nnoremap d "_d
-  nnoremap D "_D
+  nnoremap D "_dd
   nnoremap c "_c
   nnoremap C "_C
-  " nnoremap x "_x
-  " nnoremap X "_dd
 
   " gr: replace word under the cursor
   nnoremap gr :<C-u>%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
@@ -2247,8 +2179,8 @@
   " Ctrl-u: undo
   inoremap <C-u> <C-o>u
   " Ctrl-[pv]: paste
-  imap <C-p> <S-Insert>
-  imap <C-v> <S-Insert>
+  imap <C-p> <C-R>"*
+  imap <C-v> <C-R>"*
   " Enter: to redo a changes
   inoremap <CR> <C-g>u<CR>
   " Ctrl-s: force save file
