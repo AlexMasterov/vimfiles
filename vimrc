@@ -762,13 +762,6 @@
         call lexima#add_rule({'at': '\(...........\)\?/\S.*\%#.*\S/', 'char': a:char, 'input': a:char})
       endfunction
 
-      " Fix pair completion
-      for pair in split('() []')
-        call lexima#add_rule({
-          \ 'char': pair[0], 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'input': pair[0]
-          \})
-      endfor | unlet pair
-
       " Quotes
       for quote in split('" ''')
         call lexima#add_rule({'at': '\(.......\)\?'. quote .'\%#', 'char': quote, 'input': quote})
@@ -777,6 +770,12 @@
         call s:disableLeximaInsideRegexp(quote)
       endfor | unlet quote
 
+      " Fix pair completion
+      for pair in split('() []')
+        call lexima#add_rule({
+        \ 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'char': pair[0], 'input': pair[0]
+        \})
+      endfor | unlet pair
       " { <Space> }
       call lexima#add_rule({
         \ 'filetype': ['javascript', 'yaml'],
