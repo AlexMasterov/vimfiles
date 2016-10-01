@@ -1252,7 +1252,7 @@
 
     function! s:neocompleteOnSource() abort
       let g:neocomplete#enable_at_startup = 1
-      let g:neocomplete#enable_smart_case = 1
+      let g:neocomplete#enable_smart_case = 0
       let g:neocomplete#enable_camel_case = 1
       let g:neocomplete#enable_auto_delimiter = 1
       let g:neocomplete#min_keyword_length = 2
