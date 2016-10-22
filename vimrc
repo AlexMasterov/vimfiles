@@ -189,71 +189,22 @@
     call dein#add('w0rp/ale', {
       \ 'on_func': 'ale#Queue',
       \ 'hook_add': join([
-      \   'nmap - <Plug>(choosewin)',
-      \   'AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)'
+      \   'Autocmd ColorScheme *',
+      \     '\  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold',
+      \     '\| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold'
       \], "\n"),
       \ 'hook_source': join([
-      \   "let g:choosewin_label = 'WERABC'",
-      \   "let g:choosewin_label_align = 'left'",
-      \   'let g:choosewin_blink_on_land = 0',
-      \   'let g:choosewin_overlay_enable = 2',
-      \   "let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}",
-      \   "let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
-      \   "let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
-      \   "let g:choosewin_color_overlay = {'gui': ['#2B2B2B', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}"
-      \], "\n"),
-      \})
-    call dein#add('cohama/lexima.vim', {
-      \ 'on_event': 'InsertEnter',
-      \ 'hook_add': 'let g:lexima_no_default_rules = 1'
-      \})
-    call dein#add('AndrewRadev/switch.vim', {
-      \ 'on_func': 'switch#',
-      \ 'on_cmd': 'Switch',
-      \ 'hook_source': "let g:switch_mapping = ''"
-      \})
-    call dein#add('tyru/caw.vim', {
-      \ 'on_map': [['nx', '<Plug>(caw:']],
-      \ 'hook_add': join([
-      \   'nmap  q <Plug>(caw:range:toggle)',
-      \   'xmap  q <Plug>(caw:hatpos:toggle)',
-      \   'nmap ,f <Plug>(caw:jump:comment-prev)',
-      \   'nmap ,F <Plug>(caw:jump:comment-next)',
-      \   'nmap ,a <Plug>(caw:dollarpos:toggle)'
-      \], "\n"),
-      \ 'hook_source': join([
-      \   'let g:caw_no_default_keymappings = 1',
-      \   'let g:caw_hatpos_skip_blank_line = 1',
-      \   "let g:caw_dollarpos_sp_left = repeat(' ', 2)"
-      \], "\n"),
-      \})
-    call dein#add('kana/vim-smartchr')
-    call dein#add('haya14busa/vim-keeppad', {
-      \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
-      \ 'hook_add': 'Autocmd BufReadPre *.{json,css,sss,sugarss},qfreplace* KeeppadOn',
-      \ 'hook_source': 'let g:keeppad_autopadding = 0'
-      \})
-    call dein#add('mbbill/undotree', {
-      \ 'on_cmd': 'UndotreeToggle'
-      \})
-    call dein#add('tyru/restart.vim', {
-      \ 'on_cmd': 'Restart',
-      \ 'hook_add': 'nmap <silent> <F9> :<C-u>Restart<CR>'
-      \})
-    call dein#add('lilydjwg/colorizer', {
-      \ 'on_cmd': ['ColorToggle', 'ColorHighlight', 'ColorClear'],
-      \ 'hook_source': 'let g:colorizer_nomap = 1'
-      \})
-    call dein#add('whatyouhide/vim-lengthmatters', {
-      \ 'on_cmd': 'Lengthmatters',
-      \ 'hook_add': 'AutocmdFT php,javascript,haskell,rust LengthmattersEnable',
-      \ 'hook_source': join([
-      \   'let g:lengthmatters_on_by_default = 0',
-      \   "let g:lengthmatters_excluded = split('vim help markdown unite vimfiler undotree qfreplace')",
-      \   "call lengthmatters#highlight_link_to('ColorColumn')"
+      \   "let g:ale_echo_cursor = 0",
+      \   "let g:ale_lint_on_enter = 0",
+      \   "let g:ale_lint_on_save = 0",
+      \   "let g:ale_lint_on_text_changed = 0",
+      \   "let g:ale_sign_error = '->'",
+      \   "let g:ale_sign_warning = '—'",
+      \   "let g:ale_echo_msg_error_str = 'E'",
+      \   "let g:ale_echo_msg_warning_str = 'W'",
+      \   "let g:ale_echo_msg_format = ' %s'",
+      \   "let g:ale_sign_column_always = 1",
+      \   "let g:ale_linters = {'php': ['php'], 'javascript': ['eslint']}"
       \], "\n")
       \})
 
@@ -696,6 +647,15 @@
 
 " Plugin settings
 "---------------------------------------------------------------------------
+  if dein#tap('ale')
+    nmap <silent> <Left>  <Plug>(ale_previous_wrap)
+    nmap <silent> <Right> <Plug>(ale_next_wrap)
+
+    " PHP
+    Autocmd BufEnter,BufWrite,TextChanged,TextChangedI *.php
+      \ call ale#Queue(200)
+  endif
+
   if dein#tap('caw.vim')
     nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
     function! s:cawRangeToggle() abort
