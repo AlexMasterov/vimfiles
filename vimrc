@@ -1,4 +1,4 @@
-" .vimrc / 2016 September
+" .vimrc / 2016 Oct
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -1854,11 +1854,6 @@
       \ : getfsize(expand('%:p'))
     return size <= 0 ? '' :
       \ size < 1024 ? size.'B' : (size / 1024).'K'
-  endfunction
-
-  function! ReanimateIsSaved() abort
-    return exists('*reanimate#is_saved()') && reanimate#is_saved()
-        \ ? matchstr(reanimate#last_point(), '.*/\zs.*') : ''
   endfunction
 
 " Edit
