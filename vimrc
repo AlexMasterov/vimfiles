@@ -1380,8 +1380,19 @@
       " Sources
       call denite#custom#source('file_mru', 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
       call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+      if executable('rg')
+        " Ripgrep: https://github.com/BurntSushi/ripgrep
+        call denite#custom#var('grep', 'command', ['rg'])
+        call denite#custom#var('grep', 'recursive_opts', [])
+        call denite#custom#var('grep', 'final_opts', ['.'])
+        call denite#custom#var('grep', 'separator', ['--'])
+        call denite#custom#var('grep', 'default_opts', ['--vimgrep', '--no-heading'])
+        call denite#custom#var('file_rec', 'command',  ['rg', '--follow', '--hidden', '-l', ''])
+      endif
 
     endfunction
+
+    call dein#set_hook(g:dein#name, 'hook_source', function('s:deniteOnSource'))
   endif
 
   if dein#tap('unite.vim')
