@@ -1,4 +1,4 @@
-" .vimrc / 2016 Oct
+" .vimrc / 2016 Dec
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -1387,9 +1387,28 @@
         call denite#custom#var('grep', 'final_opts', ['.'])
         call denite#custom#var('grep', 'separator', ['--'])
         call denite#custom#var('grep', 'default_opts', ['--vimgrep', '--no-heading'])
-        call denite#custom#var('file_rec', 'command',  ['rg', '--follow', '--hidden', '-l', ''])
+        call denite#custom#var('file_rec', 'command',  ['rg', '--follow', '--hidden', '-l', '.'])
       endif
 
+      " Mappings
+      call denite#custom#map('normal', '`',     '<denite:choose_action>',               'noremap')
+      call denite#custom#map('normal', 'o',     '<denite:do_action:default>',           'noremap')
+      call denite#custom#map('normal', '<Tab>', '<denite:enter_mode:insert>',           'noremap')
+      call denite#custom#map('normal', '<C-j>', '<denite:scroll_window_downwards>',     'noremap')
+      call denite#custom#map('normal', '<C-k>', '<denite:scroll_window_upwards>',       'noremap')
+      call denite#custom#map('normal', 'Q',     '<denite:quit>',                        'noremap')
+      call denite#custom#map('insert', 'C-i>',  '<denite:choose_action>',               'noremap')
+      call denite#custom#map('insert', '<Tab>', '<denite:enter_mode:normal>',           'noremap')
+      call denite#custom#map('insert', '<C-j>', '<denite:move_to_next_line>',           'noremap')
+      call denite#custom#map('insert', '<C-k>', '<denite:move_to_prev_line>',           'noremap')
+      call denite#custom#map('insert', '<C-p>', '<denite:paste_from_default_register>', 'noremap')
+      call denite#custom#map('insert', '<A-j>', '<denite:scroll_window_downwards>',     'noremap')
+      call denite#custom#map('insert', '<A-k>', '<denite:scroll_window_upwards>',       'noremap')
+      call denite#custom#map('insert', '<C-d>', '<denite:delete_char_before_caret>',    'noremap')
+      call denite#custom#map('insert', '<C-h>', '<denite:move_caret_to_left>',          'noremap')
+      call denite#custom#map('insert', '<C-l>', '<denite:move_caret_to_right>',         'noremap')
+      call denite#custom#map('insert', '<C-a>', '<denite:move_caret_to_head>',          'noremap')
+      call denite#custom#map('insert', '<C-e>', '<denite:move_caret_to_tail>',          'noremap')
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:deniteOnSource'))
