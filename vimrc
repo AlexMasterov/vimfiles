@@ -173,8 +173,11 @@
       \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
       \], "\n")
       \})
+
     " Load develop version plugins
     call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0},  ['dotvim'])
+
+    call dein#add('AlexMasterov/mild.vim')
     call dein#add('Shougo/vimproc.vim', {
       \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make',
       \ 'on_source': 'unite.vim'
@@ -1380,6 +1383,7 @@
       " Sources
       call denite#custom#source('file_mru', 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
       call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+
       if executable('rg')
         " Ripgrep: https://github.com/BurntSushi/ripgrep
         call denite#custom#var('grep', 'command', ['rg'])
@@ -1483,23 +1487,10 @@
       let g:unite_source_buffer_time_format = '%H:%M '
       let g:unite_data_directory = $CACHE.'/unite'
 
-      let search_tool =
-        \ executable('pt') ? 'pt' :
-        \ executable('ag') ? 'ag' : ''
-      if !empty(search_tool)
-        let g:unite_source_grep_command = search_tool
-        let g:unite_source_grep_recursive_opt = ''
-        let g:unite_source_grep_encoding = 'utf-8'
-        let g:unite_source_grep_default_opts = '--nogroup --nocolor --follow --smart-case'
-        let g:unite_source_rec_async_command = [
-          \ search_tool, &smartcase ? '-S' : '', '--nocolor', '--nogroup', '--hidden', '--follow', '-l', '.'
-          \]
-      endif
-
-      " Default profile
-      let unite_default = {
+      " Context
+      let default = {
         \ 'winheight': 20,
-        \ 'direction': 'dynamicbottom',
+        \ 'direction': 'belowright',
         \ 'prompt_direction': 'bellow',
         \ 'cursor_line_time': '0.0',
         \ 'short_source_names': 1,
@@ -1509,25 +1500,16 @@
         \ 'prompt': '>',
         \ 'wipe': 1
         \}
-      " Grep profile
-      let unite_grep = {
-        \ 'winheight': 20
-        \}
-      " Quickfix profile
-      let unite_quickfix = {
+      let quickfix = {
         \ 'winheight': 16,
         \ 'keep_focus': 1,
         \ 'no_quit': 1
         \}
 
-      " Custom profiles
-      call unite#custom#profile('default', 'context', unite_default)
-      call unite#custom#profile('grep', 'context', unite_grep)
-      call unite#custom#profile('quickfix', 'context', unite_quickfix)
-      " Custom filters
-      call unite#custom#source('file_rec/async,file_rec/git', 'max_candidates', 40)
-      call unite#custom#source('file_rec/async,file_rec/git', 'matchers', ['converter_relative_word', 'matcher_fuzzy'])
-      call unite#custom#source('file_rec/async,file_rec/git', 'converters', ['converter_uniq_word'])
+      " Profiles
+      call unite#custom#profile('default', 'context', default)
+      call unite#custom#profile('quickfix', 'context', quickfix)
+      " Filters
       call unite#custom#source('buffer', 'converters', ['converter_uniq_word', 'converter_word_abbr'])
     endfunction
 
@@ -1727,7 +1709,6 @@
     function! s:hyperstyleSettings() abort
       let b:hyperstyle = 1
       let b:hyperstyle_semi = ''
-
       imap <buffer> <expr> <Space>
         \ getline('.')[getcurpos()[4] - 2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
     endfunction
@@ -1802,7 +1783,7 @@
   if !exists('g:syntax_on') | syntax on | endif
   " Don't override colorscheme on reloading
   if !exists('g:colors_name')
-    silent! colorscheme topos
+    silent! colorscheme mild
     " Reload the colorscheme whenever we write the file
     execute 'Autocmd BufWritePost '. g:colors_name '.vim colorscheme '. g:colors_name
   endif
