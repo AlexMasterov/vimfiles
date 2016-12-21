@@ -332,14 +332,6 @@
     " Operators
     "-----------------------------------------------------------------------
     call dein#add('kana/vim-operator-user')
-    call dein#add('kana/vim-operator-replace', {
-      \ 'depends': 'vim-operator-user',
-      \ 'on_map': [['nx', '<Plug>(operator-replace)']],
-      \ 'hook_add': join([
-      \   'nmap R <Plug>(operator-replace)',
-      \   'vmap R <Plug>(operator-replace)'
-      \], "\n")
-      \})
     call dein#add('rhysd/vim-operator-surround', {
       \ 'depends': 'vim-operator-user',
       \ 'on_map': [['v', '<Plug>(operator-surround-']],
@@ -355,6 +347,13 @@
       \ 'hook_add': join([
       \   'vmap <silent> sw <Plug>(operator-reverse-text)',
       \   'vmap <silent> sl <Plug>(operator-reverse-lines)'
+      \], "\n")
+      \})
+    call dein#add('romgrk/replace.vim', {
+      \ 'on_map': [['nx', '<Plug>ReplaceOperator']],
+      \ 'hook_add': join([
+      \   'nmap <silent> R <Plug>ReplaceOperator',
+      \   'xmap <silent> R <Plug>ReplaceOperator'
       \], "\n")
       \})
     call dein#add('haya14busa/vim-operator-flashy', {
@@ -536,9 +535,6 @@
       \ 'hook_add': 'AutocmdFT php nnoremap <silent> <buffer> ;x :<C-u>silent! call PhpSortUse()<CR>'
       \})
 
-    " Blade
-    call dein#add('jwalton512/vim-blade')
-
     " Twig
     call dein#add('tokutake/twig-indent')
     call dein#local($VIMFILES.'/dev', {
@@ -549,10 +545,16 @@
     call dein#add('jwalton512/vim-blade')
 
     " JavaScript
-    call dein#add('othree/yajs.vim')
     call dein#add('othree/jspc.vim')
-    call dein#add('gavocanov/vim-js-indent')
-    call dein#add('othree/jsdoc-syntax.vim')
+    call dein#add('chemzqm/vim-jsx-improve', {
+      \ 'hook_add': join([
+      \   'Autocmd Syntax javascript',
+      \     '\  hi jsBraces         guifg=#999999 gui=NONE',
+      \     '\| hi jsFuncBraces     guifg=#999999 gui=NONE',
+      \     '\| hi jsImport         guifg=#1E347B gui=NONE',
+      \     '\| hi jsFrom           guifg=#1E347B gui=NONE',
+      \], "\n")
+      \})
     call dein#add('heavenshell/vim-jsdoc', {
       \ 'hook_add': join([
       \   'AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)',
@@ -615,10 +617,6 @@
       \     '\| hi sssAbsoluteUnit     guifg=#A67F59 guibg=#F6F7F7 gui=NONE'
       \], "\n")
       \})
-
-    " SVG
-    call dein#add('aur-archive/vim-svg')
-    call dein#add('jasonshell/vim-svg-indent')
 
     " JSON
     call dein#add('elzr/vim-json', {
@@ -1221,7 +1219,6 @@
       let g:neocomplete#min_keyword_length = 2
       let g:neocomplete#auto_completion_start_length = 2
       let g:neocomplete#manual_completion_start_length = 2
-      let g:neocomplete#fallback_mappings = ["\<C-x>\<C-o>", "\<C-x>\<C-n>"]
 
       let g:neocomplete#data_directory = $CACHE.'/neocomplete'
       let g:neocomplete#lock_buffer_name_pattern = '\.log\|.*;tail\|.*quickrun.*'
@@ -1370,19 +1367,19 @@
   endif
 
   if dein#tap('denite.nvim')
-    nnoremap <silent> ;g :<C-u>Denite grep     -no-statusline -mode=normal<CR>
-    nnoremap <silent> `  :<C-u>Denite buffer   -no-statusline -mode=normal<CR>
-    nnoremap <silent> ;f :<C-u>Denite file_rec -no-statusline<CR>
-    nnoremap <silent> ;s :<C-u>Denite line     -no-statusline<CR>
-    nnoremap <silent> ;S :<C-u>Denite line     -no-statusline -resume -buffer-name=search%`bufnr('%')`<CR>
-    nnoremap <silent> ;v :<C-u>Denite line     -no-statusline -input=`expand('<lt>cword>')`<CR>
+    nnoremap <silent> ;g :<C-u>Denite grep<CR>
+    nnoremap <silent> ;s :<C-u>Denite line     -mode=insert<CR>
+    nnoremap <silent> ;v :<C-u>Denite line     -mode=insert -input=`expand('<lt>cword>')`<CR>
+    nnoremap <silent> ;f :<C-u>Denite file_rec -mode=insert<CR>
 
     function! s:deniteOnSource() abort
       call denite#custom#option('default', 'prompt', ' ❯')
+      call denite#custom#option('default', 'mode', 'normal')
+      call denite#custom#option('default', 'statusline', v:false)
 
       " Sources
-      call denite#custom#source('file_mru', 'matchers', ['matcher_project_files', 'matcher_fuzzy'])
       call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+      call denite#custom#source('file_mru',                 'matchers',   ['matcher_project_files', 'matcher_fuzzy'])
 
       if executable('rg')
         " Ripgrep: https://github.com/BurntSushi/ripgrep
