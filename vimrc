@@ -11,6 +11,7 @@
   set viminfo=!,'300,<50,s10,h,n$VIMFILES/viminfo
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
+  set packpath=
 
   " Initialize autogroup in MyVimrc
   augroup MyVimrc | execute 'autocmd!' | augroup END
@@ -143,6 +144,7 @@
   let g:loaded_vimballPlugin = 1
   let g:loaded_getscriptPlugin = 1
   let g:loaded_spellfile_plugin = 1
+  let g:did_install_syntax_menu = 1
   let g:did_install_default_menus = 1
 
   " Setup Dein plugin manager
@@ -558,7 +560,7 @@
     call dein#add('heavenshell/vim-jsdoc', {
       \ 'hook_add': join([
       \   'AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)',
-      \   'AutocmdFT javascript nmap <silent> <buffer> ,C ?function<CR>:noh<CR><Plug>(jsdoc)',
+      \   'AutocmdFT javascript nmap <silent> <buffer> ,C ?function<CR>:nohlsearch<CR><Plug>(jsdoc)',
       \], "\n"),
       \ 'hook_source': join([
       \   'let g:jsdoc_enable_es6 = 1',
@@ -737,6 +739,7 @@
         \ 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'char': pair[0], 'input': pair[0]
         \})
       endfor | unlet pair
+
       " { <Space> }
       call lexima#add_rule({
         \ 'filetype': ['javascript', 'yaml'],
@@ -1107,7 +1110,6 @@
         \ 'args': printf('--config %s/preset/eslint-fix.js --no-color --fix', $VIMFILES)
         \}
       let g:quickrun_config['javascript/jest'] = {
-        \ 'runner': 'vimproc', 'runner/vimproc/updatetime': 120,
         \ 'command': 'jest', 'exec': '%c %a', 'outputter': 'jest',
         \ 'args': printf('--config %s/preset/jest.json', $VIMFILES)
         \}
@@ -1702,12 +1704,12 @@
 
   " Autocomplete
   if dein#tap('vim-hyperstyle')
-    AutocmdFT css,sass,sss,sugarss  call s:hyperstyleSettings()
+    AutocmdFT css,sass,scss,sss,sugarss call s:hyperstyleSettings()
     function! s:hyperstyleSettings() abort
       let b:hyperstyle = 1
       let b:hyperstyle_semi = ''
-      imap <buffer> <expr> <Space>
-        \ getline('.')[getcurpos()[4] - 2] =~ '[; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
+      imap <buffer> <expr> <S-CR>
+        \ getline('.')[getcurpos()[4] - 2] =~# '[0-9; ]' ? "\<Space>" : "\<Space>\<Plug>(hyperstyle-tab)"
     endfunction
   endif
 
