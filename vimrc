@@ -11,18 +11,19 @@
   set viminfo=!,'300,<50,s10,h,n$VIMFILES/viminfo
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
+  set regexpengine=2  " 0=auto 1=old 2=NFA
   set packpath=
 
   " Initialize autogroup in MyVimrc
   augroup MyVimrc | execute 'autocmd!' | augroup END
 
   " Echo startup time on start
-  if has('vim_starting') && has('reltime')
+  if has('reltime') && has('vim_starting')
     " Shell: vim --startuptime filename -q; vim filename
     " vim --cmd 'profile start profile.txt' --cmd 'profile file $HOME/.vimrc' +q && vim profile.txt
-    let s:startuptime = reltime()
-    autocmd MyVimrc VimEnter * let s:startuptime = reltime(s:startuptime) | redraw
-                    \| echomsg ' startuptime:'. reltimestr(s:startuptime)
+    let s:startupTime = reltime()
+    autocmd MyVimrc VimEnter * let s:startupTime = reltime(s:startupTime) | redraw
+                    \| echomsg ' startuptime:'. reltimestr(s:startupTime)
   endif
 
 " Commands
@@ -52,44 +53,44 @@
 
 " Functions
 "---------------------------------------------------------------------------
-  " Strip trailing whitespace
-  nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
-  command! -nargs=* -complete=file TrimWhiteSpace f <args> | call s:trimWhiteSpace()
-  Autocmd BufWritePre,FileWritePre * call s:trimWhiteSpace()
+  "---
+  let s:isWindows = has('win32') || has('win64')
 
-  function! s:trimWhiteSpace() abort
-    if &binary | return | endif
-    let [winView, _s] = [winsaveview(), @/]
-    silent %s/\s\+$//ge
-    call winrestview(winView) | let @/=_s
+  function! IsWindows() abort
+    return s:isWindows
   endfunction
 
-  " Create a directory
-  command! -nargs=1 -bang Mkdir call s:makeDir(<f-args>, "<bang>")
-  Autocmd BufWritePre,FileWritePre * call s:makeDir('<afile>:p:h', v:cmdbang)
+  "---
+  function! s:trimWhiteSpace() abort
+    if &binary | return | endif
+    let [winView, register] = [winsaveview(), @/]
+    silent %s/\s\+$//ge
+    call winrestview(winView) | let @/ = register
+  endfunction
 
-  function! s:makeDir(dir, ...) abort
+  nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
+  command! -nargs=* -complete=file TrimWhiteSpace f <args> | call s:trimWhiteSpace()
+  Autocmd BufWritePre,FileWritePre *? call s:trimWhiteSpace()
+
+  " ---
+  function! s:makeDir(name, ...) abort
     let force = a:0 >= 1 && a:1 ==# '!'
-    let dir = expand(a:dir, 1)
-    if !isdirectory(dir)
-      \ && (force || input(printf('"%s" does not exist. Create? [yes/no]', dir)) =~? '^y\%[es]$')
-      silent call mkdir(iconv(dir, &encoding, &termencoding), 'p')
+    let name = expand(a:name, 1)
+    if !isdirectory(name)
+      \ && (force || input('^y\%[es]$' =~? printf('"%s" does not exist. Create? [yes/no]', name)))
+      silent call mkdir(iconv(name, &encoding, &termencoding), 'p')
     endif
   endfunction
 
-  " Detect Windows OS
-  let s:is_windows = has('win32') || has('win64')
-
-  function! IsWindows() abort
-    return s:is_windows
-  endfunction
+  command! -nargs=1 -bang MakeDir call s:makeDir(<f-args>, "<bang>")
+  Autocmd BufWritePre,FileWritePre *? call s:makeDir('<afile>:h', v:cmdbang)
 
 " Encoding
 "---------------------------------------------------------------------------
   set encoding=utf-8
   scriptencoding utf-8
 
-  if IsWindows() && has('multi_byte')
+  if IsWindows()
     set fileencodings=utf-8,cp1251
     set termencoding=cp850  " cmd.exe uses cp850
   else
@@ -107,38 +108,35 @@
   " Misc
 "---------------------------------------------------------------------------
   " Cache
-  Mkdir! $CACHE
+  MakeDir! $CACHE
   set directory=$VIMFILES/tmp
   set noswapfile
+
   " Undo
-  Mkdir! $VIMFILES/undo
+  MakeDir! $VIMFILES/undo
   set undodir=$VIMFILES/undo
   set undofile undolevels=500 undoreload=1000
+
   " View
   set viewdir=$VIMFILES/views
   set viewoptions=cursor,slash,unix
 
   " Russian keyboard
-  set iskeyword=@,48-57,_,192-255
   set keymap=russian-jcukenwin
-  if has('multi_byte')
-    set iminsert=0 imsearch=0
-  endif
-
-  if exists('&regexpengine')
-    " Regexp engine (0=auto, 1=old, 2=NFA)
-    set regexpengine=2
-  endif
+  set iskeyword=@,48-57,_,192-255
+  set iminsert=0 imsearch=0
 
 " Plugins
 "---------------------------------------------------------------------------
   " Avoid loading same default plugins
+  let g:loaded_csv = 1
   let g:loaded_gzip = 1
   let g:loaded_zipPlugin = 1
   let g:loaded_tarPlugin = 1
-  let g:loaded_logipat = 1
+  let g:loaded_logiPat = 1
   let g:loaded_rrhelper = 1
   let g:loaded_matchparen = 1
+  let g:loaded_parenmatch = 1
   let g:loaded_netrwPlugin = 1
   let g:loaded_2html_plugin = 1
   let g:loaded_vimballPlugin = 1
@@ -150,7 +148,7 @@
   " Setup Dein plugin manager
   if has('vim_starting')
     let s:deinPath = $VIMFILES.'/dein'
-    let s:deinRepo = printf('%s/repos/github.com/Shougo/dein.vim', s:deinPath)
+    let s:deinRepo = s:deinPath.'/repos/github.com/Shougo/dein.vim'
     if !isdirectory(s:deinRepo)
       if executable('git')
         let s:deinUri = 'https://github.com/Shougo/dein.vim.git'
@@ -169,7 +167,7 @@
       \ 'rtp': '',
       \ 'hook_add': join([
       \   'let g:dein#types#git#clone_depth = 1',
-      \   'let g:dein#install_max_processes = 8',
+      \   'let g:dein#install_max_processes = 20',
       \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
       \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>',
       \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
