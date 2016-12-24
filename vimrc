@@ -180,7 +180,7 @@
     call dein#add('AlexMasterov/mild.vim')
     call dein#add('Shougo/vimproc.vim', {
       \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make',
-      \ 'on_source': 'unite.vim'
+      \ 'on_source': ['unite.vim', 'vim-quickrun', 'ternjs.vim']
       \})
 
     call dein#add('kopischke/vim-stay', {'on_path': '.*'})
@@ -190,6 +190,7 @@
     " Lint
     "-----------------------------------------------------------------------
     call dein#add('w0rp/ale', {
+      \ 'build': 'rm -f ' . dein#util#_get_base_path() . '/repos/github.com/w0rp/ale/doc/ale.txt',
       \ 'on_func': 'ale#Queue',
       \ 'hook_add': join([
       \   'Autocmd ColorScheme *',
@@ -216,7 +217,6 @@
     call dein#add('thinca/vim-quickrun', {
       \ 'rev': 'v0.7.0',
       \ 'frozen': 1,
-      \ 'depends': 'vimproc.vim',
       \ 'on_func': 'quickrun#',
       \ 'on_cmd': 'QuickRun',
       \ 'on_map': [['n', '<Plug>(quickrun)']]
@@ -224,12 +224,7 @@
     call dein#add('miyakogi/vim-quickrun-job')
 
     " Bundles
-    call dein#local($VIMFILES.'/dev', {
-      \ 'frozen': 1, 'merged': 0
-      \}, ['quickrun'])
-    call dein#local('D:\Lab\viml', {
-      \ 'frozen': 1,'merged': 0
-      \}, ['phptest.vim'])
+    call dein#local($VIMFILES.'/dev', {'frozen': 1}, ['quickrun'])
 
     " Neocomplete
     "-----------------------------------------------------------------------
@@ -397,7 +392,7 @@
 
     call dein#add('haya14busa/vim-keeppad', {
       \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
-      \ 'hook_add': 'Autocmd BufReadPre *.{json,css,sss,sugarss},qfreplace* KeeppadOn',
+      \ 'hook_add': 'Autocmd BufReadPre *.{json,css,scss,sss,sugarss},qfreplace* KeeppadOn',
       \ 'hook_source': 'let g:keeppad_autopadding = 0'
       \})
 
@@ -549,10 +544,15 @@
     call dein#add('chemzqm/vim-jsx-improve', {
       \ 'hook_add': join([
       \   'Autocmd Syntax javascript',
-      \     '\  hi jsBraces         guifg=#999999 gui=NONE',
-      \     '\| hi jsFuncBraces     guifg=#999999 gui=NONE',
-      \     '\| hi jsImport         guifg=#1E347B gui=NONE',
-      \     '\| hi jsFrom           guifg=#1E347B gui=NONE',
+      \     '\  hi jsBraces              guifg=#999999 gui=NONE',
+      \     '\| hi jsFuncBraces          guifg=#999999 gui=NONE',
+      \     '\| hi jsBrackets            guifg=#999999 gui=NONE',
+      \     '\| hi jsParens              guifg=#999999 gui=NONE',
+      \     '\| hi jsDestructuringBraces guifg=#999999 gui=NONE',
+      \     '\| hi jsParensIfElse        guifg=#999999 gui=NONE',
+      \     '\| hi jsGlobalNodeObjects   guifg=#4091bf gui=NONE',
+      \     '\| hi jsImport              guifg=#1E347B gui=NONE',
+      \     '\| hi jsFrom                guifg=#1E347B gui=NONE',
       \], "\n")
       \})
     call dein#add('heavenshell/vim-jsdoc', {
@@ -568,6 +568,7 @@
       \   'let g:jsdoc_return_description = 0'
       \], "\n")
       \})
+
     call dein#local($VIMFILES.'/dev', {
       \ 'frozen': 1, 'merged': 0,
       \ 'on_cmd': ['TernjsRun', 'TernjsStop'],
@@ -598,13 +599,13 @@
     call dein#add('JulesWang/css.vim')
     call dein#add('othree/csscomplete.vim')
     call dein#add('rstacruz/vim-hyperstyle', {
-      \ 'build':
-      \   'rm -f ' . dein#util#_get_base_path() . '/repos/github.com/rstacruz/vim-hyperstyle/doc/hyperstyle.txt',
+      \ 'build': 'rm -f ' . dein#util#_get_base_path() . '/repos/github.com/rstacruz/vim-hyperstyle/doc/hyperstyle.txt',
       \ 'on_map': [['i', '<Plug>(hyperstyle']],
       \ 'hook_post_source': 'augroup hyperstyle | autocmd! | augroup END'
       \})
 
     " PostCSS (Sugar)
+    call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0},  ['sugarss.vim'])
     call dein#add('hhsnopek/vim-sugarss', {
       \ 'hook_add': join([
       \   'Autocmd BufNewFile,BufRead *.sss setlocal filetype=sugarss syntax=sss commentstring=//%s',
@@ -912,7 +913,7 @@
     let s:color_codes_ft = split('css html twig sugarss')
 
     Autocmd BufNewFile,BufRead,BufEnter,WinEnter,BufWinEnter *
-      \ execute index(s:color_codes_ft, &filetype) == -1
+      \ execute index(s:color_codes_ft, &filetype) ==# -1
         \ ? 'call s:removeColorizerEvent()'
         \ : 'ColorHighlight'
 
@@ -1017,7 +1018,7 @@
       nmap <buffer> W <Plug>(vimfiler_toggle_visible_ignore_files)
       nmap <buffer> e <Plug>(vimfiler_toggle_mark_current_line)
       nmap <buffer> E <Plug>(vimfiler_toggle_mark_current_line_up)
-      nmap <buffer> <expr> q winnr('$') == 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
+      nmap <buffer> <expr> q winnr('$') ==# 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
       nmap <buffer> <expr> <Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
       nmap <buffer> <nowait> <expr> t vimfiler#do_action('tabopen')
       nmap <buffer> <nowait> <expr> s vimfiler#do_switch_action('split')
@@ -1147,8 +1148,8 @@
 
       " JSON
       let g:quickrun_config['json/formatter'] = {
-        \ 'command': 'js-beautify', 'exec': '%c %a %s', 'outputter': 'reopen',
-        \ 'args': printf('--config %s/preset/beautify.json -q -o', $VIMFILES)
+        \ 'command': 'js-beautify', 'exec': '%c %s %a', 'outputter': 'rebuffer',
+        \ 'args': printf('--config %s/preset/beautify.json -q -f', $VIMFILES)
         \}
       " let g:quickrun_config['json/lint'] = {
       "   \ 'runner': 'vimproc', 'runner/vimproc/updatetime': 120,
@@ -1459,7 +1460,7 @@
       nmap <silent> <buffer> <nowait> <expr> R
         \ b:unite.profile_name ==# 'line' ? unite#do_action('replace') : unite#do_action('exrename')
       nmap <buffer> <expr> <C-x> unite#mappings#set_current_sorters(
-        \ unite#mappings#get_current_sorters() == [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
+        \ unite#mappings#get_current_sorters() ==# [] ? ['sorter_ftime', 'sorter_reverse'] : []) . "\<Plug>(unite_redraw)"
 
       " Insert mode
       imap <buffer> <C-e>   <End>
@@ -1730,8 +1731,8 @@
 
   if dein#tap('vim-json')
     AutocmdFT json
-      \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel == 0 ? 2 : 0)<CR>
-        \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel == 0 ? 'Off' : 'On'))<CR>
+      \ nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel ==# 0 ? 2 : 0)<CR>
+        \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel ==# 0 ? 'Off' : 'On'))<CR>
 
     Autocmd Syntax json
       \ syntax match jsonComment "//.\{-}$" | hi link jsonComment Comment
@@ -1866,14 +1867,14 @@
 
 " Edit
 "---------------------------------------------------------------------------
+  " Keymapping timeout (mapping / keycode)
+  set notimeout ttimeoutlen=100
+
   set report=0           " reporting number of lines changes
   set lazyredraw         " don't redraw while executing macros
   set nostartofline      " avoid moving cursor to BOL when jumping around
   set virtualedit=all    " allows the cursor position past true end of line
   " set clipboard=unnamed  " use * register for copy-paste
-
-  " Keymapping timeout (mapping / keycode)
-  set notimeout ttimeoutlen=100
 
   " Indent
   set cindent          " smart indenting for c-like code
@@ -1887,39 +1888,38 @@
   set backspace=indent,eol,start
 
   " Search
+  set smartcase
+  set ignorecase
   set hlsearch         " highlight search results
   set incsearch        " find as you type search
-  set ignorecase
-  set smartcase
-  set magic            " change the way backslashes are used in search patterns
   set gdefault         " flag 'g' by default for replacing
+  set magic            " change the way backslashes are used in search patterns
 
   " Autocomplete
-  set complete=.
-  set completeopt=longest
-  set pumheight=13
+  set pumheight=10
+  set complete=. completeopt=longest
   " Syntax complete if nothing else available
-  Autocmd BufEnter,WinEnter * if &omnifunc == '' | setlocal omnifunc=syntaxcomplete#Complete | endif
+  Autocmd BufEnter,WinEnter * if &omnifunc ==# '' | setlocal omnifunc=syntaxcomplete#Complete | endif
 
 " Shortcuts
 "---------------------------------------------------------------------------
-  " Insert the current file
-  iab <silent> ##f <C-r>=expand('%:t:r')<CR>
-  ca ##f <C-r>=expand('%:t:r')<CR>
-  " Insert the current file path
+  " The current file
+  ia <silent> ##f <C-r>=expand('%:t')<CR>
+  ca          ##f <C-r>=expand('%:t')<CR>
+  " The current file path
   ia <silent> ##p <C-r>=expand('%:p')<CR>
-  ca ##p <C-r>=expand('%:p')<CR>
-  " Insert the current file directory
-  ia <silent> ##d <C-r>=expand('%:p:h').'\'<CR>
-  ca ##d <C-r>=expand('%:p:h').'\'<CR>
-  " Inset the current timestamp
+  ca          ##p <C-r>=expand('%:p')<CR>
+  " The current file directory
+  ia <silent> ##d <C-r>=expand('%:p:h')<CR>
+  ca          ##d <C-r>=expand('%:p:h')<CR>
+  " The urrent timestamp
   ia <silent> ##t <C-r>=strftime('%Y-%m-%d')<CR>
-  ca ##t <C-r>=strftime('%Y-%m-%d')<CR>
-  " Inset the current Unix time
+  ca          ##t <C-r>=strftime('%Y-%m-%d')<CR>
+  " The current Unix time
   ia <silent> ##l <C-r>=localtime()<CR>
-  ca ##l <C-r>=localtime()<CR>
+  ca          ##l <C-r>=localtime()<CR>
   " Shebang
-  ia <silent> <expr> ##! '#!/usr/bin/env' . (empty(&filetype) ? '' : ' '.&filetype)
+  ia <silent> <expr> ##! '#!/usr/bin/env ' . empty(&filetype) ? '' : &filetype
 
 " Normal mode
 "---------------------------------------------------------------------------
@@ -2041,12 +2041,12 @@
   " Space + m: move window to a new tab page
   nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
   " Space + q: smart close window -> tab -> buffer
-  " nnoremap <silent> <expr> <Space>q winnr('$') == 1
-  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
+  " nnoremap <silent> <expr> <Space>q winnr('$') ==# 1
+  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') ==# 1 ? 'bdelete!' : 'tabclose!'))
   "   \ : ':<C-u>close<CR>'
   " Space + Q: force smart close window -> tab -> buffer
-  " nnoremap <silent> <expr> <Space>Q winnr('$') == 1
-  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') == 1 ? 'bdelete!' : 'tabclose!'))
+  " nnoremap <silent> <expr> <Space>Q winnr('$') ==# 1
+  "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') ==# 1 ? 'bdelete!' : 'tabclose!'))
   "   \ : ':<C-u>close!<CR>'
 
   " Special
