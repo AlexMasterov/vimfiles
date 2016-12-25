@@ -541,6 +541,7 @@
 
     " JavaScript
     call dein#add('othree/jspc.vim')
+    call dein#add('heavenshell/vim-jsdoc')
     call dein#add('chemzqm/vim-jsx-improve', {
       \ 'hook_add': join([
       \   'Autocmd Syntax javascript',
@@ -553,19 +554,9 @@
       \     '\| hi jsGlobalNodeObjects   guifg=#4091bf gui=NONE',
       \     '\| hi jsImport              guifg=#1E347B gui=NONE',
       \     '\| hi jsFrom                guifg=#1E347B gui=NONE',
-      \], "\n")
-      \})
-    call dein#add('heavenshell/vim-jsdoc', {
-      \ 'hook_add': join([
-      \   'AutocmdFT javascript nmap <buffer> ,c <Plug>(jsdoc)',
-      \   'AutocmdFT javascript nmap <silent> <buffer> ,C ?function<CR>:nohlsearch<CR><Plug>(jsdoc)',
       \], "\n"),
       \ 'hook_source': join([
-      \   'let g:jsdoc_enable_es6 = 1',
-      \   'let g:jsdoc_allow_input_prompt = 1',
-      \   'let g:jsdoc_input_description = 1',
-      \   'let g:jsdoc_additional_descriptions = 0',
-      \   'let g:jsdoc_return_description = 0'
+      \   'let g:javascript_plugin_jsdoc = 1'
       \], "\n")
       \})
 
@@ -1603,6 +1594,26 @@
     hi link jestPass Todo
     hi link jestFail WarningMsg
   endfunction
+
+  if dein#tap('vim-jsdoc')
+    let g:jsdoc_enable_es6 = 1
+    let g:jsdoc_allow_input_prompt = 0
+    let g:jsdoc_access_descriptions = 2
+    let g:jsdoc_custom_args_hook = {
+      \ '^e$':          {'type': ' {Event} '},
+      \ 'str':          {'type': ' {String} '},
+      \ '^arr$':        {'type': ' {Array} '},
+      \ '^(i\|n)$':     {'type': ' {Number} '},
+      \ '^(o\|obj)$':   {'type': ' {Object} '},
+      \ '^(fn\|cb)$':   {'type': ' {Function} '},
+      \ '^(el\|node)$': {'type': ' {Element} '},
+      \ 'callback\|cb': {'type': ' {Function} ', 'description': 'Callback function'}
+      \}
+
+    AutocmdFT javascript
+      \  nmap <buffer> ,c <Plug>(jsdoc)
+      \| nmap <silent> <buffer> ,C ?function<CR>:nohlsearch<CR><Plug>(jsdoc)
+  endif
 
 " HTML
   " Indent
