@@ -41,7 +41,7 @@
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Don't auto comment new line made with 'o', 'O', or <CR>
-  Autocmd VimEnter,BufEnter,WinEnter * nested setlocal formatoptions-=ro
+  Autocmd VimEnter * AutocmdFT * setlocal formatoptions-=ro
   Autocmd WinEnter * checktime
   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
   Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
@@ -190,17 +190,20 @@
     " Lint
     "-----------------------------------------------------------------------
     call dein#add('w0rp/ale', {
-      \ 'build': 'rm -f ' . dein#util#_get_base_path() . '/repos/github.com/w0rp/ale/doc/ale.txt',
-      \ 'on_func': 'ale#Queue',
+      \ 'on_func': 'ale#',
       \ 'hook_add': join([
+      \   'nmap <silent> <Right> <Plug>(ale_next_wrap)',
+      \   'nmap <silent> <Left>  <Plug>(ale_previous_wrap)',
+      \   'Autocmd BufNewFile,BufEnter,BufWrite,WinEnter,TextChanged,TextChangedI *.{php,js}',
+      \     '\ call ale#Queue(200)',
       \   'Autocmd ColorScheme *',
       \     '\  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold',
-      \     '\| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold'
+      \     '\| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold',
       \], "\n"),
       \ 'hook_source': join([
       \   "let g:ale_echo_cursor = 0",
-      \   "let g:ale_lint_on_enter = 0",
       \   "let g:ale_lint_on_save = 0",
+      \   "let g:ale_lint_on_enter = 0",
       \   "let g:ale_lint_on_text_changed = 0",
       \   "let g:ale_sign_error = '->'",
       \   "let g:ale_sign_warning = '—'",
@@ -208,7 +211,9 @@
       \   "let g:ale_echo_msg_warning_str = 'W'",
       \   "let g:ale_echo_msg_format = ' %s'",
       \   "let g:ale_sign_column_always = 1",
-      \   "let g:ale_linters = {'php': ['php'], 'javascript': ['eslint']}"
+      \   "let g:ale_linters = {'php': ['php'], 'javascript': ['eslint']}",
+      \   "let g:ale_javascript_eslint_use_global = 1",
+      \   "let g:ale_javascript_eslint_options = printf('--cache --no-color --config %s/preset/eslint.js', $VIMFILES)"
       \], "\n")
       \})
 
@@ -217,7 +222,6 @@
     call dein#add('thinca/vim-quickrun', {
       \ 'rev': 'v0.7.0',
       \ 'frozen': 1,
-      \ 'on_func': 'quickrun#',
       \ 'on_cmd': 'QuickRun',
       \ 'on_map': [['n', '<Plug>(quickrun)']]
       \})
@@ -544,6 +548,7 @@
     call dein#add('heavenshell/vim-jsdoc')
     call dein#add('chemzqm/vim-jsx-improve', {
       \ 'hook_add': join([
+      \   'let g:javascript_plugin_jsdoc = 1',
       \   'Autocmd Syntax javascript',
       \     '\  hi jsBraces              guifg=#999999 gui=NONE',
       \     '\| hi jsFuncBraces          guifg=#999999 gui=NONE',
@@ -554,9 +559,6 @@
       \     '\| hi jsGlobalNodeObjects   guifg=#4091bf gui=NONE',
       \     '\| hi jsImport              guifg=#1E347B gui=NONE',
       \     '\| hi jsFrom                guifg=#1E347B gui=NONE',
-      \], "\n"),
-      \ 'hook_source': join([
-      \   'let g:javascript_plugin_jsdoc = 1'
       \], "\n")
       \})
 
@@ -640,15 +642,6 @@
 
 " Plugin settings
 "---------------------------------------------------------------------------
-  if dein#tap('ale')
-    nmap <silent> <Left>  <Plug>(ale_previous_wrap)
-    nmap <silent> <Right> <Plug>(ale_next_wrap)
-
-    " PHP
-    Autocmd BufEnter,BufWrite,TextChanged,TextChangedI *.php
-      \ call ale#Queue(200)
-  endif
-
   if dein#tap('caw.vim')
     nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
     function! s:cawRangeToggle() abort
@@ -1370,8 +1363,10 @@
       call denite#custom#option('default', 'statusline', v:false)
 
       " Sources
-      call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+      call denite#custom#source('file_rec',                 'sorters',    ['sorter_sublime'])
+      call denite#custom#source('line',                     'matchers',   ['matcher_regexp'])
       call denite#custom#source('file_mru',                 'matchers',   ['matcher_project_files', 'matcher_fuzzy'])
+      call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
 
       if executable('rg')
         " Ripgrep: https://github.com/BurntSushi/ripgrep
@@ -1379,8 +1374,8 @@
         call denite#custom#var('grep', 'recursive_opts', [])
         call denite#custom#var('grep', 'final_opts', ['.'])
         call denite#custom#var('grep', 'separator', ['--'])
-        call denite#custom#var('grep', 'default_opts', ['--vimgrep', '--no-heading'])
-        call denite#custom#var('file_rec', 'command',  ['rg', '--follow', '--hidden', '-l', '.'])
+        call denite#custom#var('grep', 'default_opts', ['--maxdepth', '8', '--vimgrep', '--no-heading'])
+        call denite#custom#var('file_rec', 'command',  ['rg', '--maxdepth', '8', '-l', '.'])
       endif
 
       " Mappings
