@@ -1,4 +1,4 @@
-" .vimrc / 2016 Dec
+" vimrc
 " Author: Alex Masterov <alex.masterow@gmail.com>
 " Source: https://github.com/AlexMasterov/vimfiles
 
@@ -1848,27 +1848,44 @@
     \. "%2*%(%{exists('*BufModified') ? BufModified() : ''}\ %)%*"
     \. "%="
     \. "%(%{IfFit(100) && exists('*ReanimateIsSaved') ? ReanimateIsSaved() : ''}\ %)"
-    \. "%(%{IfFit(100) && exists('*FileSize') ? FileSize() : ''}\ %)"
+    \. "%(%{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)"
     \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
     \. "%2*%(%{IfFit(100) ? &iminsert ? 'RU' : 'EN' : ''}\ %)%*"
     \. "%(%{IfFit(90) ? !empty(&fileencoding) ? &fileencoding : &encoding : ''}\ %)"
     \. "%2*%(%Y\ %)%*"
 
+  " Status-line events
+  Autocmd BufRead,TextChanged,TextChangedI *
+  	\ let b:bufsize = BufSize()
+
+  Autocmd BufEnter,WinEnter,VimResized *
+  	\ let b:winwidth = winwidth(0)
+
   " Status-line functions
   function! IfFit(width) abort
-    return winwidth(0) > a:width
+    return get(b:, 'winwidth', winwidth(0)) >= a:width
   endfunction
 
   function! BufModified() abort
-    return &modified ? '+' : &modifiable ? '' : '-'
+    return &modified
+          \ ? '+'
+          \ : &modifiable ? '' : '-'
   endfunction
 
-  function! FileSize() abort
-    let size = &encoding ==# &fileencoding || &fileencoding ==# ''
-      \ ? line2byte(line('$') + 1) - 1
-      \ : getfsize(expand('%:p'))
-    return size <= 0 ? '' :
-      \ size < 1024 ? size.'B' : (size / 1024).'K'
+  function! BufSize() abort
+    let filepath = expand('%:p')
+    let size = filepath !=# ''
+          \ ? getfsize(filepath)
+          \ : line2byte(line('$') + 1) - 1
+
+    if size >= 1024
+      let suffix = 'K'
+      let size = size / 1024
+    else
+      let suffix = 'B'
+    endif
+
+    return size . suffix
   endfunction
 
 " Edit
