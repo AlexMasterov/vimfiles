@@ -14,7 +14,7 @@
   set regexpengine=2  " 0=auto 1=old 2=NFA
   set packpath=
 
-  " Initialize autogroup in MyVimrc
+  " Initialize autogroup
   augroup MyVimrc | execute 'autocmd!' | augroup END
 
   " Echo startup time on start
@@ -41,26 +41,24 @@
   " Remove quit command from history
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   " Don't auto comment new line made with 'o', 'O', or <CR>
-  Autocmd VimEnter * AutocmdFT * setlocal formatoptions-=ro
+  Autocmd WinEnter * setlocal formatoptions-=ro
   Autocmd WinEnter * checktime
-  Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
-  Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
-  " Toggle settings between modes
+  Autocmd WinLeave * let [&l:number, &l:relativenumber] = &l:number ? [1, 0] : [&l:number, &l:relativenumber]
+  Autocmd WinEnter * let [&l:number, &l:relativenumber] = &l:number ? [1, 1] : [&l:number, &l:relativenumber]
   Autocmd InsertEnter * setlocal list
   Autocmd InsertLeave * setlocal nolist
-  Autocmd WinLeave * setlocal nornu
-  Autocmd WinEnter * let [&l:nu, &l:rnu] = &l:nu ? [1, 1] : [&l:nu, &l:rnu]
+  Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
+  if exists('$MYVIMRC')
+    Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
+  endif
 
 " Functions
 "---------------------------------------------------------------------------
-  "---
-  let s:isWindows = has('win32') || has('win64')
-
+  let s:isWindows = has('win64') || has('win32') || has('win32unix')
   function! IsWindows() abort
     return s:isWindows
   endfunction
 
-  "---
   function! s:trimWhiteSpace() abort
     if &binary | return | endif
     let [winView, register] = [winsaveview(), @/]
@@ -1826,8 +1824,8 @@
   set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
   " Avoid showing trailing whitespace when in Insert mode
   let s:trailchar = matchstr(&listchars, '\(trail:\)\@<=\S')
-  Autocmd InsertEnter * execute 'setl listchars+=trail:'. s:trailchar
-  Autocmd InsertLeave * execute 'setl listchars-=trail:'. s:trailchar
+  Autocmd InsertEnter * execute 'setlocal listchars+=trail:' . s:trailchar
+  Autocmd InsertLeave * execute 'setlocal listchars-=trail:' . s:trailchar
 
   " Title-line
   set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
