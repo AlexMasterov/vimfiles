@@ -4,11 +4,18 @@
 
 " Environment
 "---------------------------------------------------------------------------
-  " Vimfiles
-  let $VIMFILES = fnamemodify($VIM, ':h') . '/vimfiles'
-  let $CACHE = $VIMFILES.'/cache'
+  let $VIMFILES = expand('~/vimfiles')
+  let $VIMHOME = expand('~/') . (has('nvim') ? '.nvim' : '.vim')
 
-  set viminfo=!,'300,<50,s10,h,n$VIMFILES/viminfo
+  let $UNDO  = $VIMHOME . '/undo'
+  let $VIEW  = $VIMHOME . '/view'
+  let $CACHE = $VIMHOME . '/.cache'
+  let $INFO  = $VIMHOME . (has('nvim') ? '/shada' : '/viminfo')
+
+  if has('vim_starting')
+    set runtimepath=$VIMFILES,$VIMRUNTIME
+  endif
+
   set noexrc          " avoid reading local (g)vimrc, exrc
   set modelines=0     " prevents security exploits
   set regexpengine=2  " 0=auto 1=old 2=NFA
@@ -30,8 +37,10 @@
 "---------------------------------------------------------------------------
   command! -nargs=* Autocmd   autocmd MyVimrc <args>
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
+  command! -nargs=1 Data
+        \ execute 'set ' . (has('nvim') ? 'shada' : 'viminfo') . '='.<q-args>
   command! -nargs=1 Indent
-    \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
+        \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
   " Shows the syntax stack under the cursor
   command! SS echo map(synstack(line('.'), col('.')), "synIDattr(v:val, 'name')")
 
@@ -105,18 +114,20 @@
 
   " Misc
 "---------------------------------------------------------------------------
+  Data !,'300,<50,s10,h,n$INFO
+
   " Cache
   MakeDir! $CACHE
   set directory=$VIMFILES/tmp
   set noswapfile
 
   " Undo
-  MakeDir! $VIMFILES/undo
-  set undodir=$VIMFILES/undo
+  MakeDir! $UNDO
+  set undodir=$UNDO
   set undofile undolevels=500 undoreload=1000
 
   " View
-  set viewdir=$VIMFILES/views
+  set viewdir=$VIEW
   set viewoptions=cursor,slash,unix
 
   " Russian keyboard
@@ -145,7 +156,7 @@
 
   " Setup Dein plugin manager
   if has('vim_starting')
-    let s:deinPath = $VIMFILES.'/dein'
+    let s:deinPath = $VIMHOME . '/dein'
     let s:deinRepo = s:deinPath.'/repos/github.com/Shougo/dein.vim'
     if !isdirectory(s:deinRepo)
       if executable('git')
@@ -155,7 +166,7 @@
         echom 'Can`t download Dein: Git not found.'
       endif
     endif
-    execute 'set runtimepath='. fnameescape(s:deinRepo) .','. $VIMRUNTIME
+    execute 'set runtimepath^='. fnameescape(s:deinRepo)
   endif
 
   if dein#load_state(s:deinPath)
