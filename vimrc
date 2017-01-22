@@ -172,29 +172,14 @@
   if dein#load_state(s:deinPath)
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
-    call dein#add('Shougo/dein.vim', {
-      \ 'rtp': '',
-      \ 'hook_add': join([
-      \   'let g:dein#types#git#clone_depth = 1',
-      \   'let g:dein#install_max_processes = 20',
-      \   'nnoremap <silent> ;u :<C-u>call dein#update()<CR>',
-      \   'nnoremap <silent> ;i :<C-u>call dein#install()<CR>',
-      \   'nnoremap <silent> ;I :<C-u>call map(dein#check_clean(), "delete(v:val, ''rf'')")<CR>'
-      \], "\n")
-      \})
+    call dein#load_toml($VIMFILES . '/dein/plugins.toml')
 
     " Load develop version plugins
     call dein#local($VIMFILES.'/dev', {'frozen': 1, 'merged': 0},  ['dotvim'])
 
     call dein#add('AlexMasterov/mild.vim')
-    call dein#add('Shougo/vimproc.vim', {
-      \ 'build': IsWindows() ? 'tools\\update-dll-mingw' : 'make',
-      \ 'on_source': ['unite.vim', 'vim-quickrun', 'ternjs.vim']
-      \})
-
     call dein#add('kopischke/vim-stay', {'on_path': '.*'})
     call dein#add('mbbill/undotree', {'on_cmd': 'UndotreeToggle'})
-    call dein#add('kana/vim-smartchr')
 
     " Lint
     "-----------------------------------------------------------------------
@@ -419,87 +404,15 @@
       \], "\n")
       \})
 
-    call dein#add('tyru/caw.vim', {
-      \ 'on_map': [['nx', '<Plug>(caw:']],
-      \ 'hook_add': join([
-      \   'nmap  q <Plug>(caw:range:toggle)',
-      \   'xmap  q <Plug>(caw:hatpos:toggle)',
-      \   'nmap ,f <Plug>(caw:jump:comment-prev)',
-      \   'nmap ,F <Plug>(caw:jump:comment-next)',
-      \   'nmap ,a <Plug>(caw:dollarpos:toggle)'
-      \], "\n"),
-      \ 'hook_source': join([
-      \   'let g:caw_no_default_keymappings = 1',
-      \   'let g:caw_hatpos_skip_blank_line = 1',
-      \   'let g:caw_dollarpos_sp_left = repeat("\u0020", 2)'
-      \], "\n"),
-      \})
-
-    call dein#add('AndrewRadev/splitjoin.vim', {
-      \ 'on_cmd': 'SplitjoinSplit',
-      \ 'hook_add': 'nmap <silent> S :<C-u>SplitjoinSplit<CR><CR><Esc>'
-      \})
-
-    call dein#add('jakobwesthoff/argumentrewrap', {
-      \ 'hook_add': 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
-      \})
-
-    call dein#add('junegunn/vim-easy-align', {
-      \ 'on_map': [['nx', '<Plug>(EasyAlign)']],
-      \ 'hook_add': 'vmap <Enter> <Plug>(EasyAlign)'
-      \})
-
-    call dein#add('easymotion/vim-easymotion', {
-      \ 'on_func': 'EasyMotion#go',
-      \ 'on_map': [['nx', '<Plug>(easymotion-']]
-      \})
-
-    call dein#add('AndrewRadev/sideways.vim', {
-      \ 'on_cmd': 'Sideways',
-      \ 'hook_add': join([
-      \   'nnoremap <silent> <C-h> :<C-u>SidewaysLeft<CR>',
-      \   'nnoremap <silent> <C-l> :<C-u>SidewaysRight<CR>',
-      \   'nnoremap <silent> <S-h> :<C-u>SidewaysJumpLeft<CR>',
-      \   'nnoremap <silent> <S-l> :<C-u>SidewaysJumpRight<CR>'
-      \], "\n")
-      \})
-
     call dein#add('cohama/lexima.vim', {
       \ 'on_event': 'InsertEnter',
       \ 'hook_add': 'let g:lexima_no_default_rules = 1'
-      \})
-
-    call dein#add('AndrewRadev/switch.vim', {
-      \ 'on_func': 'switch#',
-      \ 'on_cmd': 'Switch',
-      \ 'hook_source': "let g:switch_mapping = ''"
       \})
 
     call dein#add('Shougo/vimfiler.vim', {
       \ 'on_if': "isdirectory(bufname('%'))",
       \ 'on_cmd': ['VimFiler', 'VimFilerCurrentDir'],
       \ 'on_map': [['n', '<Plug>']]
-      \})
-
-    call dein#add('t9md/vim-choosewin', {
-      \ 'on_map': [['n', '<Plug>(choosewin)']],
-      \ 'hook_add': join([
-      \   'nmap - <Plug>(choosewin)',
-      \   'AutocmdFT vimfiler nmap <buffer> - <Plug>(choosewin)'
-      \], "\n"),
-      \ 'hook_source': join([
-      \   "let g:choosewin_label = 'WERABC'",
-      \   "let g:choosewin_label_align = 'left'",
-      \   'let g:choosewin_blink_on_land = 0',
-      \   'let g:choosewin_overlay_enable = 2',
-      \   "let g:choosewin_color_land = {'gui': ['#0000FF', '#F6F7F7', 'NONE']}",
-      \   "let g:choosewin_color_label = {'gui': ['#FFE1CC', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_label_current = {'gui': ['#CCE5FF', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_other = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
-      \   "let g:choosewin_color_shade = {'gui': ['#F6F7F7', '#EEEEEE', 'NONE']}",
-      \   "let g:choosewin_color_overlay = {'gui': ['#2B2B2B', '#2B2B2B', 'bold']}",
-      \   "let g:choosewin_color_overlay_current = {'gui': ['#CCE5FF', '#CCE5FF', 'bold']}"
-      \], "\n")
       \})
 
     call dein#add('whatyouhide/vim-lengthmatters', {
@@ -651,61 +564,6 @@
 
 " Plugin settings
 "---------------------------------------------------------------------------
-  if dein#tap('caw.vim')
-    nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
-    function! s:cawRangeToggle() abort
-      if v:count > 1
-        let winView = winsaveview()
-        execute "normal V". (v:count - 1) ."j\<Plug>(caw:hatpos:toggle)"
-        call winrestview(winView)
-      else
-        execute "normal \<Plug>(caw:hatpos:toggle)"
-      endif
-    endfunction
-  endif
-
-  if dein#tap('vim-easy-align')
-    function! s:vimEasyAlignOnSource() abort
-      let g:easy_align_ignore_groups = ['Comment', 'String']
-      let g:easy_align_delimiters = {
-        \ '>': {
-        \   'pattern': '>>\|=>\|>'
-        \ },
-        \ ']': {
-        \   'pattern': '[[\]]',
-        \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
-        \ },
-        \ ')': {
-        \   'pattern': '[()]',
-        \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
-        \ },
-        \ 'f': {
-        \   'pattern': ' \(\S\+(\)\@=',
-        \   'left_margin': 0, 'right_margin': 0
-        \ },
-        \ 'd': {
-        \   'pattern': ' \(\S\+\s*[;=]\)\@=',
-        \   'left_margin': 0, 'right_margin': 0
-        \ },
-        \ ';': {
-        \   'pattern': ':',
-        \   'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1
-        \ },
-        \ '/': {
-        \   'pattern': '//\+\|/\*\|\*/',
-        \   'ignore_groups': ['^\(.\(Comment\)\@!\)*$'],
-        \   'delimiter_align': 'l'
-        \ },
-        \ '=': {
-        \   'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]',
-        \   'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0
-        \ }
-        \}
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:vimEasyAlignOnSource'))
-  endif
-
   if dein#tap('lexima.vim')
     function! s:leximaOnSource() abort
       silent! call remove(g:lexima#default_rules, 11, -1) " prev 30
@@ -768,138 +626,6 @@
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:leximaOnSource'))
-  endif
-
-  if dein#tap('switch.vim')
-    nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
-    xnoremap <silent> <S-Tab> :silent! Switch<CR>
-    nnoremap <silent> ! :<C-u>silent! call switch#Switch(g:switchQuotes, {'reverse': 1})<CR>
-    nnoremap <silent> @ :<C-u>silent! call switch#Switch(g:switchCamelCase, {'reverse': 1})<CR>
-
-    let g:switchQuotes = [
-      \ {
-      \  '''\(.\{-}\)''': '"\1"',
-      \  '"\(.\{-}\)"':   '''\1''',
-      \  '`\(.\{-}\)`':   '''\1'''
-      \ }
-      \]
-    let g:switchCamelCase = [
-      \ {
-      \  '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-      \  '\<\(\u\l\+\)\(\u\l\+\)\+\>':     "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-      \  '\<\(\l\+\)\(_\l\+\)\+\>':        '\U\0',
-      \  '\<\(\u\+\)\(_\u\+\)\+\>':        "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-      \  '\<\(\l\+\)\(-\l\+\)\+\>':        "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
-      \ }
-      \]
-
-    AutocmdFT php
-      \ let b:switch_custom_definitions = [
-      \  ['prod', 'dev', 'test'],
-      \  ['&&', '||'],
-      \  ['and', 'or'],
-      \  ['public', 'protected', 'private'],
-      \  ['extends', 'implements'],
-      \  ['string ', 'int ', 'array '],
-      \  ['use', 'namespace'],
-      \  ['var_dump', 'print_r'],
-      \  ['include', 'require'],
-      \  ['include_once', 'require_once'],
-      \  ['$_GET', '$_POST', '$_REQUEST'],
-      \  ['__DIR__', '__FILE__'],
-      \  {
-      \    '\([^=]\)===\([^=]\)': '\1==\2',
-      \    '\([^=]\)==\([^=]\)': '\1===\2'
-      \  },
-      \  {
-      \    '\[[''"]\(\k\+\)[''"]\]': '->\1',
-      \    '\->\(\k\+\)': '[''\1'']'
-      \  },
-      \  {
-      \    '\array(\(.\{-}\))': '[\1]',
-      \    '\[\(.\{-}\)]': '\array(\1)'
-      \  },
-      \  {
-      \    '^class\s\(\k\+\)': 'final class \1',
-      \    '^final class\s\(\k\+\)': 'abstract class \1',
-      \    '^abstract class\s\(\k\+\)': 'trait \1',
-      \    '^trait\s\(\k\+\)': 'class \1'
-      \  }
-      \]
-
-    AutocmdFT javascript
-      \ let b:switch_custom_definitions = [
-      \  ['get', 'set'],
-      \  ['var', 'const', 'let'],
-      \  ['<', '>'], ['==', '!=', '==='],
-      \  ['left', 'right'], ['top', 'bottom'],
-      \  ['getElementById', 'getElementByClassName'],
-      \  {
-      \    '\function\s*(\(.\{-}\))': '(\1) =>'
-      \  }
-      \]
-
-    AutocmdFT html,twig,blade
-      \ let b:switch_custom_definitions = [
-      \  ['h1', 'h2', 'h3'],
-      \  ['png', 'jpg', 'gif'],
-      \  ['id=', 'class=', 'style='],
-      \  {
-      \    '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
-      \    '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
-      \  },
-      \  {
-      \    '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
-      \    '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
-      \  }
-      \]
-
-    AutocmdFT css
-      \ let b:switch_custom_definitions = [
-      \  ['border-top', 'border-bottom'],
-      \  ['border-left', 'border-right'],
-      \  ['border-left-width', 'border-right-width'],
-      \  ['border-top-width', 'border-bottom-width'],
-      \  ['border-left-style', 'border-right-style'],
-      \  ['border-top-style', 'border-bottom-style'],
-      \  ['margin-left', 'margin-right'],
-      \  ['margin-top', 'margin-bottom'],
-      \  ['padding-left', 'padding-right'],
-      \  ['padding-top', 'padding-bottom'],
-      \  ['margin', 'padding'],
-      \  ['height', 'width'],
-      \  ['min-width', 'max-width'],
-      \  ['min-height', 'max-height'],
-      \  ['transition', 'animation'],
-      \  ['absolute', 'relative', 'fixed'],
-      \  ['inline', 'inline-block', 'block', 'flex'],
-      \  ['overflow', 'overflow-x', 'overflow-y'],
-      \  ['before', 'after'],
-      \  ['none', 'block'],
-      \  ['left', 'right'],
-      \  ['top', 'bottom'],
-      \  ['em', 'px', '%'],
-      \  ['bold', 'normal'],
-      \  ['hover', 'active']
-      \]
-  endif
-
-  if dein#tap('vim-smartchr')
-    AutocmdFT haskell
-      \  inoremap <buffer> <expr> \ smartchr#loop('\ ', '\\')
-      \| inoremap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
-
-    AutocmdFT php
-      \  inoremap <buffer> <expr> $ smartchr#loop('$', '$this->', '$$')
-      \| inoremap <buffer> <expr> > smartchr#loop('>', '=>', '>>')
-
-    AutocmdFT javascript
-      \  inoremap <buffer> <expr> $ smartchr#loop('$', 'this.', '$$')
-      \| inoremap <buffer> <expr> - smartchr#loop('-', '--', '_')
-
-    AutocmdFT yaml
-      \  inoremap <buffer> <expr> > smartchr#loop('>', '%>')
-      \| inoremap <buffer> <expr> < smartchr#loop('<', '<%', '<%=')
   endif
 
   if dein#tap('colorizer')
@@ -1324,40 +1050,6 @@
     endfunction
 
     call dein#set_hook(g:dein#name, 'hook_source', function('s:ultiOnSource'))
-  endif
-
-  if dein#tap('vim-easymotion')
-    nmap  s       <Plug>(easymotion-s)
-    nmap ,s       <Plug>(easymotion-overwin-f)
-    nmap ,S       <Plug>(easymotion-overwin-f2)
-    nmap <Space>s <Plug>(easymotion-overwin-w)
-    nmap <Space>S <Plug>(easymotion-overwin-line)
-    nmap W        <Plug>(easymotion-lineforward)
-    nmap B        <Plug>(easymotion-linebackward)
-
-    map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
-    map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
-
-    function! s:easymotionOnSource() abort
-      let g:EasyMotion_verbose = 0
-      let g:EasyMotion_do_mapping = 0
-      let g:EasyMotion_show_prompt = 0
-      let g:EasyMotion_startofline = 0
-      let g:EasyMotion_space_jump_first = 1
-      let g:EasyMotion_enter_jump_first = 1
-    endfunction
-
-    Autocmd ColorScheme,Syntax * call s:easymotionColors()
-    function! s:easymotionColors() abort
-      hi EasyMotionTarget       guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-      hi EasyMotionTarget2First guifg=#FF0000 guibg=#F6F7F7 gui=bold
-      hi link EasyMotionShade         Comment
-      hi link EasyMotionMoveHL        Search
-      hi link EasyMotionIncCursor     Cursor
-      hi link EasyMotionTarget2Second EasyMotionTarget
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:easymotionOnSource'))
   endif
 
   if dein#tap('denite.nvim')
