@@ -54,43 +54,7 @@ hook_source = '''
 repo = 'junegunn/vim-easy-align'
 on_map = {x = '<Plug>(EasyAlign)'}
 hook_add = 'vmap <Enter> <Plug>(EasyAlign)'
-hook_source = '''
-  let g:easy_align_ignore_groups = ['Comment', 'String']
-  let g:easy_align_delimiters = {
-  \ '>': {
-  \   'pattern': '>>\|=>\|>'
-  \ },
-  \ ']': {
-  \   'pattern': '[[\]]',
-  \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
-  \ },
-  \ ')': {
-  \   'pattern': '[()]',
-  \   'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0
-  \ },
-  \ 'f': {
-  \   'pattern': ' \(\S\+(\)\@=',
-  \   'left_margin': 0, 'right_margin': 0
-  \ },
-  \ 'd': {
-  \   'pattern': ' \(\S\+\s*[;=]\)\@=',
-  \   'left_margin': 0, 'right_margin': 0
-  \ },
-  \ ';': {
-  \   'pattern': ':',
-  \   'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1
-  \ },
-  \ '/': {
-  \   'pattern': '//\+\|/\*\|\*/',
-  \   'ignore_groups': ['^\(.\(Comment\)\@!\)*$'],
-  \   'delimiter_align': 'l'
-  \ },
-  \ '=': {
-  \   'pattern': '===\|<=>\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-?]*=[#?]\?\|[-=]>\|<[-=]',
-  \   'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0
-  \ }
-  \}
-'''
+hook_source = 'source ~/vimfiles/dein/plugins/easyalign.vim'
 
 [[plugins]]
 repo = 't9md/vim-choosewin'
@@ -200,117 +164,52 @@ hook_add = '''
 repo = 'AndrewRadev/switch.vim'
 on_func = 'switch#'
 on_cmd = 'Switch'
-hook_add = '''
-  nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
-  xnoremap <silent> <S-Tab> :silent! Switch<CR>
-  nnoremap <silent> ! :<C-u>call switch#Switch({'definitions': g:switchQuotes, 'reverse': 1})<CR>
-  nnoremap <silent> @ :<C-u>call switch#Switch({'definitions': g:switchCamelCase, 'reverse': 1})<CR>
-
-  let g:switchQuotes = [
-    \ {
-    \  "'\\(.\\{-}\\)'": '"\1"',
-    \  '"\(.\{-}\)"': "'\\1'",
-    \  '`\(.\{-}\)`': "'\\1'"
-    \ }
-    \]
-  let g:switchCamelCase = [
-    \ {
-    \  '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-    \  '\<\(\u\l\+\)\(\u\l\+\)\+\>':     "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-    \  '\<\(\l\+\)\(_\l\+\)\+\>':        '\U\0',
-    \  '\<\(\u\+\)\(_\u\+\)\+\>':        "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-    \  '\<\(\l\+\)\(-\l\+\)\+\>':        "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
-    \ }
-    \]
-
-  AutocmdFT php
-    \ let b:switch_custom_definitions = [
-    \  ['prod', 'dev', 'test'],
-    \  ['&&', '||'],
-    \  ['and', 'or'],
-    \  ['public', 'protected', 'private'],
-    \  ['extends', 'implements'],
-    \  ['string ', 'int ', 'array '],
-    \  ['use', 'namespace'],
-    \  ['var_dump', 'print_r'],
-    \  ['include', 'require'],
-    \  ['include_once', 'require_once'],
-    \  ['$_GET', '$_POST', '$_REQUEST'],
-    \  ['__DIR__', '__FILE__'],
-    \  {
-    \    '\([^=]\)===\([^=]\)': '\1==\2',
-    \    '\([^=]\)==\([^=]\)': '\1===\2'
-    \  },
-    \  {
-    \    '\[[''"]\(\k\+\)[''"]\]': '->\1',
-    \    '\->\(\k\+\)': '[''\1'']'
-    \  },
-    \  {
-    \    '\array(\(.\{-}\))': '[\1]',
-    \    '\[\(.\{-}\)]': '\array(\1)'
-    \  },
-    \  {
-    \    '^class\s\(\k\+\)': 'final class \1',
-    \    '^final class\s\(\k\+\)': 'abstract class \1',
-    \    '^abstract class\s\(\k\+\)': 'trait \1',
-    \    '^trait\s\(\k\+\)': 'class \1'
-    \  }
-    \]
-
-  AutocmdFT javascript
-    \ let b:switch_custom_definitions = [
-    \  ['get', 'set'],
-    \  ['var', 'const', 'let'],
-    \  ['<', '>'], ['==', '!=', '==='],
-    \  ['left', 'right'], ['top', 'bottom'],
-    \  ['getElementById', 'getElementByClassName'],
-    \  {
-    \    '\function\s*(\(.\{-}\))': '(\1) =>'
-    \  }
-    \]
-
-  AutocmdFT html,twig,blade
-    \ let b:switch_custom_definitions = [
-    \  ['h1', 'h2', 'h3'],
-    \  ['png', 'jpg', 'gif'],
-    \  ['id=', 'class=', 'style='],
-    \  {
-    \    '<div\(.\{-}\)>\(.\{-}\)</div>': '<span\1>\2</span>',
-    \    '<span\(.\{-}\)>\(.\{-}\)</span>': '<div\1>\2</div>'
-    \  },
-    \  {
-    \    '<ol\(.\{-}\)>\(.\{-}\)</ol>': '<ul\1>\2</ul>',
-    \    '<ul\(.\{-}\)>\(.\{-}\)</ul>': '<ol\1>\2</ol>'
-    \  }
-    \]
-
-  AutocmdFT css
-    \ let b:switch_custom_definitions = [
-    \  ['border-top', 'border-bottom'],
-    \  ['border-left', 'border-right'],
-    \  ['border-left-width', 'border-right-width'],
-    \  ['border-top-width', 'border-bottom-width'],
-    \  ['border-left-style', 'border-right-style'],
-    \  ['border-top-style', 'border-bottom-style'],
-    \  ['margin-left', 'margin-right'],
-    \  ['margin-top', 'margin-bottom'],
-    \  ['padding-left', 'padding-right'],
-    \  ['padding-top', 'padding-bottom'],
-    \  ['margin', 'padding'],
-    \  ['height', 'width'],
-    \  ['min-width', 'max-width'],
-    \  ['min-height', 'max-height'],
-    \  ['transition', 'animation'],
-    \  ['absolute', 'relative', 'fixed'],
-    \  ['inline', 'inline-block', 'block', 'flex'],
-    \  ['overflow', 'overflow-x', 'overflow-y'],
-    \  ['before', 'after'],
-    \  ['none', 'block'],
-    \  ['left', 'right'],
-    \  ['top', 'bottom'],
-    \  ['em', 'px', '%'],
-    \  ['bold', 'normal'],
-    \  ['hover', 'active']
-    \]
-'''
+hook_add = 'source ~/vimfiles/dein/plugins/switch.vim'
 hook_source = "let g:switch_mapping = ''"
+
+[[plugins]]
+repo = 'Shougo/vimfiler.vim'
+on_if = "isdirectory(bufname('%'))"
+on_cmd = ['VimFiler', 'VimFilerCurrentDir']
+on_map = {n = '<Plug>'}
+hook_add = 'source ~/vimfiles/dein/plugins/vimfiler_add.vim'
+hook_source = '''
+  let g:vimfiler_data_directory = $CACHE.'/vimfiler'
+  let g:unite_kind_file_use_trashbox = IsWindows()
+
+  let g:vimfiler_ignore_pattern =
+    \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|dist\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
+
+  " Icons
+  let g:vimfiler_file_icon = ' '
+  let g:vimfiler_tree_leaf_icon = ''
+  let g:vimfiler_tree_opened_icon = '▾'
+  let g:vimfiler_tree_closed_icon = '▸'
+  let g:vimfiler_marked_file_icon = '+'
+
+  " Default profile
+  let s:vimfiler_default = {
+    \ 'safe': 0,
+    \ 'parent': 0,
+    \ 'explorer': 1,
+    \ 'winwidth': 26,
+    \ 'winminwidth': 18
+    \}
+
+  call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
+'''
+
+[[plugins]]
+repo = 'triglav/vim-visual-increment'
+on_map = {x = '<Plug>Visual'}
+hook_add = '''
+  xmap <C-a> <Plug>VisualIncrement
+  xmap <C-x> <Plug>VisualDecrement
+'''
+hook_source = 'set nrformats+=alpha'
+
+[[plugins]]
+repo = 'cohama/lexima.vim'
+on_event = 'InsertEnter'
+hood_source = 'let g:lexima_no_default_rules = 1'
+hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'

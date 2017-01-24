@@ -379,15 +379,6 @@
       \ 'hook_source': 'let g:surround_no_mappings = 1'
       \})
 
-    call dein#add('triglav/vim-visual-increment', {
-      \ 'on_map': [['x', '<Plug>Visual']],
-      \ 'hook_add': join([
-      \   'xmap <C-a> <Plug>VisualIncrement',
-      \   'xmap <C-x> <Plug>VisualDecrement'
-      \], "\n"),
-      \ 'hook_source': 'set nrformats+=alpha'
-      \})
-
     call dein#add('haya14busa/vim-keeppad', {
       \ 'on_cmd': ['KeeppadOn', 'KeeppadOff'],
       \ 'hook_add': 'Autocmd BufReadPre *.{json,css,scss,sss,sugarss},qfreplace* KeeppadOn',
@@ -564,70 +555,6 @@
 
 " Plugin settings
 "---------------------------------------------------------------------------
-  if dein#tap('lexima.vim')
-    function! s:leximaOnSource() abort
-      silent! call remove(g:lexima#default_rules, 11, -1) " prev 30
-      for rule in g:lexima#default_rules + g:lexima#newline_rules
-        call lexima#add_rule(rule)
-      endfor | unlet rule
-
-      function! s:disableLeximaInsideRegexp(char) abort
-        call lexima#add_rule({'at': '\(...........\)\?/\S.*\%#.*\S/', 'char': a:char, 'input': a:char})
-      endfunction
-
-      " Quotes
-      for quote in split('" ''')
-        call lexima#add_rule({'at': '\(.......\)\?'. quote .'\%#', 'char': quote, 'input': quote})
-        call lexima#add_rule({'at': '\(...........\)\?\%#'. quote, 'char': quote, 'input': '<Right>'})
-        call lexima#add_rule({'at': '\(.......\)\?'. quote .'\%#'. quote, 'char': '<BS>', 'delete': 1})
-        call s:disableLeximaInsideRegexp(quote)
-      endfor | unlet quote
-
-      " Fix pair completion
-      for pair in split('() []')
-        call lexima#add_rule({
-        \ 'at': '\(........\)\?\%#[^\s'.escape(pair[1], ']') .']', 'char': pair[0], 'input': pair[0]
-        \})
-      endfor | unlet pair
-
-      " { <Space> }
-      call lexima#add_rule({
-        \ 'filetype': ['javascript', 'yaml'],
-        \ 'at': '\(.......\)\?{\%#}', 'char': '<Space>', 'input_after': '<Space>'
-        \})
-
-      " {{ <Space> }}
-      call lexima#add_rule({
-        \ 'filetype': ['twig', 'blade'],
-        \ 'at': '\(........\)\?{\%#}', 'char': '{', 'input': '{<Space>', 'input_after': '<Space>}'
-        \})
-      call lexima#add_rule({
-        \ 'filetype': ['twig', 'blade'],
-        \ 'at': '\(........\)\?{{ \%# }}', 'char': '<BS>', 'input': '<BS><BS>', 'delete': 2
-        \})
-      " {# <Space> #}
-      call lexima#add_rule({
-        \ 'filetype': 'twig',
-        \ 'at': '\(........\)\?{\%#}', 'char': '#', 'input': '#<Space><Space>#<Left><Left>'
-        \})
-      call lexima#add_rule({
-        \ 'filetype': 'twig',
-        \ 'at': '\(........\)\?{# \%# #}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
-        \})
-      " {# <Space> #}
-      call lexima#add_rule({
-        \ 'filetype': 'twig',
-        \ 'at': '{\%#}', 'char': '%', 'input': '%<Space><Space>%<Left><Left>'
-        \})
-      call lexima#add_rule({
-        \ 'filetype': 'twig',
-        \ 'at': '{% \%# %}', 'char': '<BS>', 'input': '<Right><Right><BS><BS><BS>', 'delete': 2
-        \})
-    endfunction
-
-    call dein#set_hook(g:dein#name, 'hook_source', function('s:leximaOnSource'))
-  endif
-
   if dein#tap('colorizer')
     let s:color_codes_ft = split('css html twig sugarss')
 
