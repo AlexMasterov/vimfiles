@@ -23,6 +23,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.hs set filetype=haskell
   " Ruby
   autocmd BufNewFile,BufRead *.{rb,rbw},Vagrantfile* set filetype=ruby
+  " Lua
+  autocmd BufNewFile,BufRead *.lua set filetype=lua
 
   " HTML
   autocmd BufNewFile,BufRead *.{html,htm} set filetype=html
@@ -40,10 +42,12 @@ augroup filetypedetect
   " Blade
   autocmd BufNewFile,BufRead *.blade.php set filetype=blade
 
-  " SugarSS
-  autocmd BufNewFile,BufRead *.sss set filetype=sugarss
+  " CSS
+  autocmd BufNewFile,BufRead *.css set filetype=css
   " SASS
   autocmd BufNewFile,BufRead *.scss set filetype=css syntax=sass
+  " SugarSS
+  autocmd BufNewFile,BufRead *.sss set filetype=sugarss
 
   " Docker
   autocmd BufNewFile,BufRead Dockerfile,*.Dockerfile set filetype=dockerfile
@@ -58,5 +62,5 @@ augroup filetypedetect
   " MSDOS
   autocmd BufNewFile,BufRead *.ini set filetype=dosini
   " Configure files
-  autocmd BufNewFile,BufRead *.cfg set filetype=cfg
+  autocmd BufNewFile,BufRead *.{cfg,conf} set filetype=cfg
 augroup END
