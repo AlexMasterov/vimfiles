@@ -1,0 +1,11 @@
+[[plugins]]
+repo = 'JulesWang/css.vim'
+hook_add = '''
+  Autocmd Syntax css
+    \  hi link cssError Normal
+    \| hi link cssBraceError Normal
+    \| hi link cssDeprecated Normal
+'''
+
+[[plugins]]
+repo = 'othree/csscomplete.vim'

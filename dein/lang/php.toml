@@ -1,0 +1,12 @@
+[[plugins]]
+repo = 'tobyS/vmustache'
+
+[[plugins]]
+repo = 'tobyS/pdv'
+depends = 'vmustache'
+hook_add = '''
+  let g:pdv_template_dir = $VIMFILES.'/templates'
+
+  AutocmdFT php
+    \ nnoremap <silent> <buffer> ,c :<C-u>silent! call pdv#DocumentWithSnip()<CR>
+'''

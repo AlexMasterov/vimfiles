@@ -1,0 +1,5 @@
+[[plugins]]
+repo = 'aur-archive/vim-svg'
+
+[[plugins]]
+repo = 'jasonshell/vim-svg-indent'
