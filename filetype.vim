@@ -25,6 +25,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.{rb,rbw},Vagrantfile* set filetype=ruby
   " Lua
   autocmd BufNewFile,BufRead *.lua set filetype=lua
+  " #F
+  autocmd BufNewFile,BufRead *.fs set filetype=forth
 
   " HTML
   autocmd BufNewFile,BufRead *.{html,htm} set filetype=html
@@ -35,7 +37,7 @@ augroup filetypedetect
   " XML
   autocmd BufNewFile,BufRead *.{xml,xml.*} set filetype=xml
   " Markdown
-  autocmd BufNewFile,BufRead *.{md,markdown} set filetype=markdown
+  autocmd BufNewFile,BufRead *.{md,markdown,mdown,mkd,mkdn} set filetype=markdown
 
   " Twig
   autocmd BufNewFile,BufRead *.{twig,*.twig} set filetype=twig
@@ -62,5 +64,5 @@ augroup filetypedetect
   " MSDOS
   autocmd BufNewFile,BufRead *.ini set filetype=dosini
   " Configure files
-  autocmd BufNewFile,BufRead *.{cfg,conf} set filetype=cfg
+  autocmd BufNewFile,BufRead *.{cfg,conf},.env set filetype=cfg
 augroup END
