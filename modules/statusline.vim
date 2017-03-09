@@ -1,17 +1,21 @@
 " Status-line
+"--------------------------------------------------------------------------
 
 set laststatus=2
+
 " Format the statusline
 let &statusline =
-  \  "%3* %L %*"
-  \. "%l%3*:%*%v "
-  \. "%-0.60t "
-  \. "%3*%(%{IfFit(70) ? expand('%:~:.:h') : ''}\ %)%*"
-  \. "%2*%(%{BufModified()}\ %)%*"
+  \  " %3*%L%*"
+  \. "%4l %2v "
+  \. "%2*%(%{exists('*ALEGetStatusLine()') ? ALEGetStatusLine() : ''}\ %)%*"
+  \. "%2t "
+  \. "%3*%(%-1.60{IfFit(70) ? expand('%:~:.:h') : ''}\ %)%*"
+  \. "%2*%(%3{BufModified()}\ %)%*"
   \. "%="
-  \. "%(%{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)"
+  \. "%2*%(%{exists('*gina#component#repo#branch()') ? gina#component#repo#branch() : ''}\ %)%*"
   \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
   \. "%2*%(%{IfFit(100) ? &iminsert ? 'RU' : 'EN' : ''}\ %)%*"
+  \. "%(%-2.8{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)"
   \. "%(%{IfFit(90) ? &fileencoding !=# '' ? &fileencoding : &encoding : ''}\ %)"
   \. "%2*%(%Y\ %)%*"
 

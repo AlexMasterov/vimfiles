@@ -1,7 +1,89 @@
 " Normal mode
 "---------------------------------------------------------------------------
-  " Buffers
-  "-----------------------------------------------------------------------
+  " [jk]: don't skip wrap lines
+  nnoremap <expr> j v:count ? 'gj' : 'j'
+  nnoremap <expr> k v:count ? 'gk' : 'k'
+
+  " Alt-[jkhl]: move selected lines
+  nnoremap <A-h> <<<Esc>
+  nnoremap <A-l> >>><Esc>
+  nnoremap <silent> <A-j> :<C-u>move+1<CR>
+  nnoremap <silent> <A-k> :<C-u>move-2<CR>
+
+  " Ctrl-[jk]: scroll up/down 1/3 page
+  nnoremap <expr> <C-j> v:count ?
+    \ '<C-d>zz' : (winheight('.') / 4) . '<C-d>zz'
+  nnoremap <expr> <C-k> v:count ?
+    \ '<C-u>zz' : (winheight('.') / 4) . '<C-u>zz'
+
+  " {N} + Enter: jump to a line number / mark
+  nnoremap <silent> <expr> <Enter> v:count ?
+    \ ':<C-u>call <SID>jumpToLine(v:count)<CR>' : "\'"
+
+  " [nN]: append line
+  nnoremap <silent> <expr> n v:count ?
+    \ ':<C-u>call <SID>appendLineUp(v:count1)<CR>' : 'i<Space><Esc>'
+  nnoremap <silent> <expr> N v:count ?
+    \ ':<C-u>call <SID>appendLineDown(v:count1)<CR>' : 'i<Space><Esc>`^'
+
+  " Ctrl-c: clear highlight after search
+  nnoremap <silent> <C-c> :<C-u>let @/ = ""<CR>
+
+  " Ctrl-d: duplicate line
+  nnoremap <expr> <C-d> 'yyp' . col('.') . 'l'
+
+  " Q: auto indent text
+  nnoremap Q ==
+
+  " [dDcC]: don't update register
+  nnoremap d "_d
+  nnoremap D "_dd
+  nnoremap c "_c
+  nnoremap C "_C
+
+  " ,ev: open vimrc in a new tab
+  nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
+
+  " ,r: replace a word under cursor
+  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
+
+  " :s::: is more useful than :s/// when replacing paths
+  " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272
+  nnoremap ,R :%s:<C-R><C-w>:<C-r><C-w>:<Left>
+
+  " [*#]: with use 'smartcase'
+  nnoremap * /\<<C-r>=expand('<cword>')<CR>\><CR>zv
+  nnoremap # ?\<<C-r>=expand('<cword>')<CR>\><CR>zv
+
+  " gr: replace word under the cursor
+  nnoremap gr :<C-u>%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
+  " gl: select last changed text
+  nnoremap gl `[v`]
+  " gp: select last paste in visual mode
+  nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
+  " gv: last selected text operator
+  onoremap gv :<C-u>normal! gv<CR>
+  " gy: replace last yanked selected text
+  nnoremap <expr> gy ':<C-u>%s/' . @" . '//g<Left><Left>'
+
+" Text objects
+  " vi
+  for char in split('( [ { < '' "')
+    execute printf('nmap %s  <Esc>vi%s', char, char)
+    execute printf('nmap ;%s <Esc>vi%s', char, char)
+  endfor | unlet char
+  " va
+  for char in split(') ] } >')
+    execute printf('nmap %s  <Esc>va%s', char, char)
+    execute printf('nmap ;%s <Esc>va%s', char, char)
+  endfor | unlet char
+
+" Unbinds
+  for char in split('<F1> ZZ ZQ')
+    execute printf('map %s <Nop>', char)
+  endfor | unlet char
+
+" Buffers
   " Space + a: previous buffer
   nnoremap <silent> <Space>a :<C-u>bprev<CR>
   " Space + e: next buffer
@@ -19,45 +101,19 @@
   " Space + q: smart close tab -> window -> buffer
   nnoremap <silent> <Space>q :<C-u>call <SID>smartClose()<CR>
 
-  function! s:makeBuffer() abort
-    let buffers = filter(range(1, bufnr('$')),
-      \ 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
-    execute ':badd buffer'. (max(buffers) + 1)
-  endfunction
-
-  function! s:smartClose() abort
-    let tabPageNr = tabpagenr('$')
-    if tabPageNr > 1
-      tabclose | return
-    endif
-    if winnr('$') > 1
-      let buffers = filter(tabpagebuflist(tabPageNr),
-          \ 'bufname(v:val) =~? "vimfiler"')
-      if empty(buffers)
-        close | return
-      endif
-    endif
-    if empty(bufname('#'))
-      silent! bwipeout | return
-    endif
-    bprev | silent! bwipeout # | return
-  endfunction
-
-  " Files
-  "-----------------------------------------------------------------------
+" Files
+  " ;e: reopen file
+  nnoremap <silent> ;e :<C-u>edit<CR>
+  " ;E: force reopen file
+  nnoremap <silent> ;E :<C-u>edit!<CR>
   " Shift-m: save file
   nnoremap <silent> <S-m> :<C-u>write!<CR>
   " Ctrl-Enter: force save file
   nnoremap <silent> <C-Enter> :<C-u>write!<CR>
   " Shift-Enter: force save file when buffer was changed
   nnoremap <silent> <S-Enter> :<C-u>update!<CR>
-  " ;e: reopen file
-  nnoremap <silent> ;e :<C-u>open<CR>
-  " ;E: force reopen file
-  nnoremap <silent> ;E :<C-u>open!<CR>
 
-  " Tabs
-  "-----------------------------------------------------------------------
+" Tabs
   " Space + 1-9: jumps to a tab number
   " for n in range(1, 9)
   "   execute printf('nnoremap <silent> <nowait> <Space>%d %dgt', n, n)
@@ -85,16 +141,13 @@
   nnoremap <silent> <expr> <Space>.
     \ ':<C-u>tabmove '.min([tabpagenr() + v:count1, tabpagenr('$')]).'<CR>'
   " [N] + Space + c: close tab
-  nnoremap <silent> <expr> <Space>c v:count
-    \ ? ':<C-u>'.v:count.'tabclose<CR>'
-    \ : ':<C-u>tabclose<CR>'
+  nnoremap <silent> <expr> <Space>c v:count ?
+    \ ':<C-u>'.v:count.'tabclose<CR>' : ':<C-u>tabclose<CR>'
   " [N] + Space + C: force close tab
-  nnoremap <silent> <expr> <Space>c v:count
-    \ ? ':<C-u>'.v:count.'tabclose!<CR>'
-    \ : ':<C-u>tabclose!<CR>'
+  nnoremap <silent> <expr> <Space>c v:count ?
+    \ ':<C-u>'.v:count.'tabclose!<CR>' : ':<C-u>tabclose!<CR>'
 
-  " Windows
-  "-----------------------------------------------------------------------
+" Windows
   for char in split('h j k l')
     " Space + [hjkl]: jump to a window
     execute printf('nnoremap <silent> <Space>%s :<C-u>wincmd %s<CR>', char, char)
@@ -126,77 +179,19 @@
   "   \ ? printf(':<C-u>%s<CR>', (tabpagenr('$') ==# 1 ? 'bdelete!' : 'tabclose!'))
   "   \ : ':<C-u>close!<CR>'
 
-  " Special
-  "-----------------------------------------------------------------------
+" Visual mode
+"---------------------------------------------------------------------------
   " jk: don't skip wrap lines
-  nnoremap <expr> j v:count ? 'gj' : 'j'
-  nnoremap <expr> k v:count ? 'gk' : 'k'
+  xnoremap <expr> j v:count && mode() ==# 'V' ?
+    \ 'gj' : 'j'
+  xnoremap <expr> k v:count && mode() ==# 'V' ?
+    \ 'gk' : 'k'
+
   " Alt-[jkhl]: move selected lines
-  nnoremap <silent> <A-j> :<C-u>move+1<CR>
-  nnoremap <silent> <A-k> :<C-u>move-2<CR>
-  nnoremap <A-h> <<<Esc>
-  nnoremap <A-l> >>><Esc>
-  " Ctrl-[jk]: scroll up/down 1/3 page
-  nnoremap <expr> <C-j> v:count ? "\<C-d>zz" : winheight('.') / (3 + 1) . "\<C-d>zz"
-  nnoremap <expr> <C-k> v:count ? "\<C-u>zz" : winheight('.') / (3 + 1) . "\<C-u>zz"
-  " Q: auto indent text
-  nnoremap Q ==
-  " Ctrl-d: duplicate line
-  nnoremap <expr> <C-d> 'yyp'. col('.') .'l'
-  " Ctrl-c: clear highlight after search
-  nnoremap <silent> <C-c> :<C-u>let @/ = ""<CR>
-  " [N] + Enter: jump to a line number / mark
-  nnoremap <silent> <expr> <Enter> v:count ?
-    \ ':<C-u>call cursor(v:count, 0)<CR>zz' : "\'"
-  nnoremap <silent> <expr> n v:count ?
-    \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.'), '') \| endfor\<CR>" : 'i<Space><Esc>'
-  nnoremap <silent> <expr> N v:count ?
-    \ ":\<C-u>for i in range(1, v:count1) \| call append(line('.')-1, '') \| endfor\<CR>" : 'i<Space><Esc>`^'
-  " ,r: replace a word under cursor
-  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
-  " :s::: is more useful than :s/// when replacing paths
-  " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272
-  nnoremap ,R :%s:<C-R><C-w>:<C-r><C-w>:<Left>
-  " ,ev: open .vimrc in a new tab
-  nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
-  " [*#]: with use 'smartcase'
-  nnoremap * /\<<C-r>=expand('<cword>')<CR>\><CR>zv
-  nnoremap # ?\<<C-r>=expand('<cword>')<CR>\><CR>zv
-  " [dDcC]: don't update register
-  nnoremap d "_d
-  nnoremap D "_dd
-  nnoremap c "_c
-  nnoremap C "_C
-
-  " gr: replace word under the cursor
-  nnoremap gr :<C-u>%s/<C-r><C-w>/<C-r><C-w>/g<left><left>
-  " gl: select last changed text
-  nnoremap gl `[v`]
-  " gp: select last paste in visual mode
-  nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
-  " gv: last selected text operator
-  onoremap gv :<C-u>normal! gv<CR>
-  " gy: replace last yanked selected text
-  nnoremap <expr> gy ':<C-u>%s/' . @" . '//g<Left><Left>'
-
-  " Text objects
-  "-----------------------------------------------------------------------
-  " vi
-  for char in split('( [ { < '' "')
-    execute printf('nmap %s  <Esc>vi%s', char, char)
-    execute printf('nmap ;%s <Esc>vi%s', char, char)
-  endfor | unlet char
-  " va
-  for char in split(') ] } >')
-    execute printf('nmap %s  <Esc>va%s', char, char)
-    execute printf('nmap ;%s <Esc>va%s', char, char)
-  endfor | unlet char
-
-  " Unbinds
-  "-----------------------------------------------------------------------
-  for char in split('<F1> ZZ ZQ')
-    execute printf('map %s <Nop>', char)
-  endfor | unlet char
+  xnoremap <A-h> <'[V']
+  xnoremap <A-l> >'[V']
+  xnoremap <silent> <A-j> :move'>+1<CR>gv
+  xnoremap <silent> <A-k> :move-2<CR>gv
 
 " Insert mode
 "---------------------------------------------------------------------------
@@ -236,16 +231,6 @@
   inoremap <C-j> <Nop>
   inoremap <C-k> <Nop>
 
-" Visual mode
-"---------------------------------------------------------------------------
-  " jk: don't skip wrap lines
-  xnoremap <expr> j v:count && mode() ==# 'V' ? 'gj' : 'j'
-  xnoremap <expr> k v:count && mode() ==# 'V' ? 'gk' : 'k'
-  " Alt-[jkhl]: move selected lines
-  xnoremap <silent> <A-j> :move'>+1<CR>gv
-  xnoremap <silent> <A-k> :move-2<CR>gv
-  xnoremap <A-h> <'[V']
-  xnoremap <A-l> >'[V']
   " Ctrl-[jk]: scroll up/down
   xnoremap <C-j> <C-d>
   xnoremap <C-k> <C-u>
@@ -271,7 +256,7 @@
   " xnoremap x "_x
   " xnoremap X "_X
 
-  " Space: fast Esc
+"   " Space: fast Esc
   xnoremap <Space> <Esc>
   snoremap <Space> <Esc>
 
@@ -298,13 +283,67 @@
   " Ctrl-v: open the command-line window
   cnoremap <C-v> <C-f>a
 
-  " Special
-  "-----------------------------------------------------------------------
-  " `: old fast Esc
-  cnoremap <C-c> <C-c>
-  " jj: smart fast Esc
-  cnoremap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
-  " qq: smart fast Esc
-  cnoremap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
-  " Backspace: don't leave Command mode
-  cnoremap <expr> <BS> getcmdpos() > 1 ? "\<BS>" : ""
+"   " `: old fast Esc
+"   cnoremap <C-c> <C-c>
+"   " jj: smart fast Esc
+"   cnoremap <expr> j getcmdline()[getcmdpos()-2] ==# 'j' ? "\<C-c>" : 'j'
+"   " qq: smart fast Esc
+"   cnoremap <expr> q getcmdline()[getcmdpos()-2] ==# 'q' ? "\<C-c>" : 'q'
+"   " Backspace: don't leave Command mode
+"   cnoremap <expr> <BS> getcmdpos() > 1 ? "\<BS>" : ""
+
+"   " Copy to clipboard
+"   " vnoremap y  "*y
+"   " nnoremap Y  "*yg_
+"   " nnoremap y  "*y
+"   " nnoremap yy "*yy
+
+"   " p: paste from clipboard
+"   nnoremap p "*p
+"   vnoremap P "*P
+
+"   " sort lines inside block
+"   nnoremap ;4 ?{<CR>jV/\v^\s*\}?$<CR>k:sort<CR>:silent! nohlsearch<CR>
+
+" Functions
+"---------------------------------------------------------------------------
+  function! s:jumpToLine(line) abort
+    call cursor(a:line, 0)
+    call feedkeys('zz')
+  endfunction
+
+  function! s:appendLineUp(line) abort
+    for i in range(1, a:line)
+      call append(line('.'), '')
+    endfor
+  endfunction
+
+  function! s:appendLineDown(line) abort
+    for i in range(1, a:line)
+      call append(line('.') - 1, '')
+    endfor
+  endfunction
+
+  function! s:makeBuffer() abort
+    let buffers = filter(range(1, bufnr('$')),
+      \ 'buflisted(v:val) && "quickfix" !=? getbufvar(v:val, "&buftype")')
+    execute ':badd buffer'. (max(buffers) + 1)
+  endfunction
+
+  function! s:smartClose() abort
+    let tabPageNr = tabpagenr('$')
+    if tabPageNr > 1
+      tabclose | return
+    endif
+    if winnr('$') > 1
+      let buffers = filter(tabpagebuflist(tabPageNr),
+        \ 'bufname(v:val) =~? "vimfiler"')
+      if empty(buffers)
+        close | return
+      endif
+    endif
+    if empty(bufname('#'))
+      silent! bwipeout | return
+    endif
+    bprev | silent! bwipeout # | return
+  endfunction
