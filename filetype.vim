@@ -10,9 +10,9 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.toml set filetype=toml
 
   " PHP
-  autocmd BufNewFile,BufRead *.php set filetype=php
+  autocmd BufNewFile,BufRead *.{php,phpt} set filetype=php
   " JavaScript
-  autocmd BufNewFile,BufRead *.{js,jsx,es6} set filetype=javascript
+  autocmd BufNewFile,BufRead *.{js,jsx,es6,mjs} set filetype=javascript
   " Python
   autocmd BufNewFile,BufRead *.py set filetype=python
   " Rust
@@ -21,12 +21,16 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.go set filetype=golang
   " Haskell
   autocmd BufNewFile,BufRead *.hs set filetype=haskell
+  " Scala
+  autocmd BufNewFile,BufRead *.scala set filetype=scala
   " Ruby
   autocmd BufNewFile,BufRead *.{rb,rbw},Vagrantfile* set filetype=ruby
   " Lua
   autocmd BufNewFile,BufRead *.lua set filetype=lua
   " #F
   autocmd BufNewFile,BufRead *.fs set filetype=forth
+  " C
+  autocmd BufNewFile,BufRead *.{c,h} set filetype=c
 
   " HTML
   autocmd BufNewFile,BufRead *.{html,htm} set filetype=html
@@ -58,11 +62,17 @@ augroup filetypedetect
   " Diff files
   autocmd BufNewFile,BufRead *.{diff,patch}	set filetype=diff
   " Bash
-  autocmd BufNewFile,BufRead *.sh,[.]bash* set filetype=bash
+  autocmd BufNewFile,BufRead *.sh,[.]bash* set filetype=sh
   " DOS Batch
   autocmd BufNewFile,BufRead *.{bat,sys} set filetype=dosbatch
   " MSDOS
   autocmd BufNewFile,BufRead *.ini set filetype=dosini
   " Configure files
   autocmd BufNewFile,BufRead *.{cfg,conf},.env set filetype=cfg
+  " CMake
+  autocmd BufNewFile,BufRead CMakeLists.txt	set filetype=cmake
+  " M4
+  autocmd BufNewFile,BufRead *.m4	set filetype=m4
+  " Git
+  autocmd BufNewFile,BufRead *.git{[/]config,modules} set filetype=gitconfig
 augroup END
