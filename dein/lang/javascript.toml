@@ -1,7 +1,4 @@
 [[plugins]]
-repo = 'othree/jspc.vim'
-
-[[plugins]]
 repo = 'heavenshell/vim-jsdoc'
 hook_add = '''
   let g:jsdoc_enable_es6 = 1
@@ -38,4 +35,20 @@ hook_add = '''
     \| hi jsGlobalNodeObjects   guifg=#4091bf gui=NONE
     \| hi jsImport              guifg=#1E347B gui=NONE
     \| hi jsFrom                guifg=#1E347B gui=NONE
+'''
+
+[[plugins]]
+repo = 'carlitux/deoplete-ternjs'
+on_source = 'deoplete.nvim'
+hook_add = '''
+  let g:deoplete#sources#ternjs#tern_bin = 'tern'
+  let g:deoplete#sources#ternjs#timeout = 3
+'''
+
+[[plugins]]
+repo = 'ternjs/tern_for_vim'
+hook_add = '''
+  let g:tern#command = ['tern']
+  let g:tern#arguments = ['--persistent']
+  let g:tern_show_signature_in_pum = 1
 '''

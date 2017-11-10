@@ -24,25 +24,19 @@ hood_source = '''
 hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
 
 [[plugins]]
+repo = 'cespare/vim-toml'
+
+[[plugins]]
 repo = 'simeji/winresizer'
-on_func = ['WinResizerStartResize', 'WinResizerStartResizeGUI']
+on_cmd = ['WinResizerStartResize', 'WinResizerStartMove']
 hook_add = '''
-  nnoremap <silent> <Space><Enter> :<C-u>call WinResizerStartResize()<CR>
-  nnoremap <silent> <Space><BS>    :<C-u>call WinResizerStartResizeGUI()<CR>
+  nnoremap <silent> <Space><Enter> :<C-u>WinResizerStartResize<CR>
+  nnoremap <silent> <Space><BS>    :<C-u>WinResizerStartMove<CR>
 '''
 hook_source = '''
   let g:winresizer_vert_resize = 4
   let g:winresizer_horiz_resize = 1
   let g:winresizer_keycode_finish = char2nr('o')
-'''
-
-[[plugins]]
-repo = 'ternjs/tern_for_vim'
-on_ft = 'javascript'
-hook_source = '''
-  let g:tern#command = ['tern']
-  let g:tern#arguments = ['--no-port-file', '--persistent']
-  let g:tern_show_signature_in_pum = 1
 '''
 
 # HTML
@@ -78,6 +72,19 @@ hook_add = '''
 repo = 'SirVer/ultisnips'
 on_i = 1
 on_ft = 'snippets'
+hook_add = '''
+  Autocmd BufNewFile,BufReadPost *.snippets
+    \ set filetype=snippets nowrap foldmethod=manual
+'''
+hook_source = '''
+  let g:UltiSnipsEnableSnipMate = 0
+  let g:UltiSnipsExpandTrigger = '<C-F12>'
+  let g:UltiSnipsListSnippets = '<C-F12>'
+  let g:UltiSnipsSnippetDirectories = [$HOME . '/vimfiles/snippets']
+
+  AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
+  AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+'''
 hook_post_source = '''
   " imap <S-Space> <Plug>(ultisnips)
   imap `         <Plug>(ultisnips)
@@ -99,18 +106,6 @@ hook_post_source = '''
     endif
     return a:key
   endfunction
-
-  Autocmd BufNewFile,BufReadPost *.snippets
-    \ set filetype=snippets nowrap foldmethod=manual
-'''
-hook_source = '''
-  let g:UltiSnipsEnableSnipMate = 0
-  let g:UltiSnipsExpandTrigger = '<C-F12>'
-  let g:UltiSnipsListSnippets = '<C-F12>'
-  let g:UltiSnipsSnippetDirectories = [$HOME . '/vimfiles/snippets']
-
-  AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
-  AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
 '''
 
 [[plugins]]
@@ -133,8 +128,8 @@ hook_add = '''
         return emmet#expandAbbr(0, '')
       endif
     endif
-    if exists('*s:neoComplete')
-      return <SID>neoComplete(a:key)
+    if exists('*Decomplete')
+      return Decomplete()
     endif
     return a:key
   endfunction
@@ -353,8 +348,14 @@ hook_source = '''
 [[plugins]]
 repo = 'kana/vim-smartchr'
 hook_add = '''
+  " inoremap <expr> , smartchr#one_of(', ', ',')
+  inoremap <expr> =
+    \ search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn')? '<bs>= '
+    \: search('\(*\<bar>!\)\%#', 'bcn') ? '= '
+    \: smartchr#one_of(' = ', '=', ' == ')
+
   AutocmdFT php
-    \  inoremap <buffer> <expr> $ smartchr#loop('$', '$this->', 'self::', 'static::', '$$')
+    \  inoremap <buffer> <expr> $ smartchr#loop('$', '$this->')
     \| inoremap <buffer> <expr> > smartchr#loop('>', '=>', '>>')
 
   AutocmdFT javascript
@@ -365,40 +366,36 @@ hook_add = '''
     \  inoremap <buffer> <expr> \ smartchr#loop('\ ', '\\')
     \| inoremap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
 
+  AutocmdFT go
+    \ inoremap <buffer> <expr> - smartchr#loop('-', ':=', '--')
+
+  AutocmdFT c,cpp inoremap <buffer> <expr> .
+    \ smartchr#loop('.', '->', '...')
+
   AutocmdFT yaml
     \  inoremap <buffer> <expr> > smartchr#loop('>', '%>')
     \| inoremap <buffer> <expr> < smartchr#loop('<', '<%', '<%=')
 '''
 
 [[plugins]]
-repo = 'thinca/vim-quickrun'
-if = "!has('nvim')"
-on_cmd = 'QuickRun'
-on_map = {n = '<Plug>(quickrun)'}
+repo = 'Shougo/deol.nvim'
+
+[[plugins]]
+repo = 'fatih/vim-go'
+on_ft = 'go'
 hook_add = '''
-  nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
-
-  " Runners
-  AutocmdFT php
-    \ nnoremap <silent> <buffer> ,t :<C-u>call QuickrunType('phpunit')<CR>
-  AutocmdFT javascript
-    \  nnoremap <silent> <buffer> ,t :<C-u>call QuickrunType('jest')<CR>
-    \| nnoremap <silent> <buffer> ,T :<C-u>call QuickrunType('nodejs')<CR>
-
-  " Formatters
-  AutocmdFT php,javascript,python,json,xml,html,twig,css,sugarss,lua
-    \ nnoremap <silent> <buffer> ,w :<C-u>silent! undojoin<CR>:call QuickrunType('formatter')<CR>
-
-  Autocmd BufEnter,WinEnter runner:*
-    \ let &l:statusline = ' ' | setlocal nonu nornu nolist colorcolumn=
-
-  function! QuickrunType(type) abort
-    let g:quickrun_config = get(g:, 'quickrun_config', {})
-    let g:quickrun_config[&filetype] = {'type': printf('%s/%s', &filetype, a:type)}
-    call quickrun#run(printf('-%s', a:type))
-  endfunction
+  Autocmd Syntax go
+    \  hi goPackage  guifg=#008080 gui=NONE
+    \| hi goBuiltins guifg=#AA0D91 gui=NONE
 '''
-hook_source = 'source ~/vimfiles/dein/plugins/quickrun.vim'
+hook_source = '''
+  let g:go_fmt_autosave = 0
+  let g:go_metalinter_autosave = 0
+
+  " Syntax
+  let g:go_highlight_functions = 1
+  let g:go_highlight_string_spellcheck = 0
+'''
 
 [[plugins]]
 repo = 'drmingdrmer/vim-indent-lua'
@@ -420,66 +417,6 @@ hook_add = '''
 
   AutocmdFT lua set omnifunc=xolox#lua#omnifunc
 '''
-
-# Neocomplete
-[[plugins]]
-repo = 'Shougo/neocomplete.vim'
-depends = 'context_filetype.vim'
-if = "has('lua')"
-on_event = 'InsertEnter'
-hook_source = '''
-  source ~/vimfiles/dein/plugins/neocomplete.vim
-'''
-
-[[plugins]]
-repo = 'Shougo/context_filetype.vim'
-hook_source = '''
-  let g:context_filetype#search_offset = 500
-
-  function! s:addContext(filetype, context) abort
-    let filetype = get(context_filetype#default_filetypes(), a:filetype, [])
-    let g:context_filetype#filetypes[a:filetype] = add(filetype, a:context)
-  endfunction
-
-  let css = {
-    \ 'filetype': 'css',
-    \ 'start': '<\(style\)\%( [^>]*\)\?>', 'end': '</\1>'
-    \}
-  let javascript = {
-    \ 'filetype': 'javascript',
-    \ 'start': '<\(script\)\%( [^>]*\)\?>', 'end': '</\1>'
-    \}
-
-  for filetype in split('html twig blade')
-    call s:addContext(filetype, css)
-    call s:addContext(filetype, javascript)
-  endfor | unlet filetype
-'''
-
-[[plugins]]
-repo = 'Shougo/echodoc.vim'
-on_source = 'neocomplete.vim'
-hook_source = '''
-  let g:echodoc#type = 'signature'
-
-  call echodoc#enable()
-'''
-
-[[plugins]]
-repo = 'Shougo/neoinclude.vim'
-on_source = 'neocomplete.vim'
-
-[[plugins]]
-repo = 'Shougo/neco-vim'
-on_source = 'neocomplete.vim'
-
-[[plugins]]
-repo = 'hrsh7th/vim-neco-calc'
-
-[[plugins]]
-repo = 'racer-rust/vim-racer'
-if = "executable('racer')"
-on_source = 'neocomplete.vim'
 
 [[plugins]]
 repo = 'Shougo/unite.vim'
@@ -563,7 +500,7 @@ hook_add = '''
 '''
 hook_source = '''
   let g:neomru#filename_format = ':.'
-  let g:neomru#time_format = '%m.%d %H:%M — '
+  let g:neomru#time_format = '%m.%d — %H:%M'
   let g:neomru#file_mru_limit = 60
   let g:neomru#file_mru_path = $CACHE.'/unite/mru_file'
   let g:neomru#file_mru_ignore_pattern = '\.\%(vimrc\|log\)$'
@@ -624,9 +561,10 @@ on_cmd = 'Denite'
 hook_add = '''
   nnoremap <silent> ;g :<C-u>Denite grep<CR>
   nnoremap <silent> ;j :<C-u>Denite jump<CR>
+  nnoremap <silent> ;o :<C-u>Denite file_old<CR>
   nnoremap <silent> ;b :<C-u>Denite buffer -reversed<CR>
-  nnoremap <silent> `  :<C-u>Denite buffer   -winheight=10 -reversed<CR>
-  nnoremap <silent> ;r :<C-u>Denite register -winheight=10<CR>
+  nnoremap <silent> `  :<C-u>Denite buffer   -winheight=8 -reversed<CR>
+  nnoremap <silent> ;r :<C-u>Denite register -winheight=8<CR>
   nnoremap <silent> ;` :<C-u>Denite buffer   -mode=insert<CR>
   nnoremap <silent> ;f :<C-u>Denite file_rec -mode=insert<CR>
   nnoremap <silent> ;s :<C-u>Denite line     -buffer-name=search -mode=insert<CR>
@@ -637,7 +575,7 @@ hook_source = '''
       \ 'mode': 'normal',
       \ 'prompt': ' ❯',
       \ 'empty': 1,
-      \ 'short_source_names': v:true,
+      \ 'source_names': 'short',
       \ 'highlight_mode_normal': 'Visual',
       \ 'highlight_matched_range': 'User5'
       \})
@@ -652,7 +590,7 @@ hook_source = '''
     call denite#custom#var('grep', 'separator', ['--'])
     call denite#custom#var('grep', 'default_opts', ['--maxdepth', '8', '--vimgrep', '--no-heading'])
     call denite#custom#var('file_rec', 'command',  [
-        \ 'rg', '--maxdepth', '8', '--no-line-number', '--fixed-strings', '--files-with-matches', '--hidden', '--follow', '.'])
+        \ 'rg', '--no-messages', '--maxdepth', '8', '--no-line-number', '--fixed-strings', '--files-with-matches', '--hidden', '--follow', '.'])
   endif
 
   " Sources
@@ -661,6 +599,7 @@ hook_source = '''
   call denite#custom#source('file_rec',                 'matchers',   ['matcher_substring'])
   call denite#custom#source('file_mru',                 'matchers',   ['matcher_project_files', 'matcher_substring'])
   call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter_relative_word'])
+  " call denite#custom#source('file_old',                 'matchers',   ['matcher_fuzzy', 'matcher_project_files'])
 
   " Mappings
   call denite#custom#map('normal', 'Q',        '<denite:quit>',                        'noremap')
@@ -772,11 +711,12 @@ hook_source = '''
     \| nmap <silent> <buffer> Q :<C-u>quit!<CR>
 
   Autocmd Syntax gina*
-    \  hi AnsiColor1  guifg=#2B2B2B gui=NONE
-    \| hi AnsiColor2  guifg=#1E347B gui=bold
+    \  hi AnsiColor1  guifg=#006633 gui=NONE
+    \| hi AnsiColor2  guifg=#2B2B2B guibg=#CCE5FF gui=NONE
+    \| hi AnsiColor3  guifg=#2B2B2B guibg=#FAE5E4 gui=NONE
     \| hi AnsiColor11 guifg=#999999 gui=NONE
-    \| hi AnsiColor13 guifg=#2B2B2B gui=bold
-    \| hi AnsiColor14 guifg=#2B2B2B gui=NONE
+    \| hi AnsiColor13 guifg=#0050B0 gui=bold
+    \| hi AnsiColor14 guifg=#BA4747 gui=NONE
 '''
 
 [[plugins]]
@@ -793,16 +733,20 @@ repo = 'mrk21/yaml-vim'
 repo = 'w0rp/ale'
 on_func = 'ale#'
 hook_add = '''
+  let g:ale_emit_conflict_warnings = 0
+
   nmap <silent> <Right> <Plug>(ale_next_wrap)
   nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
   Autocmd BufNewFile,BufEnter,BufWrite,WinEnter,TextChanged,TextChangedI
-    \ *.{php,js,twig,css,yml,lua}
+    \ *.{php,js,ts,twig,css,yml,lua,go}
       \ call ale#Queue(0)
 
   Autocmd ColorScheme *
     \  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
     \| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
+    \| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
+    \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 '''
 hook_source = '''
   let g:ale_echo_cursor = 1
@@ -824,6 +768,7 @@ hook_source = '''
     \  'yaml': ['yamllint'],
     \  'css': ['stylelint'],
     \  'lua': ['luacheck'],
+    \  'go': ['golint'],
     \}
 '''
 
@@ -1015,7 +960,7 @@ hook_source = '''
   let g:unite_kind_file_use_trashbox = IsWindows()
 
   let g:vimfiler_ignore_pattern =
-    \ '^\%(\..*\|^.\|.git\|.hg\|bin\|var\|etc\|build\|dist\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
+    \ '^\%(\..*\|^.\|.git\|.hg\|var\|etc\|build\|dist\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
 
   " Icons
   let g:vimfiler_file_icon = ' '
@@ -1040,6 +985,45 @@ hook_source = '''
 repo = 'Shougo/vimproc.vim'
 build = 'make'
 on_source = ['unite.vim', 'vim-quickrun']
+
+[[plugins]]
+repo = 'thinca/vim-quickrun'
+on_cmd = 'QuickRun'
+on_map = {n = '<Plug>(quickrun)'}
+hook_add = '''
+  nnoremap <expr> <silent> ;Q quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
+
+  " Runners
+  AutocmdFT php
+    \ nnoremap <silent> <buffer> ,t :<C-u>call QuickrunType('phpunit')<CR>
+  AutocmdFT javascript
+    \  nnoremap <silent> <buffer> ,t :<C-u>call QuickrunType('jest')<CR>
+    \| nnoremap <silent> <buffer> ,T :<C-u>call QuickrunType('nodejs')<CR>
+
+  " Formatters
+  AutocmdFT php,javascript,python,json,xml,html,twig,css,sugarss,lua,go
+    \ nnoremap <silent> <buffer> ,w :<C-u>silent! undojoin<CR>:call QuickrunType('formatter')<CR>
+
+  Autocmd BufEnter,WinEnter runner:*
+    \ let &l:statusline = ' ' | setlocal nonu nornu nolist colorcolumn=
+
+  function! QuickrunType(type) abort
+    let g:quickrun_config = get(g:, 'quickrun_config', {})
+    let g:quickrun_config[&filetype] = {'type': printf('%s/%s', &filetype, a:type)}
+    call quickrun#run(printf('-%s', a:type))
+  endfunction
+'''
+hook_source = 'source ~/vimfiles/dein/plugins/quickrun.vim'
+
+[[plugins]]
+repo = 'Quramy/tsuquyomi'
+hook_add = '''
+  let g:tsuquyomi_completion_detail = 1
+  let g:tsuquyomi_disable_quickfix = 1
+
+  set ballooneval
+  AutocmdFT typescript setlocal balloonexpr=tsuquyomi#balloonexpr()
+'''
 
 [[plugins]]
 repo = 'leafgarland/typescript-vim'

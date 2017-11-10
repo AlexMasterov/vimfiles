@@ -1,0 +1,88 @@
+[[plugins]]
+repo = 'roxma/nvim-yarp'
+
+[[plugins]]
+repo = 'roxma/vim-hug-neovim-rpc'
+
+[[plugins]]
+repo = 'Shougo/context_filetype.vim'
+hook_source = '''
+  let g:context_filetype#search_offset = 500
+
+  function! s:addContext(filetype, context) abort
+    let filetype = get(context_filetype#default_filetypes(), a:filetype, [])
+    let g:context_filetype#filetypes[a:filetype] = add(filetype, a:context)
+  endfunction
+
+  let css = {
+    \ 'filetype': 'css',
+    \ 'start': '<\(style\)\%( [^>]*\)\?>', 'end': '</\1>'
+    \}
+  let javascript = {
+    \ 'filetype': 'javascript',
+    \ 'start': '<\(script\)\%( [^>]*\)\?>', 'end': '</\1>'
+    \}
+
+  for filetype in split('html twig blade')
+    call s:addContext(filetype, css)
+    call s:addContext(filetype, javascript)
+  endfor | unlet filetype
+'''
+
+[[plugins]]
+repo = 'Shougo/deoplete.nvim'
+on_i = 1
+hook_add = '''
+  function! Decomplete() abort
+    if pumvisible()
+      return "\<C-n>"
+    endif
+
+    let [curPos, lineLength] = [getcurpos()[4], col('$')]
+    let isText = curPos <= lineLength
+    let isStartLine = curPos <= 1
+    let isBackspace = getline('.')[curPos-2] =~ '\s'
+
+    if isText && !isStartLine && !isBackspace
+      return deoplete#manual_complete()
+    endif
+
+    return "\<Tab>"
+  endfunction
+
+  inoremap <silent> <Plug>(decomplete) <C-r>=Decomplete()<CR>
+
+  imap <Tab> <Plug>(decomplete)
+  imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(decomplete)"
+  imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
+  imap <expr> <C-k>   pumvisible() ? "\<C-p>" : col('.') ==# col('$') ? "\<C-k>" : "\<C-o>D"
+  " Make <BS> delete letter instead of clearing completion
+  inoremap <BS> <BS>
+'''
+hook_source = '''
+  let g:deoplete#enable_at_startup = 1
+  let g:deoplete#enable_yarp = 1
+
+  let g:deoplete#auto_complete_delay = 30
+  let g:deoplete#auto_refresh_delay = 200
+'''
+
+[[plugins]]
+repo = 'Shougo/echodoc.vim'
+on_source = 'deoplete.nvim'
+hook_source = '''
+  let g:echodoc#type = 'signature'
+  call echodoc#enable()
+'''
+
+[[plugins]]
+repo = 'Shougo/neoinclude.vim'
+on_source = 'deoplete.nvim'
+
+[[plugins]]
+repo = 'hrsh7th/vim-neco-calc'
+on_source = 'deoplete.nvim'
+
+[[plugins]]
+repo = 'Shougo/neco-vim'
+on_source = 'deoplate.nvim'

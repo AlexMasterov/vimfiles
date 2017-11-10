@@ -13,12 +13,14 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.{php,phpt} set filetype=php
   " JavaScript
   autocmd BufNewFile,BufRead *.{js,jsx,es6,mjs} set filetype=javascript
+  " TypeScript
+  autocmd BufNewFile,BufRead *.{ts,tsx} set filetype=typescript
   " Python
   autocmd BufNewFile,BufRead *.py set filetype=python
   " Rust
   autocmd BufNewFile,BufRead *.rt set filetype=rust
   " Golang
-  autocmd BufNewFile,BufRead *.go set filetype=golang
+  autocmd BufNewFile,BufRead *.go set filetype=go
   " Haskell
   autocmd BufNewFile,BufRead *.hs set filetype=haskell
   " Scala
@@ -31,6 +33,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.fs set filetype=forth
   " C
   autocmd BufNewFile,BufRead *.{c,h} set filetype=c
+  " C++
+  autocmd BufNewFile,BufRead *.{cc,cpp} set filetype=cpp
 
   " HTML
   autocmd BufNewFile,BufRead *.{html,htm} set filetype=html
@@ -69,6 +73,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.ini set filetype=dosini
   " Configure files
   autocmd BufNewFile,BufRead *.{cfg,conf},.env set filetype=cfg
+  " Makefile
+  autocmd BufNewFile,BufRead *{[mM]akefile,mk,mak} set filetype=make
   " CMake
   autocmd BufNewFile,BufRead CMakeLists.txt	set filetype=cmake
   " M4

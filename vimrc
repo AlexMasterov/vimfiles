@@ -10,43 +10,63 @@ if has('reltime') && has('vim_starting')
         \| redraw | echomsg reltimestr(s:startupTime)
 endif
 
+" Initialize autogroup
+augroup MyVimrc
+  autocmd!
+augroup END
+
 " Environment
 "---------------------------------------------------------------------------
   let $VIMFILES = expand('~/vimfiles')
   let $VIMHOME = expand((has('nvim') ? '~/.nvim' : '~/.vim'))
+  let $DATA  = $VIMHOME . (has('nvim') ? '/shada' : '/viminfo')
   let $CACHE = $VIMHOME . '/.cache'
-  let $DATA  = $VIMHOME . (has('nvim') ? 'shada' : 'viminfo')
 
   set runtimepath=$VIMFILES,$VIMRUNTIME,$PATH
 
+  set nocompatible
   set nomodeline modelines=0  " prevents security exploits
   set noexrc                  " avoid reading local (g)vimrc, exrc
   set packpath=
-  set noswapfile
   set regexpengine=2          " 0=auto 1=old 2=NFA
 
-  " Undo
-  set undodir=$CACHE/undo
-  set undofile undolevels=500 undoreload=1000
-  " View
-  set viewdir=$CACHE/view
-  set viewoptions=cursor,slash,unix
-  " Tmp
-  set directory=$CACHE
+  if has('nvim')
+    let &shada = "!,'300,<50,s10,h,n" . $DATA
+  else
+    let &viminfo = "!,'300,<50,s10,h,n" . $DATA
+  endif
 
-  " Russian keyboard
-  set keymap=russian-jcukenwin
-  set iskeyword=@,48-57,_,192-255
-  set iminsert=0 imsearch=0
+  " Python
+  set pyxversion=3
+  let g:python3_host_prog = 'python'
 
+  " Neovim
   if has('nvim')
     set nofsync
     set inccommand=split
     set clipboard+=unnamedplus
   endif
 
-  " Initialize autogroup
-  augroup MyVimrc | execute 'autocmd!' | augroup END
+  " Disable bell
+  set t_vb= belloff=all novisualbell
+
+  " Russian keyboard
+  set keymap=russian-jcukenwin
+  set iskeyword=@,48-57,_,192-255
+  set iminsert=0 imsearch=0
+
+  " Undo
+  call vimrc#makeDir(&undodir)
+  set undodir=$CACHE/undo
+  set undofile undolevels=500 undoreload=1000
+
+  " View
+  set viewdir=$CACHE/view
+  set viewoptions=cursor,slash,unix
+
+  " Tmp
+  set noswapfile
+  set directory=$CACHE
 
 " Functions
 "---------------------------------------------------------------------------
@@ -70,14 +90,21 @@ endif
   command! -nargs=0 -bar GoldenRatio exe 'vertical resize' &columns * 5 / 8
    " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
-  command! -nargs=1 Data
-        \ execute 'set ' . (has('nvim') ? 'shada' : 'viminfo') . '='.<q-args>
+
+  " TrimWhiteSpace
+  command! -nargs=* -complete=file TrimWhiteSpace f <args> | call vimrc#trimWhiteSpace()
+  Autocmd BufWritePre,FileWritePre *? call vimrc#trimWhiteSpace()
+  nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
+
+  " Mkdir
+  command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")
+  Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
 
 " Events
 "---------------------------------------------------------------------------
-  if exists('$MYVIMRC')
-    Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
-  endif
+  " if exists('$MYVIMRC')
+  "   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
+  " endif
   Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
   Autocmd VimEnter * filetype plugin indent on
   Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
@@ -88,19 +115,22 @@ endif
   Autocmd InsertLeave *? setlocal nolist
   AutocmdFT *? setlocal formatoptions-=ro
 
-" Vimrc
+" Encoding
 "---------------------------------------------------------------------------
-  " MakeDir
-  command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")
-  Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
+  set encoding=utf-8
+  setglobal fileencodings=utf-8
+  scriptencoding utf-8
 
-  " TrimWhiteSpace
-  command! -nargs=* -complete=file TrimWhiteSpace f <args> | call vimrc#trimWhiteSpace()
-  nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
-  Autocmd BufWritePre,FileWritePre *? call vimrc#trimWhiteSpace()
+  if IsWindows()
+    set fileencodings=utf-8,cp1251
+    set termencoding=cp850  " cmd.exe uses cp850
+  else
+    set termencoding=       " same as 'encoding'
+  endif
 
-  Data !,'300,<50,s10,h,n$DATA
-  MakeDir! &undodir
+  " Default fileformat
+  set fileformat=unix
+  set fileformats=unix,dos,mac
 
 " Plugins
 " ---------------------------------------------------------------------------
@@ -139,21 +169,20 @@ endif
   if dein#load_state(s:deinPath)
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
-   let plugins = [
-        \ 'plugins',
-        \ 'lang/php',
-        \ 'lang/javascript',
-        \ 'lang/json',
-        \ 'lang/css',
-        \ 'lang/csv',
-        \ 'lang/svg',
-        \]
+    let plugins = [
+      \ 'plugins',
+      \ 'deoplete',
+      \ 'lang/php',
+      \ 'lang/javascript',
+      \ 'lang/json',
+      \ 'lang/css',
+      \ 'lang/csv',
+      \ 'lang/svg',
+      \]
 
-   for plugin in plugins
-    call dein#load_toml(printf(
-          \ '%s/dein/%s.toml',
-          \ $VIMFILES, plugin))
-   endfor | unlet plugin plugins
+    for plugin in plugins
+      call dein#load_toml(printf('%s/dein/%s.toml', $VIMFILES, plugin))
+    endfor | unlet plugin plugins
 
     call dein#end()
     call dein#save_state()
@@ -169,18 +198,15 @@ endif
 
 " Modules
 " ---------------------------------------------------------------------------
-let modules = [
-      \ 'encoding',
-      \ 'gui',
-      \ 'view',
-      \ 'edit',
-      \ 'statusline',
-      \ 'mapping',
-      \ 'abbr'
-      \ ]
+  let modules = [
+    \ 'gui',
+    \ 'view',
+    \ 'edit',
+    \ 'statusline',
+    \ 'mapping',
+    \ 'abbr'
+    \ ]
 
   for module in modules
-    execute 'source' resolve(printf(
-          \ '%s/modules/%s.vim',
-          \ $VIMFILES, module))
+    execute 'source' resolve(printf('%s/modules/%s.vim', $VIMFILES, module))
   endfor | unlet module modules

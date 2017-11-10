@@ -31,7 +31,8 @@ set gdefault         " flag 'g' by default for replacing
 set magic            " change the way backslashes are used in search patterns
 
 " Autocomplete
+set tags=
 set pumheight=10
-set complete=. completeopt=longest
+set complete=. completeopt=menu,longest
 " Syntax complete if nothing else available
 Autocmd BufEnter,WinEnter * if &omnifunc ==# '' | setlocal omnifunc=syntaxcomplete#Complete | endif
