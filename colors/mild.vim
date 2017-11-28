@@ -1,8 +1,7 @@
 " Vim colour file
 " File:         mild.vim
 " Author:       Alex Masterov <alex.masterow@gmail.com>
-" Source:       https://github.com/AlexMasterov/topos.vim
-" Last Updated: 2016 Dec
+" Source:       https://github.com/AlexMasterov/mild.vim
 " Description:  GUI only
 
 hi clear
@@ -25,6 +24,8 @@ hi LineNr               guifg=#B6B6B6   guibg=#F6F7F7   gui=NONE
 hi VertSplit            guifg=#EEEEEE   guibg=#F6F7F7   gui=NONE
 hi StatusLine           guifg=#2B2B2B   guibg=#EEEEEE   gui=NONE
 hi StatusLineNC         guifg=#888888   guibg=#EEEEEE   gui=NONE
+hi StatusLineTerm       guifg=#888888   guibg=#EEEEEE   gui=NONE
+hi StatusLineTermNC     guifg=#888888   guibg=#EEEEEE   gui=NONE
 hi TabLine              guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi TabLineFill          guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi TabLineSel           guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
@@ -32,7 +33,7 @@ hi Directory            guifg=#2B2B2B                   gui=NONE
 hi WildMenu             guifg=#2B2B2B   guibg=#BBDDFF   gui=NONE
 
 hi Folded               guifg=#006C91   guibg=#F6F7F7   gui=NONE
-hi FoldColumn           guifg=#2B2B2B   guibg=#C9B0B0   gui=NONE
+hi FoldColumn           guifg=#C9B0B0   guibg=#F6F7F7   gui=NONE
 
 hi Question             guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi WarningMsg           guifg=#2B2B2B   guibg=#FFD2CF   gui=NONE

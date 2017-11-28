@@ -1,4 +1,10 @@
 [[plugins]]
+repo = '2072/PHP-Indenting-for-VIm'
+
+[[plugins]]
+repo = 'shawncplus/phpcomplete.vim'
+
+[[plugins]]
 repo = 'tobyS/vmustache'
 
 [[plugins]]

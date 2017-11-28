@@ -660,18 +660,6 @@ hook_source = '''
 [[plugins]]
 repo = 'chr4/nginx.vim'
 
-# PostCSS (Sugar)
-[[plugins]]
-repo = 'hhsnopek/vim-sugarss'
-hook_add = '''
-  Autocmd Syntax sugarss
-    \  hi sssClass            guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-    \| hi sssElement          guifg=#2B2B2B guibg=#F6F7F7 gui=NONE
-    \| hi sssProperty         guifg=#0050B0 guibg=#F6F7F7 gui=NONE
-    \| hi sssPropertyOverride guifg=#999999 guibg=#F6F7F7 gui=NONE
-    \| hi sssAbsoluteUnit     guifg=#A67F59 guibg=#F6F7F7 gui=NONE
-'''
-
 [[plugins]]
 repo = 'lambdalisue/gina.vim'
 on_cmd = 'Gina'
@@ -718,10 +706,6 @@ hook_source = '''
     \| hi AnsiColor13 guifg=#0050B0 gui=bold
     \| hi AnsiColor14 guifg=#BA4747 gui=NONE
 '''
-
-[[plugins]]
-repo = 'equalsraf/neovim-gui-shim'
-if = "has('nvim')"
 
 [[plugins]]
 repo = 'stephpy/vim-yaml'
@@ -780,87 +764,11 @@ repo = 'tokutake/twig-indent'
 [[plugins]]
 repo = 'jwalton512/vim-blade'
 
-#  Operators
-[[plugins]]
-repo = 'kana/vim-operator-user'
-
-[[plugins]]
-repo = 'rhysd/vim-operator-surround'
-depends = 'vim-operator-user'
-on_map = {v = '<Plug>(operator-surround-'}
-hook_add = '''
-  vmap sa <Plug>(operator-surround-append)
-  vmap sd <Plug>(operator-surround-delete)
-  vmap sr <Plug>(operator-surround-replace)
-'''
-
-[[plugins]]
-repo = 'tyru/operator-reverse.vim'
-depends = 'vim-operator-user'
-on_map = {v = '<Plug>(operator-reverse-'}
-hook_add = '''
-  vmap <silent> sw <Plug>(operator-reverse-text)
-  vmap <silent> sl <Plug>(operator-reverse-lines)
-'''
-
-[[plugins]]
-repo = 'haya14busa/vim-operator-flashy'
-depends = 'vim-operator-user'
-on_map = {n = '<Plug>(operator-flashy)'}
-hook_add = '''
-  nmap y <Plug>(operator-flashy)
-  nmap Y <Plug>(operator-flashy)$
-'''
-hook_source = '''
-  let g:operator#flashy#flash_time = 280
-  let g:operator#flashy#group = 'Visual'
-'''
-
-# Text-objects
-[[plugins]]
-repo = 'kana/vim-textobj-user'
-
-[[plugins]]
-repo = 'machakann/vim-textobj-delimited'
-depends = 'vim-textobj-user'
-on_map = ['vid', 'viD', 'vad', 'vaD']
-
-[[plugins]]
-repo = 'whatyouhide/vim-textobj-xmlattr'
-depends = 'vim-textobj-user'
-on_map = ['vix', 'vax']
-
-# Operators
-[[plugins]]
-repo = 'tpope/vim-surround'
-on_map = {nx = '<Plug>'}
-hook_add = '''
-  nmap ,d <Plug>Dsurround
-  nmap ,i <Plug>Csurround
-  nmap ,I <Plug>CSurround
-  nmap ,t <Plug>Yssurround
-  nmap ,T <Plug>YSsurround
-  xmap ,s <Plug>VSurround
-  xmap ,S <Plug>VgSurround
-
-  for char in split('` '' \" ( ) { } [ ]')
-    execute printf('nmap ,%s ,Iw%s', char, char)
-  endfor | unlet char
-'''
-hook_source = 'let g:surround_no_mappings = 1'
-
 [[plugins]]
 repo = 'junegunn/vim-easy-align'
 on_map = {x = '<Plug>(EasyAlign)'}
 hook_add = 'vmap <Enter> <Plug>(EasyAlign)'
 hook_source = 'source ~/vimfiles/dein/plugins/easyalign.vim'
-
-# PHP
-[[plugins]]
-repo = '2072/PHP-Indenting-for-VIm'
-
-[[plugins]]
-repo = 'shawncplus/phpcomplete.vim'
 
 [[plugins]]
 repo = 'AndrewRadev/switch.vim'

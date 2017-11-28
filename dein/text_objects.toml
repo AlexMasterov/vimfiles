@@ -1,0 +1,12 @@
+[[plugins]]
+repo = 'kana/vim-textobj-user'
+
+[[plugins]]
+repo = 'machakann/vim-textobj-delimited'
+depends = 'vim-textobj-user'
+on_map = ['vid', 'viD', 'vad', 'vaD']
+
+[[plugins]]
+repo = 'whatyouhide/vim-textobj-xmlattr'
+depends = 'vim-textobj-user'
+on_map = ['vix', 'vax']
