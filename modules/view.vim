@@ -22,10 +22,8 @@ set splitbelow splitright
 " Wrapping
 if exists('+breakindent')
   set wrap                         " wrap long lines
-  set linebreak                    " wrap without line breaks
   set breakindent                  " wrap lines, taking indentation into account
   set breakindentopt=shift:4       " indent broken lines
-  set breakat=\ \ ;:,!?            " break point for linebreak
   set textwidth=0                  " do not wrap text
   set display+=lastline            " easy browse last line with wrap text
   set whichwrap=<,>,[,],h,l,b,s,~  " end/beginning-of-line cursor wrapping behave human-like
@@ -34,8 +32,13 @@ else
   set sidescroll=1
 endif
 
+set linebreak          " wrap without line breaks
+set breakat=\ \ ;:,!?  " break point for linebreak
+set showbreak=\
+
 " Folding
 set nofoldenable
+
 " Diff
 set diffopt=filler,iwhite,vertical
 

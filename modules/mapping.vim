@@ -94,6 +94,7 @@
   nnoremap <silent> <Space>D :<C-u>bdelete!<CR>
   " Space + i: jump to alternate buffer
   nnoremap <silent> <Space>i :<C-u>buffer#<CR>
+  nnoremap <silent> <BS> :<C-u>buffer#<CR>
   " Space + t: new buffer
   nnoremap <silent> <Space>t :<C-u>call <SID>makeBuffer()<CR>
   " Space + T: force new buffer
@@ -108,6 +109,7 @@
   nnoremap <silent> ;E :<C-u>edit!<CR>
   " Shift-m: save file
   nnoremap <silent> <S-m> :<C-u>write!<CR>
+  nnoremap <silent> <C-s> :<C-u>write!<CR>
   " Ctrl-Enter: force save file
   nnoremap <silent> <C-Enter> :<C-u>write!<CR>
   " Shift-Enter: force save file when buffer was changed
