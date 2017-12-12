@@ -1,0 +1,7 @@
+# Twig
+[[plugins]]
+repo = 'tokutake/twig-indent'
+
+# Blade
+[[plugins]]
+repo = 'jwalton512/vim-blade'

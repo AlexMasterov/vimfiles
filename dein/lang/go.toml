@@ -1,0 +1,16 @@
+[[plugins]]
+repo = 'fatih/vim-go'
+on_ft = 'go'
+hook_add = '''
+  Autocmd Syntax go
+    \  hi goPackage  guifg=#008080 gui=NONE
+    \| hi goBuiltins guifg=#AA0D91 gui=NONE
+'''
+hook_source = '''
+  let g:go_fmt_autosave = 0
+  let g:go_metalinter_autosave = 0
+
+  " Syntax
+  let g:go_highlight_functions = 1
+  let g:go_highlight_string_spellcheck = 0
+'''
