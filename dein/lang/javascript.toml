@@ -13,7 +13,7 @@ hook_add = '''
     \ '^(fn\|cb)$':   {'type': ' {Function} '},
     \ '^(el\|node)$': {'type': ' {Element} '},
     \ 'callback\|cb': {'type': ' {Function} ', 'description': 'Callback function'}
-    \}
+    \ }
 
   AutocmdFT javascript
     \  nmap <buffer> ,c <Plug>(jsdoc)
@@ -38,17 +38,18 @@ hook_add = '''
 '''
 
 [[plugins]]
-repo = 'carlitux/deoplete-ternjs'
-on_source = 'deoplete.nvim'
-hook_add = '''
-  let g:deoplete#sources#ternjs#tern_bin = 'tern'
-  let g:deoplete#sources#ternjs#timeout = 3
-'''
-
-[[plugins]]
 repo = 'ternjs/tern_for_vim'
 hook_add = '''
   let g:tern#command = ['tern']
   let g:tern#arguments = ['--persistent']
   let g:tern_show_signature_in_pum = 1
+'''
+
+[[plugins]]
+repo = 'carlitux/deoplete-ternjs'
+on_source = 'deoplete.nvim'
+on_ft = 'javascript'
+hook_add = '''
+  let g:deoplete#sources#ternjs#tern_bin = 'tern'
+  let g:deoplete#sources#ternjs#timeout = 3
 '''

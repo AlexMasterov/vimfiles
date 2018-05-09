@@ -7,13 +7,13 @@ if has('reltime') && has('vim_starting')
   " vim --cmd 'profile start profile.txt' --cmd 'profile file $HOME/.vimrc' +q && vim profile.txt
   let s:startupTime = reltime()
   autocmd VimEnter * let s:startupTime = reltime(s:startupTime)
-        \| redraw | echomsg reltimestr(s:startupTime)
+                  \| redraw | echomsg reltimestr(s:startupTime)
 endif
 
 " Initialize autogroup
-augroup MyVimrc
-  autocmd!
-augroup END
+  augroup MyVimrc
+    autocmd!
+  augroup END
 
 " Environment
 "---------------------------------------------------------------------------
@@ -28,23 +28,16 @@ augroup END
   set nomodeline modelines=0  " prevents security exploits
   set noexrc                  " avoid reading local (g)vimrc, exrc
   set packpath=
+  set pyxversion=3
   set regexpengine=2          " 0=auto 1=old 2=NFA
 
-  if has('nvim')
-    let &shada = "!,'300,<50,s10,h,n" . $DATA
-  else
-    let &viminfo = "!,'300,<50,s10,h,n" . $DATA
-  endif
-
-  " Python
-  set pyxversion=3
-  let g:python3_host_prog = 'python'
-
-  " Neovim
   if has('nvim')
     set nofsync
     set inccommand=split
     set clipboard+=unnamedplus
+    let &shada = "!,'300,<50,s10,h,n" . $DATA
+  else
+    let &viminfo = "!,'300,<50,s10,h,n" . $DATA
   endif
 
   " Disable bell
@@ -56,9 +49,9 @@ augroup END
   set iminsert=0 imsearch=0
 
   " Undo
-  call vimrc#makeDir(&undodir)
   set undodir=$CACHE/undo
   set undofile undolevels=500 undoreload=1000
+  call vimrc#makeDir(&undodir, '!')
 
   " View
   set viewdir=$CACHE/view
@@ -77,8 +70,8 @@ augroup END
 
   function! IsMac() abort
     return !s:is_windows
-          \ && (has('mac') || has('macunix') || has('gui_macvim')
-          \     || (!executable('xdg-open') && system('uname') =~? '^darwin'))
+      \ && (has('mac') || has('macunix') || has('gui_macvim')
+      \   || (!executable('xdg-open') && system('uname') =~? '^darwin'))
   endfunction
 
 " Commands
@@ -86,7 +79,7 @@ augroup END
   command! -nargs=* Autocmd   autocmd MyVimrc <args>
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
   command! -nargs=1 Indent
-        \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
+    \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
   command! -nargs=0 -bar GoldenRatio exe 'vertical resize' &columns * 5 / 8
    " Shows the syntax stack under the cursor
   command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
@@ -134,17 +127,17 @@ augroup END
 
   " Open in UTF-8
   command! -nargs=? -bar -bang -complete=file EUtf8
-      \ edit<bang> ++enc=utf-8 <args>
+    \ edit<bang> ++enc=utf-8 <args>
   " Open in CP1251
   command! -nargs=? -bar -bang -complete=file ECp1251
-      \ edit<bang> ++enc=cp1251 <args>
+    \ edit<bang> ++enc=cp1251 <args>
 
   " Write as Unix
   command! -nargs=? -bar -bang -complete=file WUnix
-      \ write<bang> ++fileformat=unix <args> | edit <args>
+    \ write<bang> ++fileformat=unix <args> | edit <args>
   " Write as Dos
   command! -nargs=? -bar -bang -complete=file WDos
-      \ write<bang> ++fileformat=dos <args> | edit <args>
+    \ write<bang> ++fileformat=dos <args> | edit <args>
 
 " Plugins
 " ---------------------------------------------------------------------------
@@ -168,33 +161,49 @@ augroup END
   " Setup Dein plugin manager
   let s:deinPath = $VIMHOME . '/dein'
   if has('vim_starting')
-    let s:deinRepo = s:deinPath.'/repos/github.com/Shougo/dein.vim'
+    let s:deinRepo = s:deinPath . '/repos/github.com/Shougo/dein.vim'
     if !isdirectory(s:deinRepo)
       if executable('git')
-        let s:deinUri = 'https://github.com/Shougo/dein.vim.git'
-        call system(printf('git clone --depth 1 %s %s', s:deinUri, fnameescape(s:deinRepo)))
+        call system('git clone --single-branch --depth 1 https://github.com/Shougo/dein.vim.git ' . fnameescape(s:deinRepo))
       else
         echom 'Can`t download Dein: Git not found.'
       endif
     endif
-    execute 'set runtimepath^='. fnameescape(s:deinRepo)
+    execute 'set runtimepath^=' . fnameescape(s:deinRepo)
   endif
 
   if dein#load_state(s:deinPath)
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
     let plugins = [
+      \ 'ale',
       \ 'plugins',
+      \ 'nvim_rpc',
+      \ 'caw',
+      \ 'filer',
+      \ 'unite',
+      \ 'denite',
       \ 'deoplete',
       \ 'operators',
+      \ 'easymotion',
+      \ 'choosewin',
+      \ 'colorizer',
+      \ 'sideways',
+      \ 'gina',
+      \ 'neomake',
+      \ 'smartchr',
+      \ 'ultisnips',
       \ 'text_objects',
-      \ 'lang/php',
       \ 'lang/javascript',
+      \ 'lang/rust',
+      \ 'lang/php',
       \ 'lang/json',
+      \ 'lang/yaml',
+      \ 'lang/html',
       \ 'lang/css',
       \ 'lang/csv',
       \ 'lang/svg',
-      \]
+      \ ]
 
     for plugin in plugins
       call dein#load_toml(printf('%s/dein/%s.toml', $VIMFILES, plugin))

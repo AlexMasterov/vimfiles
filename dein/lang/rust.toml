@@ -1,0 +1,16 @@
+[[plugins]]
+repo = 'racer-rust/vim-racer'
+on_ft = 'rust'
+hook_add = '''
+  AutocmdFT rust
+    \  nmap gf <Plug>(rust-def)
+    \| nmap gd <Plug>(rust-doc)
+'''
+hook_source = '''
+  let g:racer_cmd = 'racer'
+  let g:racer_experimental_completer = 1
+
+  let $RUST_SRC_PATH = expand('~/.multirust/toolchains/'
+    \ .'nightly-x86_64-pc-windows-msvc/'
+    \ .'lib/rustlib/src/rust/src/')
+'''

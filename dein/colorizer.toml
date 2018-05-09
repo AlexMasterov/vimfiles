@@ -1,0 +1,20 @@
+[[plugins]]
+repo = 'lilydjwg/colorizer'
+on_cmd = ['ColorToggle', 'ColorHighlight', 'ColorClear']
+hook_add = '''
+  let g:color_codes_ft = split('css html twig sugarss')
+
+  function! RemoveColorizerEvent() abort
+    if exists('#Colorizer')
+      augroup Colorizer
+        autocmd!
+      augroup END
+    endif
+  endfunction
+
+  Autocmd BufNewFile,BufRead,BufEnter,BufWinEnter,WinEnter *
+    \ execute index(g:color_codes_ft, &filetype) ==# -1
+    \   ? 'call RemoveColorizerEvent()'
+    \   : 'ColorHighlight'
+'''
+hook_source = 'let g:colorizer_nomap = 1'

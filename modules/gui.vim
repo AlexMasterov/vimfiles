@@ -4,7 +4,6 @@
 if has('gui_running')
   if has('vim_starting')
     winsize 190 30 | winpos 492 372
-    " winsize 190 32 | winpos 492 350
   endif
   set guioptions=ac
   set guicursor=a:blinkon0  " turn off blinking the cursor

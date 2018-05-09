@@ -1,0 +1,98 @@
+[[plugins]]
+repo = 'Shougo/vimfiler.vim'
+on_cmd = ['VimFiler', 'VimFilerCurrentDir']
+on_map = {n = '<Plug>'}
+hook_add = '''
+  " ;d: open vimfiler explrer
+  nnoremap <silent> ;d :<C-u>call CreateVimFiler()<CR>
+  " Tab: jump to vimfiler window
+  nnoremap <silent> <Tab> :<C-u>call JumpToVimfiler()<CR>
+
+  function! CreateVimFiler() abort
+    for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
+      if !empty(winnr)
+        execute winnr . 'wincmd w' | return
+      endif
+    endfor
+    VimFiler -split -invisible -create -no-quit
+  endfunction
+
+  function! JumpToVimfiler() abort
+    if getwinvar(winnr(), '&filetype') ==# 'vimfiler'
+      wincmd p
+    else
+      for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'vimfiler'")
+        execute winnr . 'wincmd w'
+      endfor
+    endif
+  endfunction
+
+  " Vimfiler tuning
+  AutocmdFT vimfiler let &l:statusline = ' '
+  Autocmd BufEnter,WinEnter vimfiler* nested
+    \  let &l:statusline = ' '
+    \| setlocal nonu nornu nolist cursorline colorcolumn=
+    \| Autocmd BufLeave,WinLeave <buffer> setlocal nocursorline
+
+  AutocmdFT vimfiler call VimfilerMappings()
+  function! VimfilerMappings() abort
+    silent! nunmap <buffer> <Space>
+    silent! nunmap <buffer> <Tab>
+
+    " Normal mode
+    nmap <buffer> <C-j> 4j
+    nmap <buffer> <C-k> 4k
+    nmap <buffer> <C-c> <Esc>
+    nmap <buffer> f <Plug>(vimfiler_grep)
+    nmap <buffer> H <Plug>(vimfiler_cursor_top)
+    nmap <buffer> R <Plug>(vimfiler_redraw_screen)
+    nmap <buffer> l <Plug>(vimfiler_expand_tree)
+    nmap <buffer> L <Plug>(vimfiler_cd_file)
+    nmap <buffer> J <Plug>(vimfiler_switch_to_root_directory)
+    nmap <buffer> K <Plug>(vimfiler_switch_to_project_directory)
+    nmap <buffer> H <Plug>(vimfiler_switch_to_parent_directory)
+    nmap <buffer> o <Plug>(vimfiler_expand_or_edit)
+    nmap <buffer> O <Plug>(vimfiler_open_file_in_another_vimfiler)
+    nmap <buffer> w <Plug>(vimfiler_expand_tree_recursive)
+    nmap <buffer> W <Plug>(vimfiler_toggle_visible_ignore_files)
+    nmap <buffer> e <Plug>(vimfiler_toggle_mark_current_line)
+    nmap <buffer> E <Plug>(vimfiler_toggle_mark_current_line_up)
+    nmap <buffer> <expr> q winnr('$') ==# 1 ? "\<Plug>(vimfiler_hide)" : "\<Plug>(vimfiler_switch_to_other_window)"
+    nmap <silent> <buffer> <expr> <Enter> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+    nmap <silent> <buffer> <nowait> <expr> t vimfiler#do_action('tabopen')
+    nmap <silent> <buffer> <nowait> <expr> s vimfiler#do_switch_action('split')
+    nmap <silent> <buffer> <nowait> <expr> S vimfiler#do_switch_action('vsplit')
+    nmap <silent> <buffer> <nowait> <expr> v vimfiler#do_switch_action('vsplit')
+    nmap <buffer> <nowait> n <Plug>(vimfiler_new_file)
+    nmap <buffer> <nowait> N <Plug>(vimfiler_make_directory)
+    nmap <buffer> <nowait> d <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_delete_file)y
+    nmap <buffer> <nowait> D <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_force_delete_file)
+    nmap <buffer> <nowait> c <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_copy_file)
+    nmap <buffer> <nowait> m <Plug>(vimfiler_mark_current_line)<Plug>(vimfiler_move_file)y
+  endfunction
+'''
+hook_source = '''
+  let g:vimfiler_data_directory = $CACHE . '/vimfiler'
+  let g:unite_kind_file_use_trashbox = IsWindows()
+
+  let g:vimfiler_ignore_pattern =
+    \ '^\%(\..*\|^.\|.git\|.hg\|var\|etc\|build\|dist\|vendor\|node_modules\|gulpfile.js\|package.json\)$'
+
+  " Icons
+  let g:vimfiler_file_icon = ' '
+  let g:vimfiler_tree_leaf_icon = ''
+  let g:vimfiler_tree_opened_icon = '▾'
+  let g:vimfiler_tree_closed_icon = '▸'
+  let g:vimfiler_marked_file_icon = '+'
+
+  " Default profile
+  let s:vimfiler_default = {
+    \ 'safe': 0,
+    \ 'parent': 0,
+    \ 'explorer': 1,
+    \ 'winwidth': 28,
+    \ 'winminwidth': 18
+    \ }
+
+  call vimfiler#custom#profile('default', 'context', s:vimfiler_default)
+'''

@@ -1,0 +1,106 @@
+[[plugins]]
+repo = 'Shougo/denite.nvim'
+on_cmd = 'Denite'
+hook_add = '''
+  nnoremap <silent> ;g :<C-u>Denite grep<CR>
+  nnoremap <silent> ;j :<C-u>Denite jump<CR>
+  nnoremap <silent> ;b :<C-u>Denite buffer -reversed<CR>
+  nnoremap <silent> `  :<C-u>Denite buffer   -winheight=8 -reversed<CR>
+  nnoremap <silent> ;r :<C-u>Denite register -winheight=8<CR>
+  nnoremap <silent> ;` :<C-u>Denite buffer   -mode=insert<CR>
+  nnoremap <silent> ;f :<C-u>Denite file_rec -mode=insert<CR>
+  nnoremap <silent> ;s :<C-u>Denite line     -buffer-name=search -mode=insert<CR>
+  nnoremap <silent> ;v :<C-u>DeniteCursorWord line -buffer-name=search<CR>
+'''
+hook_source = '''
+  call denite#custom#option('default', {
+    \ 'mode': 'normal',
+    \ 'prompt': ' ❯',
+    \ 'empty': 1,
+    \ 'source_names': 'short',
+    \ 'highlight_mode_normal': 'Visual',
+    \ 'highlight_matched_range': 'User5'
+    \ })
+
+  call denite#custom#var('buffer', 'date_format', '')
+
+  " Ripgrep: https://github.com/BurntSushi/ripgrep
+  if executable('rg')
+    call denite#custom#var('grep', 'command', ['rg'])
+    call denite#custom#var('grep', 'recursive_opts', [])
+    call denite#custom#var('grep', 'final_opts', ['.'])
+    call denite#custom#var('grep', 'separator', ['--'])
+    call denite#custom#var('grep', 'default_opts', ['--maxdepth', '8', '--vimgrep', '--no-heading'])
+    call denite#custom#var('file_rec', 'command',  [
+      \ 'rg', '--no-messages', '--maxdepth', '8', '--no-line-number', '--fixed-strings', '--files-with-matches', '--hidden', '--follow', '.'])
+  endif
+
+  " Sources
+  call denite#custom#source('buffer',                   'sorters',    ['sorter/reverse'])
+  call denite#custom#source('file_rec',                 'sorters',    ['sorter/sublime'])
+  call denite#custom#source('file_rec',                 'matchers',   ['matcher/substring'])
+  call denite#custom#source('file_mru',                 'matchers',   ['matcher/substring', 'matcher/project_files'])
+  call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter/relative_word'])
+
+  " Mappings
+  call denite#custom#map('normal', 'Q',        '<denite:quit>',                        'noremap')
+  call denite#custom#map('normal', '`',        '<denite:quit>',                        'noremap')
+  call denite#custom#map('normal', '<Esc>',    '<denite:quit>',                        'noremap')
+  call denite#custom#map('normal', '-',        '<denite:choose_action>',               'noremap')
+  call denite#custom#map('normal', 'd',        '<denite:do_action:delete>',            'noremap')
+  call denite#custom#map('normal', 'D',        '<denite:do_action:delete>',            'noremap')
+  call denite#custom#map('normal', 'o',        '<denite:do_action:default>',           'noremap')
+  call denite#custom#map('normal', 'f',        '<denite:do_action:find>',              'noremap')
+  call denite#custom#map('normal', 'r',        '<denite:do_action:reset>',             'noremap')
+  call denite#custom#map('normal', 'u',        '<denite:do_action:update>',            'noremap')
+  call denite#custom#map('normal', '<Space>v', '<denite:do_action:vsplit>',            'noremap')
+  call denite#custom#map('normal', '<Tab>',    '<denite:enter_mode:insert>',           'noremap')
+  call denite#custom#map('normal', '<C-j>',    '<denite:scroll_window_downwards>',     'noremap')
+  call denite#custom#map('normal', '<C-k>',    '<denite:scroll_window_upwards>',       'noremap')
+  call denite#custom#map('insert', '<C-i>',    '<denite:choose_action>',               'noremap')
+  call denite#custom#map('insert', '<Tab>',    '<denite:enter_mode:normal>',           'noremap')
+  call denite#custom#map('insert', '<C-j>',    '<denite:move_to_next_line>',           'noremap')
+  call denite#custom#map('insert', '<C-k>',    '<denite:move_to_prev_line>',           'noremap')
+  call denite#custom#map('insert', '<C-p>',    '<denite:paste_from_default_register>', 'noremap')
+  call denite#custom#map('insert', '<A-j>',    '<denite:scroll_window_downwards>',     'noremap')
+  call denite#custom#map('insert', '<A-k>',    '<denite:scroll_window_upwards>',       'noremap')
+  call denite#custom#map('insert', '<C-d>',    '<denite:delete_char_before_caret>',    'noremap')
+  call denite#custom#map('insert', '<C-h>',    '<denite:move_caret_to_left>',          'noremap')
+  call denite#custom#map('insert', '<C-l>',    '<denite:move_caret_to_right>',         'noremap')
+  call denite#custom#map('insert', '<C-a>',    '<denite:move_caret_to_head>',          'noremap')
+  call denite#custom#map('insert', '<C-e>',    '<denite:move_caret_to_tail>',          'noremap')
+  call denite#custom#map('insert', '<Space>v', '<denite:do_action:vsplit>',            'noremap')
+
+  Autocmd Syntax denite
+    \  highlight! default link deniteStatusLinePath   StatusLine
+    \| highlight! default link deniteStatusLineNumber StatusLine
+'''
+
+[[plugins]]
+repo = 'Shougo/neomru.vim'
+hook_add = '''
+  let g:neomru#filename_format = ':.'
+  let g:neomru#time_format = '%m.%d — %H:%M'
+  let g:neomru#file_mru_limit = 80
+  let g:neomru#file_mru_path = $CACHE . '/neomru/file'
+  let g:neomru#file_mru_ignore_pattern = '\.\%(vimrc\|log\)$'
+  let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
+
+  nnoremap <silent> ;w :<C-u>Denite file_mru<CR>
+  nnoremap <silent> ;W :<C-u>Denite file_mru -matchers=['matcher/substring']<CR>
+  nnoremap <silent> ;D :<C-u>Denite directory_mru<CR>
+'''
+
+[[plugins]]
+repo = 'Shougo/neoyank.vim'
+on_source = 'denite.nvim'
+on_event = 'TextYankPost'
+hook_add = '''
+  nnoremap <silent> ;y :<C-u>Denite neoyank -no-statusline -mode=normal<CR>
+  nnoremap <silent> ;r :<C-u>Denite neoyank register -buffer-name=register<CR>
+  xnoremap <silent> ;r :<C-u>Denite neoyank register -buffer-name=register -default-action=replace<CR>
+'''
+hook_source = '''
+  let g:neoyank#limit = 50
+  let g:neoyank#file = $CACHE . '/yank_file'
+'''

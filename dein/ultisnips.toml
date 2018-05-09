@@ -1,0 +1,41 @@
+[[plugins]]
+repo = 'SirVer/ultisnips'
+on_event = 'InsertCharPre'
+on_ft = 'snippets'
+hook_add = '''
+  Autocmd BufNewFile,BufReadPost *.snippets
+  \ set filetype=snippets nowrap foldmethod=manual
+'''
+hook_source = '''
+  let g:UltiSnipsEnableSnipMate = 0
+  let g:UltiSnipsExpandTrigger = '<C-F12>'
+  let g:UltiSnipsListSnippets = '<C-F12>'
+  let g:UltiSnipsSnippetDirectories = [expand('~/vimfiles/snippets')]
+
+  AutocmdFT twig  call UltiSnips#AddFiletypes('twig.html')
+  AutocmdFT blade call UltiSnips#AddFiletypes('blade.html')
+'''
+hook_post_source = '''
+  " imap <S-Space> <Plug>(ultisnips)
+  imap `         <Plug>(ultisnips)
+  xmap `         <Plug>(ultisnipsVisual)
+  snoremap <C-c> <Esc>
+
+  inoremap <silent> <Plug>(ultisnips)        <C-r>=UltiComplete("\`")<CR>
+  xnoremap <silent> <Plug>(ultisnipsVisual) :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
+
+  function! UltiComplete(key) abort
+    if len(UltiSnips#SnippetsInCurrentScope()) >= 1
+      let [curPos, lineLength] = [getcurpos()[4], col('$')]
+      let isBackspace = getline('.')[curPos-2] =~ '\s'
+      let isStartLine = curPos <= 1
+      let isText = curPos <= lineLength
+
+      if isText && !isStartLine && !isBackspace
+        return UltiSnips#ExpandSnippet()
+      endif
+    endif
+
+    return a:key
+  endfunction
+'''

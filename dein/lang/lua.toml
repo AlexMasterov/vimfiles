@@ -1,7 +1,4 @@
 [[plugins]]
-repo = 'drmingdrmer/vim-indent-lua'
-
-[[plugins]]
 repo = 'xolox/vim-misc'
 
 [[plugins]]
@@ -10,11 +7,14 @@ depends = 'xolox/vim-misc'
 hook_add = '''
   let g:loaded_lua_ftplugin = 1
 
-	let g:lua_check_syntax = 0
-	let g:lua_complete_omni = 1
-	let g:lua_complete_dynamic = 0
-	let g:lua_define_completion_mappings = 0
+  let g:lua_check_syntax = 0
+  let g:lua_complete_omni = 1
+  let g:lua_complete_dynamic = 0
+  let g:lua_define_completion_mappings = 0
   let g:lua_compiler_name = IsWindows() ? 'luac5.1' : 'luac'
 
   AutocmdFT lua set omnifunc=xolox#lua#omnifunc
 '''
+
+[[plugins]]
+repo = 'drmingdrmer/vim-indent-lua'

@@ -6,8 +6,6 @@ let did_load_filetypes = 1
 augroup filetypedetect
   " Vim
   autocmd BufNewFile,BufRead *{.vim,vimrc*},$MYVIMRC set filetype=vim
-  " Toml
-  autocmd BufNewFile,BufRead *.toml set filetype=toml
 
   " PHP
   autocmd BufNewFile,BufRead *.{php,phpt} set filetype=php
@@ -15,35 +13,37 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.{js,jsx,es6,mjs} set filetype=javascript
   " TypeScript
   autocmd BufNewFile,BufRead *.{ts,tsx} set filetype=typescript
-  " Python
-  autocmd BufNewFile,BufRead *.py set filetype=python
   " Rust
-  autocmd BufNewFile,BufRead *.rt set filetype=rust
+  autocmd BufNewFile,BufRead *.{rs,rt} set filetype=rust
   " Golang
   autocmd BufNewFile,BufRead *.go set filetype=go
   " Haskell
   autocmd BufNewFile,BufRead *.hs set filetype=haskell
   " Scala
   autocmd BufNewFile,BufRead *.scala set filetype=scala
-  " Ruby
-  autocmd BufNewFile,BufRead *.{rb,rbw},Vagrantfile* set filetype=ruby
-  " Lua
-  autocmd BufNewFile,BufRead *.lua set filetype=lua
   " #F
   autocmd BufNewFile,BufRead *.fs set filetype=forth
   " C
   autocmd BufNewFile,BufRead *.{c,h} set filetype=c
   " C++
   autocmd BufNewFile,BufRead *.{cc,cpp} set filetype=cpp
+  " Ruby
+  autocmd BufNewFile,BufRead *.{rb,rbw},Vagrantfile* set filetype=ruby
+  " Lua
+  autocmd BufNewFile,BufRead *.lua set filetype=lua
+  " Python
+  autocmd BufNewFile,BufRead *.py set filetype=python
 
   " HTML
   autocmd BufNewFile,BufRead *.{html,htm} set filetype=html
   " Json
   autocmd BufNewFile,BufRead *.{json,jsonp},.{babelrc,eslintrc} set filetype=json
-  " Yaml
-  autocmd BufNewFile,BufRead *.{yml,yaml} set filetype=yaml
   " XML
   autocmd BufNewFile,BufRead *.{xml,xml.*} set filetype=xml
+  " Yaml
+  autocmd BufNewFile,BufRead *.{yml,yaml} set filetype=yaml
+  " Toml
+  autocmd BufNewFile,BufRead *.toml set filetype=toml
   " Markdown
   autocmd BufNewFile,BufRead *.{md,markdown,mdown,mkd,mkdn} set filetype=markdown
 

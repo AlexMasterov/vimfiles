@@ -1,0 +1,5 @@
+[[plugins]]
+repo = 'stephpy/vim-yaml'
+
+[[plugins]]
+repo = 'mrk21/yaml-vim'

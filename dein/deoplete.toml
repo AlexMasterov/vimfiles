@@ -1,10 +1,4 @@
 [[plugins]]
-repo = 'roxma/nvim-yarp'
-
-[[plugins]]
-repo = 'roxma/vim-hug-neovim-rpc'
-
-[[plugins]]
 repo = 'Shougo/context_filetype.vim'
 hook_source = '''
   let g:context_filetype#search_offset = 500
@@ -17,11 +11,11 @@ hook_source = '''
   let css = {
     \ 'filetype': 'css',
     \ 'start': '<\(style\)\%( [^>]*\)\?>', 'end': '</\1>'
-    \}
+    \ }
   let javascript = {
     \ 'filetype': 'javascript',
     \ 'start': '<\(script\)\%( [^>]*\)\?>', 'end': '</\1>'
-    \}
+    \ }
 
   for filetype in split('html twig blade')
     call s:addContext(filetype, css)
@@ -31,7 +25,8 @@ hook_source = '''
 
 [[plugins]]
 repo = 'Shougo/deoplete.nvim'
-on_i = 1
+depends = 'context_filetype.vim'
+on_event = 'InsertEnter'
 hook_add = '''
   function! Decomplete() abort
     if pumvisible()
@@ -44,7 +39,7 @@ hook_add = '''
     let isBackspace = getline('.')[curPos-2] =~ '\s'
 
     if isText && !isStartLine && !isBackspace
-      return deoplete#manual_complete()
+      return "\<C-x>\<C-o>"
     endif
 
     return "\<Tab>"
@@ -60,19 +55,22 @@ hook_add = '''
   inoremap <BS> <BS>
 '''
 hook_source = '''
-  let g:deoplete#enable_at_startup = 1
-  let g:deoplete#enable_yarp = 1
+  call deoplete#enable()
+  let g:deoplete#enable_yarp = !has('nvim')
 
   let g:deoplete#auto_complete_delay = 30
   let g:deoplete#auto_refresh_delay = 200
+
+  let g:deoplete#skip_chars = ['(', ')']
 '''
 
 [[plugins]]
 repo = 'Shougo/echodoc.vim'
-on_source = 'deoplete.nvim'
+on_event = 'CompleteDone'
 hook_source = '''
-  let g:echodoc#type = 'signature'
   call echodoc#enable()
+
+  let g:echodoc#type = 'signature'
 '''
 
 [[plugins]]
@@ -85,4 +83,4 @@ on_source = 'deoplete.nvim'
 
 [[plugins]]
 repo = 'Shougo/neco-vim'
-on_source = 'deoplate.nvim'
+on_ft = 'vim'

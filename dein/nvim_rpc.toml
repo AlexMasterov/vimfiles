@@ -1,0 +1,6 @@
+[[plugins]]
+repo = 'roxma/nvim-yarp'
+hook_add = 'let g:python3_host_prog = "python"'
+
+[[plugins]]
+repo = 'roxma/vim-hug-neovim-rpc'
