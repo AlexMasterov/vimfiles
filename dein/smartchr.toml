@@ -1,7 +1,7 @@
 [[plugins]]
 repo = 'kana/vim-smartchr'
-on_event = 'InsertCharPre'
-hook_source = '''
+on_func = 'smartchr#'
+hook_add = '''
   inoremap <expr> =
     \ search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn')? '<bs>= '
     \: search('\(*\<bar>!\)\%#', 'bcn') ? '= '

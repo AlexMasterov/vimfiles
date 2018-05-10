@@ -4,7 +4,7 @@ on_event = 'InsertCharPre'
 on_ft = 'snippets'
 hook_add = '''
   Autocmd BufNewFile,BufReadPost *.snippets
-  \ set filetype=snippets nowrap foldmethod=manual
+    \ set filetype=snippets nowrap foldmethod=manual
 '''
 hook_source = '''
   let g:UltiSnipsEnableSnipMate = 0

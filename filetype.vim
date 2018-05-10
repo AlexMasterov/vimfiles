@@ -5,7 +5,7 @@ let did_load_filetypes = 1
 
 augroup filetypedetect
   " Vim
-  autocmd BufNewFile,BufRead *{.vim,vimrc*},$MYVIMRC set filetype=vim
+  autocmd BufNewFile,BufRead *.vim,vimrc*,$MYVIMRC set filetype=vim
 
   " PHP
   autocmd BufNewFile,BufRead *.{php,phpt} set filetype=php
