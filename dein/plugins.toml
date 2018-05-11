@@ -16,11 +16,11 @@ on_path = '.*'
 hook_source = 'let g:stay_verbosity = -1'
 hook_post_source = "let g:volatile_ftypes += ['denite', 'unite', 'gita', 'vimfiler']"
 
-[[plugins]]
-repo = 'cohama/lexima.vim'
-on_event = 'InsertEnter'
-hood_source = 'let g:lexima_no_default_rules = 1'
-hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
+# [[plugins]]
+# repo = 'cohama/lexima.vim'
+# on_event = 'InsertEnter'
+# hood_source = 'let g:lexima_no_default_rules = 1'
+# hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
 
 [[plugins]]
 repo = 'simeji/winresizer'
@@ -65,15 +65,6 @@ hook_add = '''
 hook_source = 'set nrformats+=alpha'
 
 [[plugins]]
-repo = 'AndrewRadev/splitjoin.vim'
-on_cmd = 'SplitjoinSplit'
-hook_add = 'nmap <silent> S :<C-u>silent SplitjoinSplit<CR>'
-hood_source = '''
-  let g:splitjoin_join_mapping = ''
-  let g:splitjoin_split_mapping = ''
-'''
-
-[[plugins]]
 repo = 'itchyny/vim-parenmatch'
 hook_add = '''
   let g:parenmatch = 0
@@ -93,10 +84,24 @@ hook_source = 'source ~/vimfiles/dein/plugins/easyalign.vim'
 
 [[plugins]]
 repo = 'AndrewRadev/switch.vim'
-on_func = 'switch#'
-on_cmd = 'Switch'
 hook_add = 'source ~/vimfiles/dein/plugins/switch.vim'
-hook_source = "let g:switch_mapping = ''"
+
+[[plugins]]
+repo = 'AndrewRadev/sideways.vim'
+hook_add = 'source ~/vimfiles/dein/plugins/sideways.vim'
+
+[[plugins]]
+repo = 'AndrewRadev/splitjoin.vim'
+on_cmd = 'SplitjoinSplit'
+hook_add = 'nmap <silent> S :<C-u>silent SplitjoinSplit<CR>'
+hood_source = '''
+  let g:splitjoin_join_mapping = ''
+  let g:splitjoin_split_mapping = ''
+'''
+
+[[plugins]]
+repo = 'kana/vim-smartchr'
+hook_add = 'source ~/vimfiles/dein/plugins/smartchr.vim'
 
 [[plugins]]
 repo = 'Shougo/vimproc.vim'

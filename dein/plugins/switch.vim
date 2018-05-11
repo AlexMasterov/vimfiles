@@ -1,24 +1,37 @@
-nnoremap <silent> <S-Tab> :<C-u>silent! Switch<CR>
-xnoremap <silent> <S-Tab> :silent! Switch<CR>
-nnoremap <silent> ! :<C-u>call switch#Switch({'definitions': g:switchQuotes, 'reverse': 1})<CR>
-nnoremap <silent> @ :<C-u>call switch#Switch({'definitions': g:switchCamelCase, 'reverse': 1})<CR>
+nnoremap <silent> <S-Tab> :<C-u>silent call switch#Switch()<CR>
+xnoremap <silent> <S-Tab> :silent call switch#Switch({'reverse': 1})<CR>
+nnoremap <silent> ! :<C-u>silent call switch#Switch({'definitions': g:switch_quotes, 'reverse': 1})<CR>
+nnoremap <silent> @ :<C-u>silent call switch#Switch({'definitions': g:switch_camelcase, 'reverse': 1})<CR>
 
-let g:switchQuotes = [
-  \ {
-  \  "'\\(.\\{-}\\)'": '"\1"',
-  \  '"\(.\{-}\)"': "'\\1'",
-  \  '`\(.\{-}\)`': "'\\1'"
-  \ }
-  \]
-let g:switchCamelCase = [
-  \ {
-  \  '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-  \  '\<\(\u\l\+\)\(\u\l\+\)\+\>':     "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-  \  '\<\(\l\+\)\(_\l\+\)\+\>':        '\U\0',
-  \  '\<\(\u\+\)\(_\u\+\)\+\>':        "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-  \  '\<\(\l\+\)\(-\l\+\)\+\>':        "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
-  \ }
-  \]
+let g:loaded_switch = 1
+let g:switch_mapping = ''
+let g:switch_reverse_mapping = ''
+let g:switch_find_smallest_match = 1
+
+let g:switch_definitions = [
+  \   {
+  \     '\Ctrue':  'false',
+  \     '\Cfalse': 'true',
+  \   },
+  \ ]
+
+let g:switch_quotes = [
+  \   {
+  \     "'\\(.\\{-}\\)'": '"\1"',
+  \     '"\(.\{-}\)"': "'\\1'",
+  \     '`\(.\{-}\)`': "'\\1'"
+  \   }
+  \ ]
+
+let g:switch_camelcase = [
+  \   {
+  \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+  \     '\<\(\u\l\+\)\(\u\l\+\)\+\>':     "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+  \     '\<\(\l\+\)\(_\l\+\)\+\>':        '\U\0',
+  \     '\<\(\u\+\)\(_\u\+\)\+\>':        "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+  \     '\<\(\l\+\)\(-\l\+\)\+\>':        "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')"
+  \   }
+  \ ]
 
 AutocmdFT php
   \ let b:switch_custom_definitions = [
