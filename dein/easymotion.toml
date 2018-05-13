@@ -1,6 +1,5 @@
 [[plugins]]
 repo = 'easymotion/vim-easymotion'
-on_func = 'EasyMotion#go'
 on_map = {nx = '<Plug>(easymotion-'}
 hook_add = '''
   nmap  s       <Plug>(easymotion-s)
@@ -11,10 +10,10 @@ hook_add = '''
   nmap W        <Plug>(easymotion-lineforward)
   nmap B        <Plug>(easymotion-linebackward)
 
-  map <expr> f getcurpos()[4] < col('$')-1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
-  map <expr> F getcurpos()[4] <= 1         ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
+  map <expr> f getcurpos()[4] < col('$') - 1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
+  map <expr> F getcurpos()[4] < 2            ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
-  Autocmd ColorScheme,Syntax *
+  Autocmd ColorScheme *
     \  hi EasyMotionTarget             guifg=#2B2B2B guibg=#F6F7F7 gui=bold
     \| hi EasyMotionTarget2First       guifg=#FF0000 guibg=#F6F7F7 gui=bold
     \| hi link EasyMotionShade         Comment

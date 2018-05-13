@@ -79,7 +79,6 @@ on_source = 'deoplete.nvim'
 
 [[plugins]]
 repo = 'hrsh7th/vim-neco-calc'
-on_source = 'deoplete.nvim'
 
 [[plugins]]
 repo = 'Shougo/neco-vim'

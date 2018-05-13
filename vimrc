@@ -176,7 +176,6 @@ endif
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
     let plugins = [
-      \ 'ale',
       \ 'plugins',
       \ 'nvim_rpc',
       \ 'caw',
@@ -188,10 +187,8 @@ endif
       \ 'easymotion',
       \ 'choosewin',
       \ 'colorizer',
-      \ 'sideways',
       \ 'gina',
       \ 'neomake',
-      \ 'smartchr',
       \ 'ultisnips',
       \ 'text_objects',
       \ 'lang/javascript',

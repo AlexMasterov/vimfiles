@@ -44,6 +44,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.{yml,yaml} set filetype=yaml
   " Toml
   autocmd BufNewFile,BufRead *.toml set filetype=toml
+  " GraphQL
+  autocmd BufNewFile,BufRead *.{graphql,gql} set filetype=graphql
   " Markdown
   autocmd BufNewFile,BufRead *.{md,markdown,mdown,mkd,mkdn} set filetype=markdown
 
