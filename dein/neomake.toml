@@ -3,7 +3,7 @@ repo = 'neomake/neomake'
 on_func = 'neomake#'
 on_cmd = 'Neomake'
 hook_add = '''
-  AutocmdFT javascript,rust
+  AutocmdFT javascript,rust,php
     \ nnoremap <silent> <buffer> ,w :<C-u>call neomake#Make(1)<CR>
 
   Autocmd ColorScheme,Syntax *
