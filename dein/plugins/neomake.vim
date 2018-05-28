@@ -96,3 +96,13 @@ let g:neomake_php_fix_maker = {
 
 AutocmdFT php
   \ Autocmd User NeomakeJobFinished call ProcessOutputFile()
+
+" Golang
+let g:neomake_go_enabled_makers = ['fix']
+let g:neomake_go_fix_maker = {
+  \ 'exe': 'gofmt',
+  \ 'args': ['%:p'],
+  \ 'append_file': 0,
+  \ 'tempfile_enabled': 0,
+  \ 'process_output': function('ProcessOutputBuffer'),
+  \ }

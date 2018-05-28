@@ -29,10 +29,10 @@ hook_add = '''
 
   " Vimfiler tuning
   AutocmdFT vimfiler let &l:statusline = ' '
-  Autocmd BufEnter,WinEnter vimfiler* nested
+  Autocmd BufEnter,WinEnter vimfiler*
     \  let &l:statusline = ' '
     \| setlocal nonu nornu nolist cursorline colorcolumn=
-    \| Autocmd BufLeave,WinLeave <buffer> setlocal nocursorline
+  Autocmd BufLeave,WinLeave vimfiler* setlocal nocursorline
 
   AutocmdFT vimfiler call VimfilerMappings()
   function! VimfilerMappings() abort

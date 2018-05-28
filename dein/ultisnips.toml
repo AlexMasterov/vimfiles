@@ -25,7 +25,7 @@ hook_post_source = '''
   xnoremap <silent> <Plug>(ultisnipsVisual) :<C-u>call UltiSnips#SaveLastVisualSelection()<CR>gvs
 
   function! UltiComplete(key) abort
-    if len(UltiSnips#SnippetsInCurrentScope()) >= 1
+    if len(UltiSnips#SnippetsInCurrentScope()) > 0
       let [curPos, lineLength] = [getcurpos()[4], col('$')]
       let isBackspace = getline('.')[curPos-2] =~ '\s'
       let isStartLine = curPos <= 1

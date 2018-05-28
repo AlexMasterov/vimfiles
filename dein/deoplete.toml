@@ -58,10 +58,15 @@ hook_source = '''
   call deoplete#enable()
   let g:deoplete#enable_yarp = !has('nvim')
 
-  let g:deoplete#auto_complete_delay = 30
+  let g:deoplete#auto_complete_delay = 20
   let g:deoplete#auto_refresh_delay = 200
 
   let g:deoplete#skip_chars = ['(', ')']
+
+  call deoplete#custom#option('sources', {
+    \ '_': ['buffer'],
+    \ 'javascript': ['ultisnips', 'tern', 'file/include', 'calc']
+    \ })
 '''
 
 [[plugins]]

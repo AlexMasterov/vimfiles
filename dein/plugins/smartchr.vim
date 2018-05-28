@@ -1,7 +1,7 @@
-inoremap <expr> =
-  \ search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn')? '<bs>= '
-  \: search('\(*\<bar>!\)\%#', 'bcn') ? '= '
-  \: smartchr#one_of(' = ', '=', ' == ')
+" inoremap <expr> =
+"   \ search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn')
+"   \? '<bs>= '
+"   \: search('\(*\<bar>!\)\%#', 'bcn') ? '= ' \: smartchr#one_of(' = ', '=', ' == ')
 
 AutocmdFT javascript
   \  inoremap <buffer> <expr> $ smartchr#loop('$', 'this.', '$$')

@@ -28,7 +28,7 @@ function! NeomakeStatus() abort
 endfunction
 
 " Events
-Autocmd BufRead,TextChanged,TextChangedI * let b:bufsize = BufSize()
+Autocmd BufRead,FileReadPost,FileWritePost * let b:bufsize = BufSize()
 Autocmd BufEnter,WinEnter,VimResized * let b:winwidth = winwidth(0)
 
 " Functions

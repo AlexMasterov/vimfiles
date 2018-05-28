@@ -1,9 +1,3 @@
-call lexima#clear_rules()
-
-for rule in g:lexima#newline_rules
-  call lexima#add_rule(rule)
-endfor | unlet rule
-
 function! s:disableLeximaInsideRegexp(char) abort
   call lexima#add_rule({'char': a:char, 'at': '\S.*\%#.*\S/', 'input': a:char})
 endfunction
@@ -11,8 +5,8 @@ endfunction
 " Quotes
 for quote in split('" ''')
   call lexima#add_rule({'char': quote, 'input': repeat(quote, 2) . '<Left>', 'except': '\%#.*[-0-9a-zA-Z_,:]'})
-  call lexima#add_rule({'char': quote, 'at': '\%#'. quote, 'input': '<Right>'})
-  call lexima#add_rule({'char': quote, 'at': '\w\%#'. quote .'\@!'})
+  call lexima#add_rule({'char': quote, 'at': '\%#' . quote, 'input': '<Right>'})
+  call lexima#add_rule({'char': quote, 'at': '\w\%#' . quote . '\@!'})
   call lexima#add_rule({'char': '<BS>', 'at': quote . '\%#' . quote, 'input': '<BS><Del>'})
   call s:disableLeximaInsideRegexp(quote)
 endfor | unlet quote
@@ -21,9 +15,10 @@ endfor | unlet quote
 let [left, right] = [0, 1]
 
 for pair in split('() {} []')
-  call lexima#add_rule({'char': pair[left], 'input': '<Space><BS>' . pair[left] . pair[right] . '<Left>', 'except': '\%#.*[-0-9a-zA-Z_,:]'})
-  call lexima#add_rule({'char': pair[left], 'input_after': pair[right], 'except': '^\s*\%#'})
   call lexima#add_rule({'char': pair[right], 'at': '\%#' . pair[right], 'input': '<Right>'})
+  call lexima#add_rule({'char': pair[left], 'input_after': pair[right]})
+" call lexima#add_rule({'char': pair[left], 'input': '<Space><BS>' . pair[left] . pair[right] . '<Left>', 'except': '\%#.*[-0-9a-zA-Z_,:]'})
+" call lexima#add_rule({'char': pair[left], 'input_after': pair[right], 'except': '^\s*\%#'})
 endfor | unlet pair
 
 unlet left right

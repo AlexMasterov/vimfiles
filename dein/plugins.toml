@@ -16,11 +16,18 @@ on_path = '.*'
 hook_source = 'let g:stay_verbosity = -1'
 hook_post_source = "let g:volatile_ftypes += ['denite', 'unite', 'gita', 'vimfiler']"
 
-# [[plugins]]
-# repo = 'cohama/lexima.vim'
-# on_event = 'InsertEnter'
-# hood_source = 'let g:lexima_no_default_rules = 1'
-# hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
+[[plugins]]
+repo = 'cohama/lexima.vim'
+on_event = 'InsertEnter'
+hood_source = '''
+  let g:loaded_lexima = 1
+  let g:lexima_enable_basic_rules = 0
+  let g:lexima_enable_endwise_rules = 0
+
+  call lexima#init()
+  Autocmd InsertEnter * call lexima#insmode#clear_stack()
+'''
+hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
 
 [[plugins]]
 repo = 'simeji/winresizer'
@@ -70,10 +77,10 @@ hook_add = '''
   let g:parenmatch = 0
 
   AutocmdFT php,javascript,json,css
-  \ Autocmd BufRead,BufEnter <buffer> let b:parenmatch = 1
+    \ Autocmd BufRead,BufEnter <buffer> let b:parenmatch = 1
 
-  Autocmd ColorScheme,Syntax *
-  \ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
+  Autocmd ColorScheme *
+    \ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
 '''
 
 [[plugins]]
@@ -119,4 +126,3 @@ repo = 'jwalton512/vim-blade'
 
 [[plugins]]
 repo = 'cespare/vim-toml'
-
