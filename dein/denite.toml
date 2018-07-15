@@ -4,6 +4,7 @@ on_cmd = 'Denite'
 hook_add = '''
   nnoremap <silent> ;g :<C-u>Denite grep<CR>
   nnoremap <silent> ;j :<C-u>Denite jump<CR>
+  nnoremap <silent> ;W :<C-u>Denite file_old<CR>
   nnoremap <silent> ;b :<C-u>Denite buffer -reversed<CR>
   nnoremap <silent> `  :<C-u>Denite buffer   -winheight=8 -reversed<CR>
   nnoremap <silent> ;r :<C-u>Denite register -winheight=8<CR>
@@ -57,14 +58,16 @@ hook_source = '''
   call denite#custom#map('normal', '<Tab>',    '<denite:enter_mode:insert>',           'noremap')
   call denite#custom#map('normal', '<C-j>',    '<denite:scroll_window_downwards>',     'noremap')
   call denite#custom#map('normal', '<C-k>',    '<denite:scroll_window_upwards>',       'noremap')
+
   call denite#custom#map('insert', '<C-i>',    '<denite:choose_action>',               'noremap')
   call denite#custom#map('insert', '<Tab>',    '<denite:enter_mode:normal>',           'noremap')
   call denite#custom#map('insert', '<C-j>',    '<denite:move_to_next_line>',           'noremap')
   call denite#custom#map('insert', '<C-k>',    '<denite:move_to_prev_line>',           'noremap')
   call denite#custom#map('insert', '<C-p>',    '<denite:paste_from_default_register>', 'noremap')
+  call denite#custom#map('insert', '<C-d>',    '<denite:delete_char_before_caret>',    'noremap')
+  call denite#custom#map('insert', '<BS>',     '<denite:delete_char_before_caret>',    'noremap')
   call denite#custom#map('insert', '<A-j>',    '<denite:scroll_window_downwards>',     'noremap')
   call denite#custom#map('insert', '<A-k>',    '<denite:scroll_window_upwards>',       'noremap')
-  call denite#custom#map('insert', '<C-d>',    '<denite:delete_char_before_caret>',    'noremap')
   call denite#custom#map('insert', '<C-h>',    '<denite:move_caret_to_left>',          'noremap')
   call denite#custom#map('insert', '<C-l>',    '<denite:move_caret_to_right>',         'noremap')
   call denite#custom#map('insert', '<C-a>',    '<denite:move_caret_to_head>',          'noremap')
@@ -89,7 +92,7 @@ hook_add = '''
   let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
 
   nnoremap <silent> ;w :<C-u>Denite file_mru<CR>
-  nnoremap <silent> ;W :<C-u>Denite file_mru -matchers=['matcher/substring']<CR>
+" nnoremap <silent> ;W :<C-u>Denite file_mru -matchers=['matcher/substring']<CR>
   nnoremap <silent> ;D :<C-u>Denite directory_mru<CR>
 '''
 

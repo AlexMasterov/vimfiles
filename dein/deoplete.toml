@@ -39,7 +39,7 @@ hook_add = '''
     let isBackspace = getline('.')[curPos-2] =~ '\s'
 
     if isText && !isStartLine && !isBackspace
-      return "\<C-x>\<C-o>"
+      return deoplete#mappings#manual_complete()
     endif
 
     return "\<Tab>"
@@ -62,6 +62,8 @@ hook_source = '''
   let g:deoplete#auto_refresh_delay = 200
 
   let g:deoplete#skip_chars = ['(', ')']
+
+  call deoplete#custom#source('_', 'matchers', ['matcher_fuzzy', 'matcher_length'])
 
   call deoplete#custom#option('sources', {
     \ '_': ['buffer'],

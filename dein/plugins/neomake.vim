@@ -17,12 +17,13 @@ endfunction
 function! s:reopen() abort
   let format = &l:formatoptions
   let conceal = &l:conceallevel
+  let cwd = getcwd()
   let winView = winsaveview()
 
   silent edit!
 
   call winrestview(winView)
-  execute 'silent cd '. getcwd()
+  execute 'silent cd ' . cwd()
 
   let &l:formatoptions = format
   let &l:conceallevel = conceal

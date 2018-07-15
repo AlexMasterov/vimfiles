@@ -258,7 +258,7 @@
   " xnoremap x "_x
   " xnoremap X "_X
 
-"   " Space: fast Esc
+  " Space: fast Esc
   xnoremap <Space> <Esc>
   snoremap <Space> <Esc>
 
