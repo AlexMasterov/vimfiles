@@ -116,6 +116,21 @@ build = 'make'
 on_source = ['vimfiler.vim', 'unite.vim']
 
 [[plugins]]
+repo = 'RRethy/vim-illuminate'
+hook_add = '''
+  let g:Illuminate_delay = 230
+  let g:Illuminate_ftblacklist = [
+    \ 'vimfiler', 'denite', 'unite', 'toml', 'vim', 'json', 'snippets']
+  let g:Illuminate_ftHighlightGroups = {
+    \ 'javascript': [
+    \   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
+    \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
+    \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
+    \   'jsDestructuringBlock', 'jsBracket']
+    \ }
+'''
+
+[[plugins]]
 repo = 'chr4/nginx.vim'
 
 [[plugins]]

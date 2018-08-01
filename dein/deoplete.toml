@@ -63,11 +63,12 @@ hook_source = '''
 
   let g:deoplete#skip_chars = ['(', ')']
 
-  call deoplete#custom#source('_', 'matchers', ['matcher_fuzzy', 'matcher_length'])
+  call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
+  call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
 
   call deoplete#custom#option('sources', {
     \ '_': ['buffer'],
-    \ 'javascript': ['ultisnips', 'tern', 'file/include', 'calc']
+    \ 'javascript': ['ultisnips', 'tern', 'around', 'file/include', 'calc'],
     \ })
 '''
 
