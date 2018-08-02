@@ -4,29 +4,33 @@ function! s:rebuffer(data) abort
     let a:data = substitute(data, "\r\n", "\n", 'g')
   endif
 
-  let winView = winsaveview()
+  let search = @/
+  let view = winsaveview()
 
   silent 0,$ delete _
   silent $ put = a:data
   silent 1 delete _
 
-  call winrestview(winView)
+  call winrestview(view)
+  let @/ = search
   redraw
 endfunction
 
 function! s:reopen() abort
+  let search = @/
   let format = &l:formatoptions
   let conceal = &l:conceallevel
   let cwd = getcwd()
-  let winView = winsaveview()
+  let view = winsaveview()
 
   silent edit!
 
-  call winrestview(winView)
+  call winrestview(view)
   execute 'silent cd ' . cwd()
 
   let &l:formatoptions = format
   let &l:conceallevel = conceal
+  let @/ = search
 
   if !exists('g:syntax_on')
     syntax on
@@ -108,6 +112,16 @@ let g:neomake_go_fix_maker = {
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
 
+" XML
+let g:neomake_xml_enabled_makers = ['fix']
+let g:neomake_xml_fix_maker = {
+  \ 'exe': 'tidy',
+  \ 'args': ['-quiet', '-config', $CODING_STYLE_PATH . '/xml/tidy-fix.cfg', '%:p'],
+  \ 'append_file': 0,
+  \ 'tempfile_enabled': 0,
+  \ 'process_output': function('ProcessOutputBuffer'),
+  \ }
+
 " JSON
 let g:neomake_json_enabled_makers = ['fix']
 let g:neomake_json_fix_maker = {
@@ -118,3 +132,9 @@ let g:neomake_json_fix_maker = {
   \ 'tempfile_enabled': 0,
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
+
+" YAML
+let g:neomake_yaml_enabled_makers = ['fix']
+let g:neomake_yaml_fix_maker = deepcopy(g:neomake_json_fix_maker)
+let g:neomake_yaml_fix_maker.args = [
+  \ '--no-config', '--no-editorconfig', '--loglevel', 'silent', '--parser', 'yaml', '%:p']
