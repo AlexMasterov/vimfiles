@@ -9,6 +9,11 @@ AutocmdFT php
 AutocmdFT go
   \ inoremap <buffer> <expr> - smartchr#loop('-', ':=', '--')
 
+AutocmdFT rust
+  \  inoremap <buffer> <expr> - smartchr#loop('-', '->')
+  \| inoremap <buffer> <expr> @ smartchr#loop('&', '&self', '&&', '@')
+  \| inoremap <buffer> <expr> $ smartchr#loop('self::', 'super::', '$')
+
 AutocmdFT c,cpp
   \ inoremap <buffer> <expr> . smartchr#loop('.', '->', '...')
 

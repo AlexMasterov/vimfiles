@@ -56,20 +56,21 @@ hook_add = '''
 '''
 hook_source = '''
   call deoplete#enable()
-  let g:deoplete#enable_yarp = !has('nvim')
 
-  let g:deoplete#auto_complete_delay = 20
-  let g:deoplete#auto_refresh_delay = 200
+  call deoplete#custom#option({
+  \  'yarp': !has('nvim'),
+  \  'max_list': 42,
+  \  'skip_chars': ['(', ')'],
+  \  'camel_case': v:true,
+  \  'auto_complete_delay': 30,
+  \  'auto_refresh_delay': 200,
+  \  'num_processes': exists('$NUMBER_OF_PROCESSORS') ? $NUMBER_OF_PROCESSORS : 4,
+  \})
 
-  let g:deoplete#skip_chars = ['(', ')']
+  call deoplete#custom#source('_', 'converters', ['converter_auto_delimiter', 'remove_overlap'])
 
   call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
   call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
-
-  call deoplete#custom#option('sources', {
-    \ '_': ['buffer'],
-    \ 'javascript': ['ultisnips', 'tern', 'around', 'file/include', 'calc'],
-    \ })
 '''
 
 [[plugins]]

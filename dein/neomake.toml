@@ -4,7 +4,7 @@ on_func = 'neomake#'
 on_cmd = 'Neomake'
 hook_add = '''
   AutocmdFT javascript,rust,php,go,xml,json,yaml
-    \ nnoremap <silent> <buffer> ,w :<C-u>undojoin<CR>:call neomake#Make(1)<CR>
+    \ nnoremap <silent> <buffer> ,w :<C-u>silent! undojoin<CR>:call neomake#Make(1)<CR>
 
   Autocmd ColorScheme,Syntax *
     \  hi NeomakeError guifg=#2B2B2B guibg=#ffe4e1 gui=NONE

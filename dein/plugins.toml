@@ -119,14 +119,17 @@ on_source = ['vimfiler.vim', 'unite.vim']
 repo = 'RRethy/vim-illuminate'
 hook_add = '''
   let g:Illuminate_delay = 230
+
   let g:Illuminate_ftblacklist = [
-    \ 'vimfiler', 'denite', 'unite', 'toml', 'vim', 'json', 'snippets']
+    \ 'vimfiler', 'denite', 'unite', 'toml', 'vim', 'json', 'snippets',
+    \ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit']
+
   let g:Illuminate_ftHighlightGroups = {
     \ 'javascript': [
     \   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
     \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
     \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
-    \   'jsDestructuringBlock', 'jsBracket']
+    \   'jsDestructuringBlock', 'jsBracket'],
     \ }
 '''
 

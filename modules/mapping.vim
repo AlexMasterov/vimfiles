@@ -45,7 +45,7 @@
   nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
 
   " ,r: replace a word under cursor
-  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>/g<left><left>
+  nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>
 
   " :s::: is more useful than :s/// when replacing paths
   " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272

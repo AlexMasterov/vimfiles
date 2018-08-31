@@ -33,6 +33,30 @@ let g:switch_camelcase = [
   \   }
   \ ]
 
+AutocmdFT rust
+  \ let b:switch_custom_definitions = [
+  \  ['Result', 'Ok'],
+  \  ['println!', 'eprintln!'],
+  \  ['String', 'bool'],
+  \  ['u8', 'u16', 'u32', 'u64', 'u128', 'isize'],
+  \  ['i8', 'i16', 'i32', 'i64', 'i128', 'usize'],
+  \  ['f32', 'f64'],
+  \  ['enum', 'impl'],
+  \  ['{:?}', '{:#?}'],
+  \  {
+  \    'let \(\k\+\)': 'let mut \1',
+  \    'let mut\s\(\k\+\)': 'let \1',
+  \  },
+  \  {
+  \    '&mut\s\(\k\+\)': '&\1',
+  \    '&\%(mut\|\s\)\@!\(\k\+\)': '&mut \1',
+  \   },
+  \   {
+  \    '\(fn\|struct\)\s\(\k\+\)': 'pub \1 \2',
+  \    'pub\s\(fn\|struct\)\s\(\k\+\)': '\1 \2',
+  \   },
+  \ ]
+
 AutocmdFT php
   \ let b:switch_custom_definitions = [
   \  ['prod', 'dev', 'test'],
@@ -61,10 +85,10 @@ AutocmdFT php
   \    '\[\(.\{-}\)]': '\array(\1)',
   \  },
   \  {
-  \    '^class\s\(\k\+\)': 'final class \1',
-  \    '^final class\s\(\k\+\)': 'abstract class \1',
-  \    '^abstract class\s\(\k\+\)': 'trait \1',
-  \    '^trait\s\(\k\+\)': 'class \1'
+  \    '^class \(\k\+\)': 'final class \1',
+  \    '^final class \(\k\+\)': 'abstract class \1',
+  \    '^abstract class \(\k\+\)': 'trait \1',
+  \    '^trait \(\k\+\)': 'class \1'
   \  }
   \]
 
@@ -77,6 +101,10 @@ AutocmdFT javascript
   \  ['getElementById', 'getElementByClassName'],
   \  {
   \    '\function\s*(\(.\{-}\))': '(\1) =>'
+  \  },
+  \  {
+  \    '\<\([a-zA-z.()]\+\) === false': '!\1',
+  \    '!\<\([a-zA-z.()]\+\)':          '\1 === false',
   \  }
   \]
 

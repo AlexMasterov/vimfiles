@@ -73,6 +73,7 @@ hi PreProc              guifg=#446644                   gui=NONE
 hi Special              guifg=#006633                   gui=NONE
 hi Keyword              guifg=#007050                   gui=NONE
 
+hi Conceal              guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi Comment              guifg=#93A1A1                   gui=NONE
 hi Todo                 guifg=#446644   guibg=#DDEECC   gui=NONE
 

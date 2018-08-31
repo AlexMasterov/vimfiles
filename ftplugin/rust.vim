@@ -11,3 +11,10 @@ setlocal commentstring=//%s
 
 " j was only added in 7.3.541, so stop complaints about its nonexistence
 silent! setlocal formatoptions+=j
+
+" setlocal conceallevel=1 concealcursor=n
+" syntax match rustOperator "->" conceal cchar=→
+" syntax match rustOperator "=>" conceal cchar=⇒
+" syntax match rustOperator "<=" conceal cchar=≤
+" syntax match rustOperator ">=" conceal cchar=≥
+" syntax match rustOperator "!=" conceal cchar=≢

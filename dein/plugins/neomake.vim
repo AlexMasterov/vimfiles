@@ -1,9 +1,5 @@
 " Functions
 function! s:rebuffer(data) abort
-  if &l:fileformat ==# 'dos'
-    let a:data = substitute(data, "\r\n", "\n", 'g')
-  endif
-
   let search = @/
   let view = winsaveview()
 
