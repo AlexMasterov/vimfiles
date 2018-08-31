@@ -7,8 +7,8 @@ hook_add = '''
   nmap <silent> <Right> <Plug>(ale_next_wrap)
   nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
- Autocmd BufEnter,BufWrite,WinEnter,TextChanged,TextChangedI
- \ *.{rs}
+ Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
+ \ *.{js,rs}
   \ call ale#Queue(0, 'lint_file')
 
   Autocmd ColorScheme *
@@ -32,9 +32,23 @@ hook_source = '''
   let g:ale_history_enabled = 0
   let g:ale_history_log_output = 0
 
-  let g:ale_rust_rustc_options = '-Z no-codegen -A unused'
-
   let g:ale_linters = {
-  \ 'rust': ['rustc']
+  \ 'javascript': ['lint'],
+  \ 'rust': ['rustc'],
   \ }
+
+  " JavaScript
+  let g:ale_javascript_eslint_options =
+  \ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
+
+  call ale#linter#Define('javascript', {
+  \ 'name': 'lint',
+  \ 'output_stream': 'both',
+  \ 'executable': 'eslint',
+  \ 'command_callback': 'ale#handlers#eslint#GetCommand',
+  \ 'callback': 'ale#handlers#eslint#Handle',
+  \ })
+
+  " Rust
+  let g:ale_rust_rustc_options = '-Z no-codegen -A unused'
 '''

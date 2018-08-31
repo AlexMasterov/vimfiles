@@ -30,6 +30,7 @@ endif
   set packpath=
   set pyxversion=3
   set regexpengine=2          " 0=auto 1=old 2=NFA
+  set termguicolors
 
   if has('nvim')
     set nofsync
