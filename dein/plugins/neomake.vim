@@ -79,11 +79,20 @@ let g:neomake_javascript_fix_maker = {
 let g:neomake_rust_enabled_makers = ['fix']
 let g:neomake_rust_fix_maker = {
   \ 'exe': 'rustfmt',
-  \ 'args': ['-q', '--emit', 'stdout', '--config-path', $CODING_STYLE_PATH . '/rust/rustfmt.toml', '%:p'],
+  \ 'args': ['-q', '--color', 'never',
+  \   '--emit', 'stdout', '--config-path', $CODING_STYLE_PATH . '/rust/rustfmt.toml', '%:p'],
   \ 'append_file': 0,
   \ 'tempfile_enabled': 0,
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
+
+if executable('rustup')
+  silent! let isNightly = system('rustc --version') =~? '\-nightly'
+  if isNightly
+    let g:neomake_rust_fix_maker.args =
+      \ ['--unstable-features', '--skip-children'] + g:neomake_rust_fix_maker.args
+  endif
+endif
 
 " PHP
 let g:neomake_php_enabled_makers = ['fix']

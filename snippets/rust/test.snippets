@@ -1,5 +1,5 @@
 snippet #t "#[test]"
-#[test]
+#[test]${0}
 endsnippet
 
 snippet a "assert!"
@@ -12,4 +12,12 @@ endsnippet
 
 snippet an "assert_ne!"
 assert_ne!(${1:${VISUAL}}, ${2})${0}
+endsnippet
+
+snippet #p "#[should_panic]"
+#[should_panic]${0}
+endsnippet
+
+snippet #pe "#[should_panic(expected)]"
+#[should_panic(expected = "${1:${VISUAL}}")]${0}
 endsnippet

@@ -52,8 +52,8 @@ AutocmdFT rust
   \    '&\%(mut\|\s\)\@!\(\k\+\)': '&mut \1',
   \   },
   \   {
-  \    '\(fn\|struct\)\s\(\k\+\)': 'pub \1 \2',
-  \    'pub\s\(fn\|struct\)\s\(\k\+\)': '\1 \2',
+  \    '\(fn\|struct\|mod\)\s\(\k\+\)': 'pub \1 \2',
+  \    'pub\s\(fn\|struct\|mod\)\s\(\k\+\)': '\1 \2',
   \   },
   \ ]
 
