@@ -62,14 +62,16 @@ hook_source = '''
   \  'max_list': 42,
   \  'skip_chars': ['(', ')'],
   \  'camel_case': v:true,
+  \  'refresh_always': v:true,
   \  'auto_complete_delay': 30,
   \  'auto_refresh_delay': 200,
   \  'num_processes': exists('$NUMBER_OF_PROCESSORS') ? $NUMBER_OF_PROCESSORS : 4,
   \})
 
+  call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
   call deoplete#custom#source('_', 'converters', ['converter_auto_delimiter', 'remove_overlap'])
 
-  call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
+  call deoplete#custom#source('file', 'enable_buffer_path', v:false);
   call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
 '''
 

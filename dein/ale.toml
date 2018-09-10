@@ -22,7 +22,7 @@ hook_add = '''
   nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
  Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
- \ *.{rs}
+ \ *.{rs,php,go}
   \ call ale#Queue(0, 'lint_file')
 
   Autocmd ColorScheme *
@@ -35,6 +35,8 @@ hook_source = '''
   let g:ale_linters = {
   \ 'javascript': ['lint'],
   \ 'rust': ['rustc'],
+  \ 'php': ['php'],
+  \ 'go': ['gofmt'],
   \ }
 
   " JavaScript
