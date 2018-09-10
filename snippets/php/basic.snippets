@@ -1,0 +1,39 @@
+snippet php "<?php"
+<?php
+${0}
+endsnippet
+
+snippet _d "__DIR__"
+__DIR__${0}
+endsnippet
+
+snippet u "use ..."
+use ${1:${VISUAL}};${0}
+endsnippet
+
+snippet uf "use function ..."
+use function ${1:${VISUAL}};${0}
+endsnippet
+
+snippet uc "use const ..."
+use const ${1:${VISUAL}};${0}
+endsnippet
+
+snippet d "var_dump"
+var_dump(${1:${VISUAL}});${0}
+endsnippet
+
+snippet d' "var_dump('...')"
+var_dump('${1:${VISUAL}}');${0}
+endsnippet
+
+snippet d" "var_dump('...')"
+var_dump("${1:${VISUAL}}");${0}
+endsnippet
+
+snippet f "function"
+function ${1:foo}(${2})
+{
+	${0:${VISUAL}}
+}
+endsnippet

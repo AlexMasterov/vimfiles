@@ -21,8 +21,8 @@ hook_add = '''
   nmap <silent> <Right> <Plug>(ale_next_wrap)
   nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
- Autocmd BufNewFile,BufWritePre,BufEnter,WinEnter,TextChanged,TextChangedI
- \ *.{js,rs}
+ Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
+ \ *.{rs}
   \ call ale#Queue(0, 'lint_file')
 
   Autocmd ColorScheme *

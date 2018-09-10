@@ -22,7 +22,7 @@ function! s:reopen() abort
   silent edit!
 
   call winrestview(view)
-  execute 'silent cd ' . cwd()
+  execute 'silent cd ' . cwd
 
   let &l:formatoptions = format
   let &l:conceallevel = conceal

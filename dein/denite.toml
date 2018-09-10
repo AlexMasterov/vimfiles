@@ -5,12 +5,11 @@ hook_add = '''
   nnoremap <silent> ;g :<C-u>Denite grep<CR>
   nnoremap <silent> ;j :<C-u>Denite jump<CR>
   nnoremap <silent> ;W :<C-u>Denite file_old<CR>
-  nnoremap <silent> ;b :<C-u>Denite buffer -reversed<CR>
-  nnoremap <silent> `  :<C-u>Denite buffer   -winheight=8 -reversed<CR>
+  nnoremap <silent> ;b :<C-u>Denite buffer -winheight=8 -reversed<CR>
+  nnoremap <silent> ;B :<C-u>Denite buffer -reversed<CR>
   nnoremap <silent> ;r :<C-u>Denite register -winheight=8<CR>
-  nnoremap <silent> ;` :<C-u>Denite buffer   -mode=insert<CR>
   nnoremap <silent> ;f :<C-u>Denite file_rec -mode=insert<CR>
-  nnoremap <silent> ;s :<C-u>Denite line     -buffer-name=search -mode=insert<CR>
+  nnoremap <silent> ;s :<C-u>Denite line -buffer-name=search -mode=insert<CR>
   nnoremap <silent> ;v :<C-u>DeniteCursorWord line -buffer-name=search<CR>
 '''
 hook_source = '''
@@ -93,7 +92,7 @@ hook_add = '''
 
   nnoremap <silent> ;w :<C-u>Denite file_mru<CR>
 " nnoremap <silent> ;W :<C-u>Denite file_mru -matchers=['matcher/substring']<CR>
-  nnoremap <silent> ;D :<C-u>Denite directory_mru<CR>
+" nnoremap <silent> ;D :<C-u>Denite directory_mru<CR>
 '''
 
 [[plugins]]
