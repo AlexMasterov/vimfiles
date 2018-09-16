@@ -1,10 +1,14 @@
-" Functions
 function! s:rebuffer(data) abort
+  let data = a:data
+  if &l:fileformat ==# 'dos'
+    let data = substitute(data, "\r\n", "\n", 'g')
+  endif
+
   let search = @/
   let view = winsaveview()
 
   silent 0,$ delete _
-  silent $ put = a:data
+  silent $ put = data
   silent 1 delete _
 
   call winrestview(view)
@@ -69,8 +73,9 @@ let g:neomake_javascript_enabled_makers = ['fix']
 let g:neomake_javascript_fix_maker = {
   \ 'exe': 'eslint',
   \ 'args': [
-  \   '--format=json', '--fix-dry-run', '--config', $CODING_STYLE_PATH . '/javascript/eslint-fix.js',
-  \   '--cache', '--cache-location', $CACHE . '/eslint', '%:p'
+  \   '--no-eslintrc', '--config', $CODING_STYLE_PATH . '/javascript/eslint-fix.js',
+  \   '--cache', '--cache-location', $CACHE . '/eslint', '%:p',
+  \   '--fix-dry-run', '--format=json',
   \ ],
   \ 'process_json': function('ProcessOutputJson'),
   \ }

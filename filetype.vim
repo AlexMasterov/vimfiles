@@ -83,4 +83,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.m4	set filetype=m4
   " Git
   autocmd BufNewFile,BufRead *.git{[/]config,modules} set filetype=gitconfig
+  " Use the filetype detect plugins
+  runtime! ftdetect/*.vim
+
+  autocmd BufNewFile,BufRead,StdinReadPost * call did_filetype()
 augroup END

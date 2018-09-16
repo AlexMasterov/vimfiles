@@ -22,7 +22,7 @@ hook_add = '''
   nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
  Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
- \ *.{rs,php,go}
+ \ *.{js,rs,php,go}
   \ call ale#Queue(0, 'lint_file')
 
   Autocmd ColorScheme *
@@ -39,6 +39,9 @@ hook_source = '''
   \ 'go': ['gofmt'],
   \ }
 
+  " Rust
+  let g:ale_rust_rustc_options = '-Z no-codegen -A dead_code -A unused'
+
   " JavaScript
   let g:ale_javascript_eslint_options =
   \ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
@@ -50,7 +53,4 @@ hook_source = '''
   \ 'command_callback': 'ale#handlers#eslint#GetCommand',
   \ 'callback': 'ale#handlers#eslint#Handle',
   \ })
-
-  " Rust
-  let g:ale_rust_rustc_options = '-Z no-codegen -A dead_code -A unused'
 '''
