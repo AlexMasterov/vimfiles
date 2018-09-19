@@ -4,7 +4,6 @@ on_cmd = 'Denite'
 hook_add = '''
   nnoremap <silent> ;g :<C-u>Denite grep<CR>
   nnoremap <silent> ;j :<C-u>Denite jump<CR>
-  nnoremap <silent> ;W :<C-u>Denite file_old<CR>
   nnoremap <silent> ;b :<C-u>Denite buffer -winheight=8 -reversed<CR>
   nnoremap <silent> ;B :<C-u>Denite buffer -reversed<CR>
   nnoremap <silent> ;r :<C-u>Denite register -winheight=8<CR>
@@ -36,11 +35,12 @@ hook_source = '''
   endif
 
   " Sources
-  call denite#custom#source('buffer',                   'sorters',    ['sorter/reverse'])
-  call denite#custom#source('file_rec',                 'sorters',    ['sorter/sublime'])
-  call denite#custom#source('file_rec',                 'matchers',   ['matcher/substring'])
-  call denite#custom#source('file_mru',                 'matchers',   ['matcher/substring', 'matcher/project_files'])
-  call denite#custom#source('file_mru,file_rec,buffer', 'converters', ['converter/relative_word'])
+  call denite#custom#source('buffer',            'sorters',  ['sorter/reverse'])
+  call denite#custom#source('file_rec',          'sorters',  ['sorter/sublime'])
+  call denite#custom#source('file_rec,file_mru', 'matchers', ['matcher/substring'])
+
+  " Converters
+  call denite#custom#source('file_mru,file_old,file_rec,buffer,mark', 'converters', ['converter/relative_word'])
 
   " Mappings
   call denite#custom#map('normal', 'Q',        '<denite:quit>',                        'noremap')
@@ -61,7 +61,7 @@ hook_source = '''
   call denite#custom#map('insert', '<C-i>',    '<denite:choose_action>',               'noremap')
   call denite#custom#map('insert', '<Tab>',    '<denite:enter_mode:normal>',           'noremap')
   call denite#custom#map('insert', '<C-j>',    '<denite:move_to_next_line>',           'noremap')
-  call denite#custom#map('insert', '<C-k>',    '<denite:move_to_prev_line>',           'noremap')
+  call denite#custom#map('insert', '<C-k>',    '<denite:move_to_previous_line>',       'noremap')
   call denite#custom#map('insert', '<C-p>',    '<denite:paste_from_default_register>', 'noremap')
   call denite#custom#map('insert', '<C-d>',    '<denite:delete_char_before_caret>',    'noremap')
   call denite#custom#map('insert', '<BS>',     '<denite:delete_char_before_caret>',    'noremap')
@@ -90,9 +90,8 @@ hook_add = '''
   let g:neomru#directory_mru_limit = 0
   let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
 
-  nnoremap <silent> ;w :<C-u>Denite file_mru<CR>
-" nnoremap <silent> ;W :<C-u>Denite file_mru -matchers=['matcher/substring']<CR>
-" nnoremap <silent> ;D :<C-u>Denite directory_mru<CR>
+  nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
+  nnoremap <silent> ;W :<C-u>Denite file_mru<CR>
 '''
 
 [[plugins]]
