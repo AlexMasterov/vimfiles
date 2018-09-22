@@ -13,8 +13,8 @@ let &statusline =
   \. "%="
   \. "%2*%(%{exists('*gina#component#repo#branch()') ? gina#component#repo#branch() : ''}\ %)%*"
   \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
-  \. "%2*%(%{IfFit(100) ? &iminsert ? 'RU' : 'EN' : ''}\ %)%*"
-  \. "%(%-2.8{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)"
+  \. "%3*%(%-2.8{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)%*"
+  \. "%3*%(%{IfFit(90) ? &fileformat : ''}\ %)%*"
   \. "%(%{IfFit(90) ? (&fileencoding ==# '' ? &encoding : &fileencoding) : ''}\ %)"
   \. "%2*%(%Y\ %)%*"
 
@@ -46,14 +46,9 @@ function! BufSize() abort
     \ ? line2byte(line('$') + 1) - 1
     \ : getfsize(filepath)
 
-  if size >= 1024
-    let suffix = 'K'
-    let size = size / 1024
-  else
-    let suffix = 'B'
-  endif
-
-  return size . suffix
+  return size < 1024
+    \ ? size . 'B'
+    \ : (size / 1024) . 'K'
 endfunction
 
 function! LinterStatus() abort

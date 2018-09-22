@@ -122,15 +122,21 @@ let g:neomake_go_fix_maker = {
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
 
-" XML
-let g:neomake_xml_enabled_makers = ['fix']
-let g:neomake_xml_fix_maker = {
+" HTML
+let g:neomake_html_enabled_makers = ['fix']
+let g:neomake_html_fix_maker = {
   \ 'exe': 'tidy',
-  \ 'args': ['-quiet', '-config', $CODING_STYLE_PATH . '/xml/tidy-fix.cfg', '%:p'],
+  \ 'args': ['-quiet', '-config', $CODING_STYLE_PATH . '/html/tidy-fix.cfg', '%:p'],
   \ 'append_file': 0,
   \ 'tempfile_enabled': 0,
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
+
+" XML
+let g:neomake_xml_enabled_makers = ['fix']
+let g:neomake_xml_fix_maker = deepcopy(g:neomake_html_fix_maker)
+let g:neomake_xml_fix_maker.args = [
+  \ '-quiet', '-config', $CODING_STYLE_PATH . '/xml/tidy-fix.cfg', '%:p']
 
 " JSON
 let g:neomake_json_enabled_makers = ['fix']
