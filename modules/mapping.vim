@@ -125,7 +125,7 @@
   " Space + E: next tab
   nnoremap <silent> <Space>E :<C-u>tabnext<CR>
   " Space + o: tab only
-  nnoremap <silent> <Space>o :<C-u>tabonly<CR>
+  " nnoremap <silent> <Space>o :<C-u>tabonly<CR>
   " Space + t: tab new
   " nnoremap <silent> <Space>t :<C-u>tabnew<CR>:normal! <C-o><CR>
   " Space + T: tab new and move

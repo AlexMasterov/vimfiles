@@ -92,7 +92,7 @@ endif
 
   " Mkdir
   command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")
-  Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
+  " Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
 
 " Events
 "---------------------------------------------------------------------------
@@ -142,7 +142,7 @@ endif
 
 " Plugins
 " ---------------------------------------------------------------------------
-  " Avoid loading same default plugins
+  " Disable built-in plugins
   let g:loaded_csv = 1
   let g:loaded_gzip = 1
   let g:loaded_zipPlugin = 1
@@ -177,20 +177,19 @@ endif
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
     let plugins = [
-      \ 'ale',
       \ 'plugins',
       \ 'nvim_rpc',
+      \ 'defx',
       \ 'caw',
-      \ 'filer',
-      \ 'unite',
+      \ 'gina',
+      \ 'choosewin',
+      \ 'ale',
+      \ 'neomake',
       \ 'denite',
       \ 'operators',
       \ 'easymotion',
-      \ 'choosewin',
       \ 'colorizer',
-      \ 'gina',
       \ 'deoplete',
-      \ 'neomake',
       \ 'ultisnips',
       \ 'text_objects',
       \ 'lang/javascript',
@@ -213,13 +212,13 @@ endif
     call dein#save_state()
   endif
 
-  if !has('vim_starting')
-    call dein#call_hook('source')
-    call dein#call_hook('post_source')
+ if !has('vim_starting')
+  call dein#call_hook('source')
+  call dein#call_hook('post_source')
 
-    syntax enable
-    filetype plugin indent on
-  endif
+  syntax enable
+  filetype plugin indent on
+ endif
 
 " Modules
 " ---------------------------------------------------------------------------

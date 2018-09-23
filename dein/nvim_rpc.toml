@@ -1,5 +1,10 @@
 [[plugins]]
 repo = 'roxma/nvim-yarp'
+hook_done_update = '''
+  if executable('pip3')
+    call system('pip3 install --upgrade neovim')
+  endif
+'''
 hook_add = 'let g:python3_host_prog = "python"'
 
 [[plugins]]
