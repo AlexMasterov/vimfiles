@@ -4,6 +4,7 @@ on_cmd = 'Denite'
 hook_add = '''
   nnoremap <silent> ;g :<C-u>Denite grep<CR>
   nnoremap <silent> ;j :<C-u>Denite jump<CR>
+  nnoremap <silent> `  :<C-u>Denite buffer -winheight=14<CR>
   nnoremap <silent> ;b :<C-u>Denite buffer -winheight=8<CR>
   nnoremap <silent> ;B :<C-u>Denite buffer<CR>
   nnoremap <silent> ;r :<C-u>Denite register -winheight=8 -mode=normal<CR>

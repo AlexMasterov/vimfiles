@@ -57,7 +57,7 @@ function! ProcessOutputFile() abort
     return
   endif
 
-  if jobinfo.maker.exe ==# 'php-cs-fixer'
+  if index(g:neomake_fixers, jobinfo.maker.exe) !=# -1
     call s:reopen()
   endif
 endfunction
@@ -68,24 +68,48 @@ let g:neomake_highlight_lines = 1
 let g:neomake_highlight_columns = 0
 let g:neomake_echo_current_error = 1
 
+let g:neomake_fixers = []
+
+function! s:addFixer(fixer) abort
+  if index(g:neomake_fixers, a:fixer) ==# -1
+    call add(g:neomake_fixers, a:fixer)
+  endif
+endfunction
+
 " JavaScript
 let g:neomake_javascript_enabled_makers = ['fix']
 let g:neomake_javascript_fix_maker = {
   \ 'exe': 'eslint',
   \ 'args': [
+  \   '--cache', '--cache-location', $CACHE . '/eslint',
   \   '--no-eslintrc', '--config', $CODING_STYLE_PATH . '/javascript/eslint-fix.js',
-  \   '--cache', '--cache-location', $CACHE . '/eslint', '%:p',
-  \   '--fix-dry-run', '--format=json',
+  \   '--fix-dry-run', '--format=json', '%:p',
   \ ],
   \ 'process_json': function('ProcessOutputJson'),
   \ }
+
+" TypeScript
+let g:neomake_typescript_enabled_makers = ['fix']
+let g:neomake_typescript_fix_maker = {
+  \ 'exe': 'tslint',
+  \ 'args': [
+  \   '--config', $CODING_STYLE_PATH . '/typescript/tslint.json',
+  \   '--fix', '%:p',
+  \ ],
+  \ }
+
+call s:addFixer(g:neomake_typescript_fix_maker.exe)
+AutocmdFT typescript,typescript.jsx
+  \ Autocmd User NeomakeJobFinished call ProcessOutputFile()
 
 " Rust
 let g:neomake_rust_enabled_makers = ['fix']
 let g:neomake_rust_fix_maker = {
   \ 'exe': 'rustfmt',
-  \ 'args': ['-q', '--color', 'never',
-  \   '--emit', 'stdout', '--config-path', $CODING_STYLE_PATH . '/rust/rustfmt.toml', '%:p'],
+  \ 'args': [
+  \   '-q', '--color', 'never', '--emit', 'stdout',
+  \   '--config-path', $CODING_STYLE_PATH . '/rust/rustfmt.toml', '%:p'
+  \ ],
   \ 'append_file': 0,
   \ 'tempfile_enabled': 0,
   \ 'process_output': function('ProcessOutputBuffer'),
@@ -109,6 +133,7 @@ let g:neomake_php_fix_maker = {
   \ ],
   \ }
 
+call s:addFixer(g:neomake_php_fix_maker.exe)
 AutocmdFT php
   \ Autocmd User NeomakeJobFinished call ProcessOutputFile()
 

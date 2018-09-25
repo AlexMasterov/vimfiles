@@ -68,10 +68,8 @@ hook_source = '''
   \  'num_processes': exists('$NUMBER_OF_PROCESSORS') ? $NUMBER_OF_PROCESSORS : 4,
   \})
 
-  call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
   call deoplete#custom#source('_', 'converters', ['converter_auto_delimiter', 'remove_overlap'])
-
-  call deoplete#custom#source('file', 'enable_buffer_path', v:false);
+  call deoplete#custom#source('_', 'matchers', ['matcher_length', 'matcher_fuzzy'])
   call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
 '''
 

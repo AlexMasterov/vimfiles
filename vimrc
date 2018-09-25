@@ -41,9 +41,6 @@ endif
     let &viminfo = "!,'300,<50,s10,h,n" . $DATA
   endif
 
-  " Disable bell
-  set t_vb= belloff=all novisualbell
-
   " Russian keyboard
   set keymap=russian-jcukenwin
   set iskeyword=@,48-57,_,192-255
@@ -77,6 +74,11 @@ endif
 
 " Commands
 "---------------------------------------------------------------------------
+  if has('vim_starting')
+    command! -nargs=* Lazy autocmd MyVimrc VimEnter <args>
+  else
+    command! -nargs=* Lazy <args>
+  endif
   command! -nargs=* Autocmd   autocmd MyVimrc <args>
   command! -nargs=* AutocmdFT autocmd MyVimrc FileType <args>
   command! -nargs=1 Indent
@@ -92,22 +94,25 @@ endif
 
   " Mkdir
   command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")
-  " Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
+  Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
 
 " Events
 "---------------------------------------------------------------------------
-  " if exists('$MYVIMRC')
-  "   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
-  " endif
+  Lazy * filetype plugin indent on
+  Lazy * call histdel(':', '^w\?q\%[all]!\?$')
+  Lazy set t_vb= belloff=all novisualbell
+
   Autocmd Syntax * if 5000 < line('$') | syntax sync minlines=200 | endif
-  Autocmd VimEnter * filetype plugin indent on
-  Autocmd VimEnter * call histdel(':', '^w\?q\%[all]!\?$')
   Autocmd WinEnter * checktime
   Autocmd WinLeave *? let [&l:number, &l:relativenumber] = &l:number ? [1, 0] : [&l:number, &l:relativenumber]
   Autocmd WinEnter *? let [&l:number, &l:relativenumber] = &l:number ? [1, 1] : [&l:number, &l:relativenumber]
   Autocmd InsertEnter *? setlocal list
   Autocmd InsertLeave *? setlocal nolist
   AutocmdFT *? setlocal formatoptions-=ro
+
+  " if exists('$MYVIMRC')
+  "   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
+  " endif
 
 " Encoding
 "---------------------------------------------------------------------------
@@ -179,19 +184,18 @@ endif
     let plugins = [
       \ 'plugins',
       \ 'nvim_rpc',
-      \ 'defx',
-      \ 'caw',
-      \ 'gina',
-      \ 'choosewin',
       \ 'ale',
-      \ 'neomake',
-      \ 'denite',
-      \ 'operators',
-      \ 'easymotion',
+      \ 'caw',
       \ 'colorizer',
+      \ 'defx',
+      \ 'denite',
       \ 'deoplete',
-      \ 'ultisnips',
+      \ 'easymotion',
+      \ 'gina',
+      \ 'neomake',
+      \ 'operators',
       \ 'text_objects',
+      \ 'ultisnips',
       \ 'lang/javascript',
       \ 'lang/typescript',
       \ 'lang/rust',

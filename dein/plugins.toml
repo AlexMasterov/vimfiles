@@ -14,27 +14,27 @@ repo = 'AlexMasterov/vim-stay'
 rev = 'fix/1.4.0'
 on_path = '.*'
 hook_source = 'let g:stay_verbosity = -1'
-hook_post_source = "let g:volatile_ftypes += ['denite', 'unite', 'gita', 'vimfiler']"
+hook_post_source = "let g:volatile_ftypes += ['denite', 'defx', 'gita']"
 
 [[plugins]]
 repo = 'cohama/lexima.vim'
-on_event = 'InsertEnter'
-hood_source = '''
+hook_add = '''
   let g:loaded_lexima = 1
   let g:lexima_enable_basic_rules = 0
   let g:lexima_enable_endwise_rules = 0
 
   call lexima#init()
   Autocmd InsertEnter * call lexima#insmode#clear_stack()
+
+  source ~/vimfiles/dein/plugins/lexima.vim
 '''
-hook_post_source = 'source ~/vimfiles/dein/plugins/lexima.vim'
 
 [[plugins]]
 repo = 'simeji/winresizer'
 on_cmd = ['WinResizerStartResize', 'WinResizerStartMove']
 hook_add = '''
-  nnoremap <silent> <Space><Enter> :<C-u>WinResizerStartResize<CR>
-  nnoremap <silent> <Space><BS>    :<C-u>WinResizerStartMove<CR>
+  nnoremap <silent> <Space>o :<C-u>WinResizerStartResize<CR>
+  nnoremap <silent> <Space>O :<C-u>WinResizerStartMove<CR>
 '''
 hook_source = '''
   let g:winresizer_vert_resize = 4
@@ -49,7 +49,11 @@ hook_add = 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
 [[plugins]]
 repo = 'haya14busa/vim-keeppad'
 on_cmd = ['KeeppadOn', 'KeeppadOff']
-hook_add = 'Autocmd BufReadPre *.{json,css,scss,sss,sugarss},qfreplace* KeeppadOn'
+hook_add = '''
+  Autocmd BufReadPre
+    \ *.{js,json,xml,toml,html,css,scss,sss,snippets},qfreplace*
+    \ KeeppadOn
+'''
 hook_source = 'let g:keeppad_autopadding = 0'
 
 [[plugins]]
@@ -76,8 +80,9 @@ repo = 'itchyny/vim-parenmatch'
 hook_add = '''
   let g:parenmatch = 0
 
-  AutocmdFT php,javascript,json,css
-    \ Autocmd BufRead,BufEnter <buffer> let b:parenmatch = 1
+  Autocmd BufRead
+    \ *.{php,js,json,css}
+    \ let b:parenmatch = 1
 
   Autocmd ColorScheme *
     \ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
@@ -111,18 +116,14 @@ repo = 'kana/vim-smartchr'
 hook_add = 'source ~/vimfiles/dein/plugins/smartchr.vim'
 
 [[plugins]]
-repo = 'Shougo/vimproc.vim'
-build = 'make'
-on_source = ['vimfiler.vim', 'unite.vim']
-
-[[plugins]]
 repo = 'RRethy/vim-illuminate'
 hook_add = '''
   let g:Illuminate_delay = 230
 
   let g:Illuminate_ftblacklist = [
-    \ 'vimfiler', 'denite', 'unite', 'toml', 'vim', 'json', 'snippets',
-    \ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit']
+    \ 'denite', 'defx',
+    \ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit',
+    \ 'vim', 'json', 'xml', 'toml', 'html', 'css', 'markdown', 'sugarss', 'snippets']
 
   let g:Illuminate_ftHighlightGroups = {
     \ 'javascript': [
@@ -130,6 +131,8 @@ hook_add = '''
     \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
     \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
     \   'jsDestructuringBlock', 'jsBracket'],
+    \ 'php': [
+    \   'phpIdentifier'],
     \ }
 '''
 

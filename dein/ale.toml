@@ -22,6 +22,7 @@ hook_add = '''
 
   let g:ale_linters = {
     \ 'javascript': ['lint'],
+    \ 'typescript': ['tslint'],
     \ 'rust': ['rustc'],
     \ 'php': ['php'],
     \ 'go': ['gofmt'],
@@ -42,6 +43,12 @@ hook_add = '''
     \ 'callback': 'ale#handlers#eslint#Handle',
     \ })
 
+  " TypeScript
+  let g:ale_typescript_tslint_use_global = 1
+  let g:ale_typescript_tslint_executable = 'tslint'
+  let g:ale_typescript_tslint_config_path =
+    \ printf('%s\typescript\tslint.json', $CODING_STYLE_PATH)
+
   Autocmd ColorScheme *
     \  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
     \| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
@@ -49,5 +56,5 @@ hook_add = '''
     \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 
   Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
-    \ *.{js,rs,php,go} call ale#Queue(0, 'lint_file')
+    \ *.{js,ts,tsx,rs,php,go} call ale#Queue(0, 'lint_file')
 '''
