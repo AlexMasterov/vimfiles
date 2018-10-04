@@ -117,6 +117,18 @@ AutocmdFT javascript
   \  }
   \]
 
+AutocmdFT typescript
+  \ let b:switch_custom_definitions = [
+  \  ['get', 'set'],
+  \  ['var', 'const', 'let'],
+  \  ['<', '>'], ['==', '!=', '==='],
+  \  ['Boolean', 'Number', 'String', 'Array', 'Object'], ['RegExp', 'Date', 'Function', 'Symbol'],
+  \  ['Infinity', '-Infinity', 'Math'],
+  \  ['undefined', 'void', 'any', 'null', 'number', 'string', 'object'],
+  \  ['public', 'private', 'protected'],
+  \  ['Map', 'Set'],
+  \]
+
 AutocmdFT html,twig,blade
   \ let b:switch_custom_definitions = [
   \  ['h1', 'h2', 'h3'],
