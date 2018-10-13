@@ -76,7 +76,7 @@ hook_source = '''
 [[plugins]]
 repo = 'Shougo/echodoc.vim'
 on_event = 'CompleteDone'
-hook_source = '''
+hook_post_source = '''
   call echodoc#enable()
 
   let g:echodoc#type = 'signature'

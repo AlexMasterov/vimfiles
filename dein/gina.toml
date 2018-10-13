@@ -4,29 +4,22 @@ on_cmd = 'Gina'
 on_func = 'gina#'
 hook_add = '''
   nnoremap <silent> -c :<C-u>Gina commit<CR>
+  nnoremap <silent> -C :<C-u>Gina changes<CR>
   nnoremap <silent> -b :<C-u>Gina branch<CR>
   nnoremap <silent> -s :<C-u>Gina status --short<CR>
   nnoremap <silent> -t :<C-u>Gina tag<CR>
-  nnoremap <silent> -i :<C-u>Gina info<CR>
   nnoremap <silent> -l :<C-u>Gina log<CR>
-  nnoremap <silent> -C :<C-u>Gina changes<CR>
 '''
 hook_source = '''
   let g:gina#command#status#use_default_mappings = 0
 
-  call gina#custom#command#option(
-  \ '/\%(status\|changes\)',
-  \ '--ignore-submodules')
-
-  call gina#custom#command#option(
-  \ '/\%(status\|changes\|branch\|grep\|log\)',
-  \ '--opener', 'vsplit'
-  \)
+  call gina#custom#command#option('/\%(status\|changes\)', '--ignore-submodules')
+  call gina#custom#command#option('/\%(status\|changes\|branch\|grep\|log\)', '--opener', 'vsplit')
 
   call gina#custom#execute(
-  \ '/\%(status\|changes\|commit\|branch\|blame\|ls\|log\|grep\|tag\)',
-  \ 'let &l:statusline = " "'
-  \)
+    \ '/\%(status\|changes\|commit\|branch\|blame\|ls\|log\|grep\|tag\)',
+    \ 'let &l:statusline = " "'
+    \ )
 
   " branch
   call gina#custom#mapping#nmap('branch', 'n', '<Plug>(gina-branch-new)')

@@ -167,7 +167,8 @@ let g:neomake_xml_fix_maker.args = [
 let g:neomake_json_enabled_makers = ['fix']
 let g:neomake_json_fix_maker = {
   \ 'exe': 'prettier',
-  \ 'args': ['--no-config', '--no-editorconfig', '--loglevel', 'silent',
+  \ 'args': [
+  \   '--no-config', '--no-editorconfig', '--loglevel', 'silent',
   \   '--parser', 'json', '%:p'],
   \ 'append_file': 0,
   \ 'tempfile_enabled': 0,

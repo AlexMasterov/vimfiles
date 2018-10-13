@@ -1,5 +1,5 @@
 AutocmdFT javascript
-  \  inoremap <buffer> <expr> $ smartchr#loop('this', 'this.', '$')
+  \  inoremap <buffer> <expr> $ smartchr#loop('$', 'this', 'this.')
   \| inoremap <buffer> <expr> - smartchr#loop('-', '--', '_')
 
 AutocmdFT php
