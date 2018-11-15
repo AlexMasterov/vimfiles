@@ -22,7 +22,7 @@ endif
   let $DATA  = $VIMHOME . (has('nvim') ? '/shada' : '/viminfo')
   let $CACHE = $VIMHOME . '/.cache'
 
-  set runtimepath=$VIMFILES,$VIMRUNTIME,$PATH
+  set runtimepath=$VIMFILES,$VIMRUNTIME
 
   set nocompatible
   set nomodeline modelines=0  " prevents security exploits

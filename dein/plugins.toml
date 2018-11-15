@@ -116,6 +116,18 @@ repo = 'kana/vim-smartchr'
 hook_add = 'source ~/vimfiles/dein/plugins/smartchr.vim'
 
 [[plugins]]
+repo = 'chr4/nginx.vim'
+
+[[plugins]]
+repo = 'tokutake/twig-indent'
+
+[[plugins]]
+repo = 'jwalton512/vim-blade'
+
+[[plugins]]
+repo = 'cespare/vim-toml'
+
+[[plugins]]
 repo = 'RRethy/vim-illuminate'
 hook_add = '''
   let g:Illuminate_delay = 230
@@ -131,19 +143,9 @@ hook_add = '''
     \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
     \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
     \   'jsDestructuringBlock', 'jsBracket'],
+    \ 'typescript': [],
     \ 'php': [
     \   'phpIdentifier'],
     \ }
 '''
 
-[[plugins]]
-repo = 'chr4/nginx.vim'
-
-[[plugins]]
-repo = 'tokutake/twig-indent'
-
-[[plugins]]
-repo = 'jwalton512/vim-blade'
-
-[[plugins]]
-repo = 'cespare/vim-toml'

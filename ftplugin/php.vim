@@ -10,4 +10,7 @@ Indent 4
 setlocal nowrap textwidth=120
 setlocal commentstring=//%s
 
+setlocal matchpairs-=<:>
+setlocal iskeyword+=\\
+
 setlocal omnifunc=phpcomplete#CompletePHP

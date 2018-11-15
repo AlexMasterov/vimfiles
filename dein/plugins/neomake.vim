@@ -180,3 +180,9 @@ let g:neomake_yaml_enabled_makers = ['fix']
 let g:neomake_yaml_fix_maker = deepcopy(g:neomake_json_fix_maker)
 let g:neomake_yaml_fix_maker.args = [
   \ '--no-config', '--no-editorconfig', '--loglevel', 'silent', '--parser', 'yaml', '%:p']
+
+" Markdown
+let g:neomake_markdown_enabled_makers = ['fix']
+let g:neomake_markdown_fix_maker = deepcopy(g:neomake_json_fix_maker)
+let g:neomake_markdown_fix_maker.args = [
+  \ '--no-config', '--no-editorconfig', '--loglevel', 'silent', '--parser', 'markdown', '%:p']

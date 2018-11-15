@@ -35,4 +35,4 @@ set tags=
 set pumheight=10
 set complete=. completeopt=menu,longest
 " Syntax complete if nothing else available
-Autocmd BufEnter,WinEnter * if &omnifunc ==# '' | setlocal omnifunc=syntaxcomplete#Complete | endif
+" Autocmd BufEnter,WinEnter * if &omnifunc ==# '' | setlocal omnifunc=syntaxcomplete#Complete | endif

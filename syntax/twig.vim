@@ -4,7 +4,7 @@
 " Last Change:	2014 December 15
 " Version:	1.1
 "
-" Based Jinja syntaxtax by:	Armin Ronacher <armin.ronacher@active-4.com>
+" Based Jinja syntax by: Armin Ronacher <armin.ronacher@active-4.com>
 " With modifications by Benji Fisher, Ph.D.
 "
 " Known Bugs:
@@ -17,14 +17,16 @@
 "     2011 July 27:   Changed all references of jinja tp twig
 "     2014 December 4:   Do not assume that the base filetype is HTML.
 
-if exists('b:main_syntaxtax')
+if exists('b:current_syntax')
   finish
 endif
-if exists('b:current_syntaxtax')
-  let b:main_syntaxtax = 'twig'
+
+if !exists('b:main_syntax')
+  let b:main_syntax = 'twig'
 endif
 
-runtime! syntaxtax/html.vim
+runtime! syntax/html.vim
+unlet b:current_syntax
 
 syntax case match
 
@@ -100,3 +102,9 @@ highlight twigVariable Identifier
 highlight twigString Constant
 highlight twigNumber Constant
 highlight twigComment Comment
+
+let b:current_syntax = 'twig'
+
+if b:main_syntax == 'twig'
+  unlet b:main_syntax
+endif

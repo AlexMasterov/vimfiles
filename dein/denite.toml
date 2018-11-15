@@ -48,7 +48,7 @@ hook_source = '''
   " Sources
   call denite#custom#source('buffer',            'sorters',  ['sorter/reverse'])
   call denite#custom#source('file_rec',          'sorters',  ['sorter/sublime'])
-  call denite#custom#source('file_rec,file_mru', 'matchers', ['matcher/substring'])
+  call denite#custom#source('file_rec,file_mru', 'matchers', ['matcher/fruzzy'])
   call denite#custom#source('file_mru,file_old,file_rec,buffer,mark',
     \ 'converters', ['converter/relative_word'])
 
@@ -113,3 +113,9 @@ hook_add = '''
   nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
   nnoremap <silent> ;W :<C-u>Denite file_mru<CR>
 '''
+
+[[plugins]]
+repo = 'raghur/fruzzy'
+on_source = ['denite.nvim']
+hook_source = 'let g:fruzzy#sortonempty = 0'
+hook_post_update = 'call fruzzy#install()'

@@ -63,7 +63,8 @@ hook_source = '''
   \  'skip_chars': ['(', ')'],
   \  'camel_case': v:true,
   \  'refresh_always': v:true,
-  \  'auto_complete_delay': 30,
+  \  'async_timeout': 100,
+  \  'auto_complete_delay': 0,
   \  'auto_refresh_delay': 200,
   \  'num_processes': exists('$NUMBER_OF_PROCESSORS') ? $NUMBER_OF_PROCESSORS : 4,
   \})

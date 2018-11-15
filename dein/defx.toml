@@ -36,8 +36,8 @@ hook_add = '''
     nnoremap <silent> <buffer> <expr> i defx#do_action('cd', ['..'])
     nnoremap <silent> <buffer> <expr> u defx#do_action('cd', ['..'])
 
-    nnoremap <silent> <buffer> <expr> l defx#do_action('open', 'wincmd w \| drop')
-    nnoremap <silent> <buffer> <expr> o defx#do_action('open', 'wincmd w \| drop')
+    nnoremap <silent> <buffer> <expr> l defx#do_action('drop')
+    nnoremap <silent> <buffer> <expr> o defx#do_action('drop')
     nnoremap <silent> <buffer> <expr> S defx#do_action('open', 'vsplit')
     nnoremap <silent> <buffer> <expr> p defx#do_action('open', 'pedit')
     nnoremap <silent> <buffer> <expr> q defx#do_action('quit')
@@ -64,9 +64,9 @@ hook_add = '''
 
   " Tuning
   Autocmd BufEnter,WinEnter \[defx\]*
-    \  let &l:statusline = ' '
-    \| setlocal nonu nornu nolist cursorline colorcolumn=
+   \  let &l:statusline = ' '
+   \| setlocal nonu nornu nolist cursorline colorcolumn=
   Autocmd BufLeave,WinLeave \[defx\]*
-    \ setlocal nocursorline
+   \ setlocal nocursorline
   Autocmd FileType defx call Defx_mappings()
 '''
