@@ -16,74 +16,13 @@ hook_add = '''
     \  highlight! default link deniteStatusLinePath   StatusLine
     \| highlight! default link deniteStatusLineNumber StatusLine
 '''
-hook_source = '''
-  call denite#custom#option('default', {
-    \ 'mode': 'normal',
-    \ 'prompt': ' ❯',
-    \ 'empty': 1,
-    \ 'source_names': 'short',
-    \ 'highlight_mode_normal': 'Visual',
-    \ 'highlight_matched_range': 'User5'
-    \ })
+hook_source = 'source $VIMFILES/dein/plugins/denite.vim'
 
-  call denite#custom#option('buffer', {
-    \ 'reversed': v:true,
-    \ 'statusline': v:false,
-    \ })
-
-  call denite#custom#var('buffer', 'date_format', '')
-
-  " Ripgrep: https://github.com/BurntSushi/ripgrep
-  if executable('rg')
-    call denite#custom#var('grep', 'command', ['rg'])
-    call denite#custom#var('grep', 'recursive_opts', [])
-    call denite#custom#var('grep', 'final_opts', ['.'])
-    call denite#custom#var('grep', 'separator', ['--'])
-    call denite#custom#var('grep', 'default_opts', ['--no-heading', '--maxdepth', '8', '--vimgrep'])
-    call denite#custom#var('file_rec', 'command',  ['rg',
-      \ '--no-messages', '--no-line-number',
-      \ '--maxdepth', '8', '--fixed-strings', '--files-with-matches', '--hidden', '--follow', '.'])
-  endif
-
-  " Sources
-  call denite#custom#source('buffer',            'sorters',  ['sorter/reverse'])
-  call denite#custom#source('file_rec',          'sorters',  ['sorter/sublime'])
-  call denite#custom#source('file_rec,file_mru', 'matchers', ['matcher/fruzzy'])
-  call denite#custom#source('file_mru,file_old,file_rec,buffer,mark',
-    \ 'converters', ['converter/relative_word'])
-
-  " Mappings
-  call denite#custom#map('normal', 'Q',        '<denite:quit>',                        'noremap')
-  call denite#custom#map('normal', '`',        '<denite:quit>',                        'noremap')
-  call denite#custom#map('normal', '<Esc>',    '<denite:quit>',                        'noremap')
-  call denite#custom#map('normal', '-',        '<denite:choose_action>',               'noremap')
-  call denite#custom#map('normal', 'd',        '<denite:do_action:delete>',            'noremap')
-  call denite#custom#map('normal', 'D',        '<denite:do_action:delete>',            'noremap')
-  call denite#custom#map('normal', 'o',        '<denite:do_action:default>',           'noremap')
-  call denite#custom#map('normal', 'f',        '<denite:do_action:find>',              'noremap')
-  call denite#custom#map('normal', 'r',        '<denite:do_action:reset>',             'noremap')
-  call denite#custom#map('normal', 'u',        '<denite:do_action:update>',            'noremap')
-  call denite#custom#map('normal', 's',        '<denite:do_action:split>',             'noremap')
-  call denite#custom#map('normal', 'v',        '<denite:do_action:vsplit>',            'noremap')
-  call denite#custom#map('normal', '<Tab>',    '<denite:enter_mode:insert>',           'noremap')
-  call denite#custom#map('normal', '<C-j>',    '<denite:scroll_window_downwards>',     'noremap')
-  call denite#custom#map('normal', '<C-k>',    '<denite:scroll_window_upwards>',       'noremap')
-
-  call denite#custom#map('insert', '<C-i>',    '<denite:choose_action>',               'noremap')
-  call denite#custom#map('insert', '<Tab>',    '<denite:enter_mode:normal>',           'noremap')
-  call denite#custom#map('insert', '<C-j>',    '<denite:move_to_next_line>',           'noremap')
-  call denite#custom#map('insert', '<C-k>',    '<denite:move_to_previous_line>',       'noremap')
-  call denite#custom#map('insert', '<C-p>',    '<denite:paste_from_default_register>', 'noremap')
-  call denite#custom#map('insert', '<C-d>',    '<denite:delete_char_before_caret>',    'noremap')
-  call denite#custom#map('insert', '<BS>',     '<denite:delete_char_before_caret>',    'noremap')
-  call denite#custom#map('insert', '<A-j>',    '<denite:scroll_window_downwards>',     'noremap')
-  call denite#custom#map('insert', '<A-k>',    '<denite:scroll_window_upwards>',       'noremap')
-  call denite#custom#map('insert', '<C-h>',    '<denite:move_caret_to_left>',          'noremap')
-  call denite#custom#map('insert', '<C-l>',    '<denite:move_caret_to_right>',         'noremap')
-  call denite#custom#map('insert', '<C-a>',    '<denite:move_caret_to_head>',          'noremap')
-  call denite#custom#map('insert', '<C-e>',    '<denite:move_caret_to_tail>',          'noremap')
-  call denite#custom#map('insert', '<Space>v', '<denite:do_action:vsplit>',            'noremap')
-'''
+[[plugins]]
+repo = 'raghur/fruzzy'
+on_source = ['denite.nvim']
+hook_source = 'let g:fruzzy#sortonempty = 0'
+hook_post_update = 'call fruzzy#install()'
 
 [[plugins]]
 repo = 'Shougo/neoyank.vim'
@@ -113,9 +52,3 @@ hook_add = '''
   nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
   nnoremap <silent> ;W :<C-u>Denite file_mru<CR>
 '''
-
-[[plugins]]
-repo = 'raghur/fruzzy'
-on_source = ['denite.nvim']
-hook_source = 'let g:fruzzy#sortonempty = 0'
-hook_post_update = 'call fruzzy#install()'

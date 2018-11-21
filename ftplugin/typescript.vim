@@ -1,7 +1,11 @@
+let b:did_ftplugin = 1
+
 Indent 2
 
 setlocal nowrap textwidth=120
-setlocal commentstring=//%s
+setlocal nonumber norelativenumber
+setlocal commentstring=//%s comments=sO:*\ -,mO:*\ \ ,exO:*/,s1:/*,mb:*,ex:*/,f://
+setlocal iskeyword+=$
 
 hi typescriptBraces        guifg=#999999 gui=NONE
 hi typescriptGlobalObjects guifg=#D14000 gui=NONE
