@@ -2,53 +2,135 @@
 repo = 'Shougo/denite.nvim'
 on_cmd = 'Denite'
 hook_add = '''
-  nnoremap <silent> ;g :<C-u>Denite grep<CR>
-  nnoremap <silent> ;j :<C-u>Denite jump<CR>
-  nnoremap <silent> `  :<C-u>Denite buffer -winheight=14<CR>
-  nnoremap <silent> ;b :<C-u>Denite buffer -winheight=8<CR>
-  nnoremap <silent> ;B :<C-u>Denite buffer<CR>
-  nnoremap <silent> ;r :<C-u>Denite register -winheight=8 -mode=normal<CR>
-  nnoremap <silent> ;f :<C-u>Denite file_rec -mode=normal<CR>
-  nnoremap <silent> ;s :<C-u>Denite line -buffer-name=search -mode=insert<CR>
-  nnoremap <silent> ;v :<C-u>DeniteCursorWord line -buffer-name=search -mode=normal<CR>
-
-  Autocmd Syntax denite
-    \  highlight! default link deniteStatusLinePath   StatusLine
-    \| highlight! default link deniteStatusLineNumber StatusLine
+nnoremap <silent> ;g :<C-u>Denite grep<CR>
+nnoremap <silent> ;B :<C-u>Denite buffer<CR>
+nnoremap <silent> ;b :<C-u>Denite buffer -winheight=10<CR>
+nnoremap <silent> `  :<C-u>Denite buffer -winheight=14<CR>
+nnoremap <silent> ;f :<C-u>Denite file_rec -mode=insert<CR>
+nnoremap <silent> ;c :<C-u>Denite command_history<CR>
+nnoremap <silent> ;j :<C-u>Denite change jump<CR>
+nnoremap <silent> ;r :<C-u>Denite register -winheight=8 -mode=normal<CR>
+nnoremap <silent> ;s :<C-u>Denite line -buffer-name=search -mode=insert<CR>
+nnoremap <silent> ;v :<C-u>DeniteCursorWord line -buffer-name=search -mode=normal<CR>
 '''
-hook_source = 'source $VIMFILES/dein/plugins/denite.vim'
+hook_source = '''
+call denite#custom#option('default', {
+  \ 'mode': 'normal',
+  \ 'prompt': ' ❯',
+  \ 'empty': 1,
+  \ 'statusline': v:false,
+  \ 'source_names': 'short',
+  \ 'highlight_mode_normal': 'Visual',
+  \ 'highlight_matched_range': 'User5'
+  \ })
+
+call denite#custom#var('buffer', 'date_format', '')
+
+" Sources
+call denite#custom#source('buffer', 'sorters', ['sorter/reverse'])
+call denite#custom#source('file_mru', 'matchers', ['matcher/fruzzy'])
+call denite#custom#source('file_mru,buffer', 'converters', ['converter/relative_abbr'])
+
+" Ripgrep: https://github.com/BurntSushi/ripgrep
+if executable('rg')
+  call denite#custom#var('grep', 'command', ['rg'])
+  call denite#custom#var('grep', 'recursive_opts', [])
+  call denite#custom#var('grep', 'final_opts', ['.'])
+  call denite#custom#var('grep', 'separator', ['--'])
+  call denite#custom#var('grep', 'default_opts', ['--no-heading', '--maxdepth', '8', '--vimgrep'])
+  call denite#custom#var('file_rec', 'command',  ['rg',
+    \ '--no-messages', '--no-line-number',
+    \ '--maxdepth', '8', '--fixed-strings', '--files-with-matches', '--hidden', '--follow', '.'])
+endif
+
+" Mappings
+let s:NORMAL = {
+  \ 'Q':     '<denite:quit>',
+  \ '`':     '<denite:quit>',
+  \ '<Esc>': '<denite:quit>',
+  \ '-':     '<denite:choose_action>',
+  \ 'd':     '<denite:do_action:delete>',
+  \ 'D':     '<denite:do_action:delete>',
+  \ 'o':     '<denite:do_action:default>',
+  \ 'f':     '<denite:do_action:find>',
+  \ 'u':     '<denite:do_action:update>',
+  \ 's':     '<denite:do_action:split>',
+  \ 'v':     '<denite:do_action:vsplit>',
+  \ '<Tab>': '<denite:enter_mode:insert>',
+  \ '<C-j>': '<denite:scroll_window_downwards>',
+  \ '<C-k>': '<denite:scroll_window_upwards>',
+  \ }
+
+let s:INSERT = {
+  \ '<Tab>':    '<denite:enter_mode:normal>',
+  \ '<C-j>':    '<denite:move_to_next_line>',
+  \ '<C-k>':    '<denite:move_to_previous_line>',
+  \ '<C-p>':    '<denite:paste_from_default_register>',
+  \ '<C-d>':    '<denite:delete_char_before_caret>',
+  \ '<BS>':     '<denite:delete_char_before_caret>',
+  \ '<A-j>':    '<denite:scroll_window_downwards>',
+  \ '<A-k>':    '<denite:scroll_window_upwards>',
+  \ '<C-h>':    '<denite:move_caret_to_left>',
+  \ '<C-l>':    '<denite:move_caret_to_right>',
+  \ '<C-a>':    '<denite:move_caret_to_head>',
+  \ '<C-e>':    '<denite:move_caret_to_tail>',
+  \ '<Space>v': '<denite:do_action:vsplit>',
+  \ }
+
+function! s:noremaps(mode, keymaps) abort
+  for [key, value] in items(a:keymaps)
+    call denite#custom#map(a:mode, key, value, 'noremap')
+  endfor
+endfunction
+
+call s:noremaps('normal', s:NORMAL)
+call s:noremaps('insert', s:INSERT)
+
+Autocmd BufEnter,WinEnter \[denite\]* let &l:statusline = ' '
+'''
+
+[ftplugin]
+denite = '''
+hi! default link deniteStatusLinePath   StatusLine
+hi! default link deniteStatusLineNumber StatusLine
+'''
 
 [[plugins]]
 repo = 'raghur/fruzzy'
 on_source = ['denite.nvim']
-hook_source = 'let g:fruzzy#sortonempty = 0'
 hook_post_update = 'call fruzzy#install()'
+hook_source = '''
+let g:fruzzy#usenative = 1
+let g:fruzzy#sortonempty = 0
+'''
 
 [[plugins]]
 repo = 'Shougo/neoyank.vim'
+on_source = ['denite.nvim']
 on_event = 'TextYankPost'
 hook_add = '''
-  nnoremap <silent> ;y :<C-u>Denite neoyank -no-statusline -mode=normal<CR>
-  nnoremap <silent> ;r :<C-u>Denite neoyank register -buffer-name=register<CR>
-  xnoremap <silent> ;r :<C-u>Denite neoyank register -buffer-name=register -default-action=replace<CR>
+nnoremap <silent> ;y :<C-u>Denite neoyank -no-statusline -mode=normal<CR>
+nnoremap <silent> ;r :<C-u>Denite neoyank -buffer-name=register -mode=normal<CR>
+xnoremap <silent> ;r :<C-u>Denite neoyank register
+\ -buffer-name=register -winheight=8 -default-action=replace -mode=normal<CR>
 '''
 hook_source = '''
-  let g:neoyank#limit = 64
-  let g:neoyank#file = $CACHE . '/yank_file'
+let g:neoyank#limit = 64
+let g:neoyank#file = $CACHE . '/yank_file'
 '''
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
 hook_add = '''
-  let g:neomru#do_validate = 0
-  let g:neomru#filename_format = ':.'
-  let g:neomru#time_format = '%m.%d — %H:%M'
-  let g:neomru#file_mru_limit = 128
-  let g:neomru#file_mru_path = $CACHE . '/neomru/file'
-  let g:neomru#file_mru_ignore_pattern = '\.\%(vimrc\|log\)$'
-  let g:neomru#directory_mru_limit = 0
-  let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
+let g:neomru#do_validate = 0
+let g:neomru#filename_format = ':.'
+let g:neomru#time_format = '%m.%d — %H:%M'
+let g:neomru#file_mru_limit = 128
+let g:neomru#file_mru_path = $CACHE . '/neomru/file'
+let g:neomru#file_mru_ignore_pattern = '\.\%(vimrc\|log\)$'
+let g:neomru#directory_mru_limit = 0
+let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
 
-  nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
-  nnoremap <silent> ;W :<C-u>Denite file_mru<CR>
+nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
+nnoremap <silent> ;W :<C-u>Denite file_mru<CR>
 '''

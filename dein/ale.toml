@@ -1,60 +1,53 @@
 [[plugins]]
 repo = 'w0rp/ale'
+on_func = 'ale#'
 hook_add = '''
-  let g:ale_emit_conflict_warnings = 0
+let g:ale_emit_conflict_warnings = 0
 
-  let g:ale_echo_cursor = 1
-  let g:ale_lint_on_save = 0
-  let g:ale_lint_on_enter = 0
-  let g:ale_lint_on_text_changed = 0
-  let g:ale_sign_error = '->'
-  let g:ale_sign_warning = '—'
-  let g:ale_echo_msg_error_str = 'E'
-  let g:ale_echo_msg_warning_str = 'W'
-  let g:ale_echo_msg_format = ' %s'
-  let g:ale_set_signs = 0
-  let g:ale_sign_column_always = 0
-  let g:ale_history_enabled = 0
-  let g:ale_history_log_output = 0
+nmap <silent> <Right> <Plug>(ale_next_wrap)
+nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
-  nmap <silent> <Right> <Plug>(ale_next_wrap)
-  nmap <silent> <Left>  <Plug>(ale_previous_wrap)
+Autocmd ColorScheme *
+\  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
+\| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
+\| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
+\| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 
-  let g:ale_linters = {
-    \ 'javascript': ['lint'],
-    \ 'typescript': ['tslint'],
-    \ 'rust': ['rustc'],
-    \ 'php': ['php'],
-    \ 'go': ['gofmt'],
-    \ }
+Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
+  \ *.{js,ts,rs,php,go} call ale#Queue(0, 'lint_file')
+'''
+hook_source = '''
+let g:ale_echo_cursor = 1
+let g:ale_lint_on_save = 0
+let g:ale_lint_on_enter = 0
+let g:ale_lint_on_text_changed = 0
+let g:ale_sign_error = '->'
+let g:ale_sign_warning = '—'
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = ' %s'
+let g:ale_set_signs = 0
+let g:ale_sign_column_always = 0
+let g:ale_history_enabled = 0
+let g:ale_history_log_output = 0
 
-  " Rust
-  let g:ale_rust_rustc_options = '-Z no-codegen -A dead_code -A unused'
+let g:ale_linters = {
+\ 'javascript': ['lint'],
+\ 'typescript': ['tslint'],
+\ 'rust': ['rustc'],
+\ 'php': ['php'],
+\ 'go': ['gofmt'],
+\ }
 
-  " JavaScript
-  let g:ale_javascript_eslint_options =
-    \ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
+" JavaScript
+call ale#linter#Define('javascript', {
+\ 'name': 'lint',
+\ 'output_stream': 'both',
+\ 'executable': 'eslint',
+\ 'command_callback': 'ale#handlers#eslint#GetCommand',
+\ 'callback': 'ale#handlers#eslint#Handle',
+\ })
 
-  call ale#linter#Define('javascript', {
-    \ 'name': 'lint',
-    \ 'output_stream': 'both',
-    \ 'executable': 'eslint',
-    \ 'command_callback': 'ale#handlers#eslint#GetCommand',
-    \ 'callback': 'ale#handlers#eslint#Handle',
-    \ })
-
-  " TypeScript
-  let g:ale_typescript_tslint_use_global = 1
-  let g:ale_typescript_tslint_executable = 'tslint'
-  let g:ale_typescript_tslint_config_path =
-    \ printf('%s\typescript\tslint.json', $CODING_STYLE_PATH)
-
-  Autocmd ColorScheme *
-    \  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
-    \| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
-    \| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
-    \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
-
-  Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
-    \ *.{js,ts,tsx,rs,php,go} call ale#Queue(0, 'lint_file')
+let g:ale_javascript_eslint_options =
+\ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
 '''

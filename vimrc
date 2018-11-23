@@ -182,31 +182,34 @@ endif
     call dein#begin(s:deinPath, [expand('<sfile>')])
 
     let plugins = [
-      \ 'plugins',
-      \ 'nvim_rpc',
-      \ 'ale',
-      \ 'caw',
-      \ 'colorizer',
-      \ 'defx',
-      \ 'denite',
-      \ 'deoplete',
-      \ 'easymotion',
-      \ 'gina',
-      \ 'neomake',
-      \ 'operators',
-      \ 'text_objects',
-      \ 'ultisnips',
-      \ 'lang/javascript',
-      \ 'lang/typescript',
-      \ 'lang/rust',
-      \ 'lang/php',
-      \ 'lang/json',
-      \ 'lang/yaml',
-      \ 'lang/html',
-      \ 'lang/css',
-      \ 'lang/csv',
-      \ 'lang/svg',
-      \ ]
+    \ 'plugins',
+    \ 'nvim_rpc',
+    \ 'ale',
+    \ 'caw',
+    \ 'colorizer',
+    \ 'defx',
+    \ 'denite',
+    \ 'deoplete',
+    \ 'easymotion',
+    \ 'easy-align',
+    \ 'smartchr',
+    \ 'switch',
+    \ 'gina',
+    \ 'neomake',
+    \ 'operators',
+    \ 'text-objects',
+    \ 'ultisnips',
+    \ 'lang/javascript',
+    \ 'lang/typescript',
+    \ 'lang/rust',
+    \ 'lang/php',
+    \ 'lang/json',
+    \ 'lang/yaml',
+    \ 'lang/html',
+    \ 'lang/css',
+    \ 'lang/csv',
+    \ 'lang/svg',
+    \ ]
 
     for plugin in plugins
       call dein#load_toml(printf('%s/dein/%s.toml', $VIMFILES, plugin))
@@ -227,13 +230,13 @@ endif
 " Modules
 " ---------------------------------------------------------------------------
   let modules = [
-    \ 'gui',
-    \ 'view',
-    \ 'edit',
-    \ 'statusline',
-    \ 'mapping',
-    \ 'abbr'
-    \ ]
+  \ 'gui',
+  \ 'view',
+  \ 'edit',
+  \ 'statusline',
+  \ 'mapping',
+  \ 'abbr'
+  \ ]
 
   for module in modules
     execute 'source' resolve(printf('%s/modules/%s.vim', $VIMFILES, module))

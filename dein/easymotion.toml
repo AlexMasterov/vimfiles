@@ -2,30 +2,30 @@
 repo = 'easymotion/vim-easymotion'
 on_map = {nx = '<Plug>(easymotion-'}
 hook_add = '''
-  nmap  s       <Plug>(easymotion-s)
-  nmap ,s       <Plug>(easymotion-overwin-f)
-  nmap ,S       <Plug>(easymotion-overwin-f2)
-  nmap <Space>s <Plug>(easymotion-overwin-w)
-  nmap <Space>S <Plug>(easymotion-overwin-line)
-  nmap W        <Plug>(easymotion-lineforward)
-  nmap B        <Plug>(easymotion-linebackward)
+nmap  s       <Plug>(easymotion-s)
+nmap ,s       <Plug>(easymotion-overwin-f)
+nmap ,S       <Plug>(easymotion-overwin-f2)
+nmap <Space>s <Plug>(easymotion-overwin-w)
+nmap <Space>S <Plug>(easymotion-overwin-line)
+nmap W        <Plug>(easymotion-lineforward)
+nmap B        <Plug>(easymotion-linebackward)
 
-  map <expr> f getcurpos()[4] < col('$') - 1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
-  map <expr> F getcurpos()[4] < 2            ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
+map <expr> f getcurpos()[4] < col('$') - 1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
+map <expr> F getcurpos()[4] < 2            ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
-  Autocmd ColorScheme *
-    \  hi EasyMotionTarget             guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-    \| hi EasyMotionTarget2First       guifg=#FF0000 guibg=#F6F7F7 gui=bold
-    \| hi link EasyMotionShade         Comment
-    \| hi link EasyMotionMoveHL        Search
-    \| hi link EasyMotionIncCursor     Cursor
-    \| hi link EasyMotionTarget2Second EasyMotionTarget
+Autocmd ColorScheme *
+\  hi link EasyMotionShade         Comment
+\| hi link EasyMotionMoveHL        Search
+\| hi link EasyMotionIncCursor     Cursor
+\| hi link EasyMotionTarget2Second EasyMotionTarget
+\| hi EasyMotionTarget             guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+\| hi EasyMotionTarget2First       guifg=#FF0000 guibg=#F6F7F7 gui=bold
 '''
 hook_source = '''
-  let g:EasyMotion_verbose = 0
-  let g:EasyMotion_do_mapping = 0
-  let g:EasyMotion_show_prompt = 0
-  let g:EasyMotion_startofline = 0
-  let g:EasyMotion_space_jump_first = 1
-  let g:EasyMotion_enter_jump_first = 1
+let g:EasyMotion_verbose = 0
+let g:EasyMotion_do_mapping = 0
+let g:EasyMotion_show_prompt = 0
+let g:EasyMotion_startofline = 0
+let g:EasyMotion_space_jump_first = 1
+let g:EasyMotion_enter_jump_first = 1
 '''

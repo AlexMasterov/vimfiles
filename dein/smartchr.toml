@@ -1,0 +1,28 @@
+[[plugins]]
+repo = 'kana/vim-smartchr'
+
+[ftplugin]
+javascript = '''
+inoremap <buffer> <expr> $ smartchr#loop('$', 'this', 'this.')
+inoremap <buffer> <expr> - smartchr#loop('-', '--', '_')
+'''
+php = '''
+inoremap <buffer> <expr> $ smartchr#loop('$', '$this->')
+inoremap <buffer> <expr> > smartchr#loop('>', '=>', '>>')
+'''
+go = '''
+inoremap <buffer> <expr> - smartchr#loop('-', ':=', '--')
+'''
+rust = '''
+inoremap <buffer> <expr> - smartchr#loop('-', '->')
+inoremap <buffer> <expr> @ smartchr#loop('&', '&self', '&&', '@')
+inoremap <buffer> <expr> $ smartchr#loop('self::', 'super::', '$')
+'''
+haskell = '''
+inoremap <buffer> <expr> \ smartchr#loop('\ ', '\\')
+inoremap <buffer> <expr> - smartchr#loop('-', ' -> ', ' <- ')
+'''
+yaml = '''
+inoremap <buffer> <expr> > smartchr#loop('>', '%>')
+inoremap <buffer> <expr> < smartchr#loop('<', '<%', '<%=')
+'''

@@ -2,16 +2,14 @@
 repo = 'Shougo/dein.vim'
 rtp = ''
 hook_add = '''
-  let g:dein#types#git#clone_depth = 1
-  let g:dein#install_max_processes = 30
+let g:dein#types#git#clone_depth = 1
 
-  nnoremap <silent> ;u :<C-u>call dein#update()<CR>
-  nnoremap <silent> ;i :<C-u>call dein#install()<CR>
+nnoremap <silent> ;u :<C-u>call dein#update()<CR>
+nnoremap <silent> ;i :<C-u>call dein#install()<CR>
 '''
 
 [[plugins]]
-repo = 'AlexMasterov/vim-stay'
-rev = 'fix/1.4.0'
+repo = 'zhimsel/vim-stay'
 on_path = '.*'
 hook_source = 'let g:stay_verbosity = -1'
 hook_post_source = "let g:volatile_ftypes += ['denite', 'defx', 'gita']"
@@ -19,27 +17,27 @@ hook_post_source = "let g:volatile_ftypes += ['denite', 'defx', 'gita']"
 [[plugins]]
 repo = 'cohama/lexima.vim'
 hook_add = '''
-  let g:loaded_lexima = 1
-  let g:lexima_enable_basic_rules = 0
-  let g:lexima_enable_endwise_rules = 0
+let g:loaded_lexima = 1
+let g:lexima_enable_basic_rules = 0
+let g:lexima_enable_endwise_rules = 0
 
-  call lexima#init()
-  Autocmd InsertEnter * call lexima#insmode#clear_stack()
+call lexima#init()
+Autocmd InsertEnter * call lexima#insmode#clear_stack()
 
-  source ~/vimfiles/dein/plugins/lexima.vim
+source ~/vimfiles/dein/plugins/lexima.vim
 '''
 
 [[plugins]]
 repo = 'simeji/winresizer'
 on_cmd = ['WinResizerStartResize', 'WinResizerStartMove']
 hook_add = '''
-  nnoremap <silent> <Space>o :<C-u>WinResizerStartResize<CR>
-  nnoremap <silent> <Space>O :<C-u>WinResizerStartMove<CR>
+nnoremap <silent> <Space>o :<C-u>WinResizerStartResize<CR>
+nnoremap <silent> <Space>O :<C-u>WinResizerStartMove<CR>
 '''
 hook_source = '''
-  let g:winresizer_vert_resize = 4
-  let g:winresizer_horiz_resize = 1
-  let g:winresizer_keycode_finish = char2nr('o')
+let g:winresizer_vert_resize = 4
+let g:winresizer_horiz_resize = 1
+let g:winresizer_keycode_finish = char2nr('o')
 '''
 
 [[plugins]]
@@ -50,53 +48,33 @@ hook_add = 'map <silent> K :<C-u>call argumentrewrap#RewrapArguments()<CR>'
 repo = 'haya14busa/vim-keeppad'
 on_cmd = ['KeeppadOn', 'KeeppadOff']
 hook_add = '''
-  Autocmd BufReadPre
-    \ *.{js,json,xml,toml,html,css,scss,sss,snippets},qfreplace*
-    \ KeeppadOn
+Autocmd BufReadPre
+  \ *.{js,json,xml,toml,html,css,scss,sss,snippets},qfreplace*
+  \ KeeppadOn
 '''
 hook_source = 'let g:keeppad_autopadding = 0'
-
-[[plugins]]
-repo = 'kana/vim-smartword'
-on_map = {nx = '<Plug>(smartword-'}
-hook_add = '''
-  for char in split('w e b ge')
-    execute printf('nmap %s <Plug>(smartword-%s)', char, char)
-    execute printf('vmap %s <Plug>(smartword-%s)', char, char)
-  endfor | unlet char
-'''
 
 [[plugins]]
 repo = 'triglav/vim-visual-increment'
 on_map = {x = '<Plug>Visual'}
 hook_add = '''
-  xmap <C-a> <Plug>VisualIncrement
-  xmap <C-x> <Plug>VisualDecrement
+xmap <C-a> <Plug>VisualIncrement
+xmap <C-x> <Plug>VisualDecrement
 '''
 hook_source = 'set nrformats+=alpha'
 
 [[plugins]]
 repo = 'itchyny/vim-parenmatch'
 hook_add = '''
-  let g:parenmatch = 0
+let g:parenmatch = 0
 
-  Autocmd BufRead
-    \ *.{php,js,json,css}
-    \ let b:parenmatch = 1
+Autocmd ColorScheme *
+\ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
 
-  Autocmd ColorScheme *
-    \ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
+Autocmd BufRead
+\ *.{php,js,json,css}
+\ let b:parenmatch = 1
 '''
-
-[[plugins]]
-repo = 'junegunn/vim-easy-align'
-on_map = {x = '<Plug>(EasyAlign)'}
-hook_add = 'vmap <Enter> <Plug>(EasyAlign)'
-hook_source = 'source ~/vimfiles/dein/plugins/easyalign.vim'
-
-[[plugins]]
-repo = 'AndrewRadev/switch.vim'
-hook_add = 'source ~/vimfiles/dein/plugins/switch.vim'
 
 [[plugins]]
 repo = 'AndrewRadev/sideways.vim'
@@ -107,13 +85,9 @@ repo = 'AndrewRadev/splitjoin.vim'
 on_cmd = 'SplitjoinSplit'
 hook_add = 'nmap <silent> S :<C-u>silent SplitjoinSplit<CR>'
 hood_source = '''
-  let g:splitjoin_join_mapping = ''
-  let g:splitjoin_split_mapping = ''
+let g:splitjoin_join_mapping = ''
+let g:splitjoin_split_mapping = ''
 '''
-
-[[plugins]]
-repo = 'kana/vim-smartchr'
-hook_add = 'source ~/vimfiles/dein/plugins/smartchr.vim'
 
 [[plugins]]
 repo = 'chr4/nginx.vim'
@@ -130,22 +104,21 @@ repo = 'cespare/vim-toml'
 [[plugins]]
 repo = 'RRethy/vim-illuminate'
 hook_add = '''
-  let g:Illuminate_delay = 230
+let g:Illuminate_delay = 230
 
-  let g:Illuminate_ftblacklist = [
-    \ 'denite', 'defx',
-    \ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit',
-    \ 'vim', 'json', 'xml', 'toml', 'html', 'css', 'markdown', 'sugarss', 'snippets']
+let g:Illuminate_ftblacklist = [
+\ 'denite', 'defx',
+\ 'vim', 'json', 'xml', 'toml', 'html', 'css', 'markdown', 'sugarss', 'snippets',
+\ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit']
 
-  let g:Illuminate_ftHighlightGroups = {
-    \ 'javascript': [
-    \   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
-    \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
-    \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
-    \   'jsDestructuringBlock', 'jsBracket'],
-    \ 'typescript': [],
-    \ 'php': [
-    \   'phpIdentifier'],
-    \ }
+let g:Illuminate_ftHighlightGroups = {
+\ 'javascript': [
+\   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
+\   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
+\   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
+\   'jsDestructuringBlock', 'jsBracket'],
+\ 'typescript': [],
+\ 'php': [
+\   'phpIdentifier'],
+\ }
 '''
-

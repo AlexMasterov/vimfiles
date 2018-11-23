@@ -2,13 +2,23 @@
 repo = 'kana/vim-operator-user'
 
 [[plugins]]
+repo = 'kana/vim-smartword'
+on_map = {nx = '<Plug>(smartword-'}
+hook_add = '''
+for char in split('w e b ge')
+  execute printf('nmap %s <Plug>(smartword-%s)', char, char)
+  execute printf('vmap %s <Plug>(smartword-%s)', char, char)
+endfor | unlet char
+'''
+
+[[plugins]]
 repo = 'rhysd/vim-operator-surround'
 depends = 'vim-operator-user'
 on_map = {v = '<Plug>(operator-surround-'}
 hook_add = '''
-  vmap sa <Plug>(operator-surround-append)
-  vmap sd <Plug>(operator-surround-delete)
-  vmap sr <Plug>(operator-surround-replace)
+vmap sa <Plug>(operator-surround-append)
+vmap sd <Plug>(operator-surround-delete)
+vmap sr <Plug>(operator-surround-replace)
 '''
 
 [[plugins]]
@@ -16,8 +26,8 @@ repo = 'tyru/operator-reverse.vim'
 depends = 'vim-operator-user'
 on_map = {v = '<Plug>(operator-reverse-'}
 hook_add = '''
-  vmap <silent> sw <Plug>(operator-reverse-text)
-  vmap <silent> sl <Plug>(operator-reverse-lines)
+vmap <silent> sw <Plug>(operator-reverse-text)
+vmap <silent> sl <Plug>(operator-reverse-lines)
 '''
 
 [[plugins]]
@@ -25,28 +35,28 @@ repo = 'haya14busa/vim-operator-flashy'
 depends = 'vim-operator-user'
 on_map = {n = '<Plug>(operator-flashy)'}
 hook_add = '''
-  nmap y <Plug>(operator-flashy)
-  nmap Y <Plug>(operator-flashy)$
+nmap y <Plug>(operator-flashy)
+nmap Y <Plug>(operator-flashy)$
 '''
 hook_source = '''
-  let g:operator#flashy#flash_time = 280
-  let g:operator#flashy#group = 'Visual'
+let g:operator#flashy#group = 'Visual'
+let g:operator#flashy#flash_time = 280
 '''
 
 [[plugins]]
 repo = 'tpope/vim-surround'
 on_map = {nx = '<Plug>'}
 hook_add = '''
-  nmap ,d <Plug>Dsurround
-  nmap ,i <Plug>Csurround
-  nmap ,I <Plug>CSurround
-  nmap ,t <Plug>Yssurround
-  nmap ,T <Plug>YSsurround
-  xmap ,s <Plug>VSurround
-  xmap ,S <Plug>VgSurround
+nmap ,d <Plug>Dsurround
+nmap ,i <Plug>Csurround
+nmap ,I <Plug>CSurround
+nmap ,t <Plug>Yssurround
+nmap ,T <Plug>YSsurround
+xmap ,s <Plug>VSurround
+xmap ,S <Plug>VgSurround
 
-  for char in split('` '' \" ( ) { } [ ]')
-    execute printf('nmap ,%s ,Iw%s', char, char)
-  endfor | unlet char
+for char in split('` '' \" ( ) { } [ ]')
+  execute printf('nmap ,%s ,Iw%s', char, char)
+endfor | unlet char
 '''
 hook_source = 'let g:surround_no_mappings = 1'
