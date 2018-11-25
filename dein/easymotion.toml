@@ -14,12 +14,12 @@ map <expr> f getcurpos()[4] < col('$') - 1 ? "\<Plug>(easymotion-fl)" : "\<Plug>
 map <expr> F getcurpos()[4] < 2            ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
 Autocmd ColorScheme *
-\  hi link EasyMotionShade         Comment
-\| hi link EasyMotionMoveHL        Search
-\| hi link EasyMotionIncCursor     Cursor
-\| hi link EasyMotionTarget2Second EasyMotionTarget
-\| hi EasyMotionTarget             guifg=#2B2B2B guibg=#F6F7F7 gui=bold
-\| hi EasyMotionTarget2First       guifg=#FF0000 guibg=#F6F7F7 gui=bold
+  \  hi link EasyMotionShade         Comment
+  \| hi link EasyMotionMoveHL        Search
+  \| hi link EasyMotionIncCursor     Cursor
+  \| hi link EasyMotionTarget2Second EasyMotionTarget
+  \| hi EasyMotionTarget             guifg=#2B2B2B guibg=#F6F7F7 gui=bold
+  \| hi EasyMotionTarget2First       guifg=#FF0000 guibg=#F6F7F7 gui=bold
 '''
 hook_source = '''
 let g:EasyMotion_verbose = 0

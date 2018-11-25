@@ -72,8 +72,8 @@ Autocmd ColorScheme *
 \ hi ParenMatch guifg=#2B2B2B guibg=#EEEEEE gui=NONE
 
 Autocmd BufRead
-\ *.{php,js,json,css}
-\ let b:parenmatch = 1
+  \ *.{php,js,json,css}
+  \ let b:parenmatch = 1
 '''
 
 [[plugins]]
@@ -107,18 +107,18 @@ hook_add = '''
 let g:Illuminate_delay = 230
 
 let g:Illuminate_ftblacklist = [
-\ 'denite', 'defx',
-\ 'vim', 'json', 'xml', 'toml', 'html', 'css', 'markdown', 'sugarss', 'snippets',
-\ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit']
+  \ 'denite', 'defx',
+  \ 'vim', 'json', 'xml', 'toml', 'html', 'css', 'markdown', 'sugarss', 'snippets',
+  \ 'gina-log', 'gina-changes', 'gina-blame', 'gina-status', 'gina-branch', 'gina-commit']
 
 let g:Illuminate_ftHighlightGroups = {
-\ 'javascript': [
-\   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
-\   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
-\   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
-\   'jsDestructuringBlock', 'jsBracket'],
-\ 'typescript': [],
-\ 'php': [
-\   'phpIdentifier'],
-\ }
+  \ 'javascript': [
+  \   'jsClassBlock', 'jsFuncBlock', 'jsRepeatBlock',
+  \   'jsIfElseBlock', 'jsParenIfElse', 'jsParen', 'jsReturn',
+  \   'jsVariableDef', 'jsFuncArgs', 'jsException', 'jsObjectProp',
+  \   'jsDestructuringBlock', 'jsBracket'],
+  \ 'typescript': [],
+  \ 'php': [
+  \   'phpIdentifier'],
+  \ }
 '''

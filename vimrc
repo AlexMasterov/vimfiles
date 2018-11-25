@@ -105,10 +105,6 @@ Autocmd InsertLeave *? setlocal nolist
 
 AutocmdFT *? setlocal formatoptions-=ro
 
-  " if exists('$MYVIMRC')
-  "   Autocmd BufWritePost $MYVIMRC | source $MYVIMRC | redraw
-  " endif
-
 " Encoding
 "---------------------------------------------------------------------------
 set encoding=utf-8
@@ -126,17 +122,17 @@ endif
 
 " Open in utf-8
 command! -nargs=? -bar -bang -complete=file EUtf8
-\ edit<bang> ++enc=utf-8 <args>
+  \ edit<bang> ++enc=utf-8 <args>
 " Open in cp1251
 command! -nargs=? -bar -bang -complete=file ECp1251
-\ edit<bang> ++enc=cp1251 <args>
+  \ edit<bang> ++enc=cp1251 <args>
 
 " Write as Unix
 command! -nargs=? -bar -bang -complete=file WUnix
-\ write<bang> ++fileformat=unix <args> | edit <args>
+  \ write<bang> ++fileformat=unix <args> | edit <args>
 " Write as Dos
 command! -nargs=? -bar -bang -complete=file WDos
-\ write<bang> ++fileformat=dos <args> | edit <args>
+  \ write<bang> ++fileformat=dos <args> | edit <args>
 
 " Plugins
 " ---------------------------------------------------------------------------
@@ -159,51 +155,51 @@ let g:did_install_syntax_menu = 1
 let g:did_install_default_menus = 1
 
 " Setup Dein plugin manager
-let s:deinPath = $VIMHOME . '/dein'
+let s:deinPath = fnameescape($VIMHOME . '/dein')
 if has('vim_starting')
   let s:deinRepo = s:deinPath . '/repos/github.com/Shougo/dein.vim'
   if !isdirectory(s:deinRepo)
     if executable('git')
-      call system('git clone --single-branch --depth 1 https://github.com/Shougo/dein.vim.git ' . fnameescape(s:deinRepo))
+      call system('git clone --depth 1 https://github.com/Shougo/dein.vim.git ' . s:deinRepo)
     else
       echom 'Can`t download Dein: Git not found.'
     endif
   endif
-  execute 'set runtimepath^=' . fnameescape(s:deinRepo)
+  execute 'set runtimepath^=' . s:deinRepo
 endif
 
 if dein#load_state(s:deinPath)
   call dein#begin(s:deinPath, [expand('<sfile>')])
 
   let plugins = [
-  \ 'plugins',
-  \ 'nvim_rpc',
-  \ 'ale',
-  \ 'caw',
-  \ 'colorizer',
-  \ 'defx',
-  \ 'denite',
-  \ 'deoplete',
-  \ 'easymotion',
-  \ 'easy-align',
-  \ 'smartchr',
-  \ 'switch',
-  \ 'gina',
-  \ 'neomake',
-  \ 'operators',
-  \ 'text-objects',
-  \ 'ultisnips',
-  \ 'lang/javascript',
-  \ 'lang/typescript',
-  \ 'lang/rust',
-  \ 'lang/php',
-  \ 'lang/json',
-  \ 'lang/yaml',
-  \ 'lang/html',
-  \ 'lang/css',
-  \ 'lang/csv',
-  \ 'lang/svg',
-  \ ]
+    \ 'plugins',
+    \ 'nvim_rpc',
+    \ 'ale',
+    \ 'caw',
+    \ 'colorizer',
+    \ 'defx',
+    \ 'denite',
+    \ 'deoplete',
+    \ 'easymotion',
+    \ 'easy-align',
+    \ 'smartchr',
+    \ 'switch',
+    \ 'gina',
+    \ 'neomake',
+    \ 'operators',
+    \ 'text-objects',
+    \ 'ultisnips',
+    \ 'lang/javascript',
+    \ 'lang/typescript',
+    \ 'lang/rust',
+    \ 'lang/php',
+    \ 'lang/json',
+    \ 'lang/yaml',
+    \ 'lang/html',
+    \ 'lang/css',
+    \ 'lang/csv',
+    \ 'lang/svg',
+    \ ]
 
   for plugin in plugins
     call dein#load_toml(printf('%s/dein/%s.toml', $VIMFILES, plugin))
@@ -224,13 +220,13 @@ endif
 " Modules
 " ---------------------------------------------------------------------------
 let modules = [
-\ 'gui',
-\ 'view',
-\ 'edit',
-\ 'statusline',
-\ 'mapping',
-\ 'abbr'
-\ ]
+  \ 'gui',
+  \ 'view',
+  \ 'edit',
+  \ 'statusline',
+  \ 'mapping',
+  \ 'abbr'
+  \ ]
 
 for module in modules
   execute 'source' resolve(printf('%s/modules/%s.vim', $VIMFILES, module))

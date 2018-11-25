@@ -112,7 +112,7 @@ hook_add = '''
 nnoremap <silent> ;y :<C-u>Denite neoyank -no-statusline -mode=normal<CR>
 nnoremap <silent> ;r :<C-u>Denite neoyank -buffer-name=register -mode=normal<CR>
 xnoremap <silent> ;r :<C-u>Denite neoyank register
-\ -buffer-name=register -winheight=8 -default-action=replace -mode=normal<CR>
+  \ -buffer-name=register -winheight=8 -default-action=replace -mode=normal<CR>
 '''
 hook_source = '''
 let g:neoyank#limit = 64

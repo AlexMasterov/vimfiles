@@ -8,10 +8,10 @@ nmap <silent> <Right> <Plug>(ale_next_wrap)
 nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
 Autocmd ColorScheme *
-\  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
-\| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
-\| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
-\| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
+  \  hi ALEErrorSign   guifg=#2B2B2B guibg=#FFC08E gui=bold
+  \| hi ALEWarningSign guifg=#2B2B2B guibg=#F2E8DF gui=bold
+  \| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
+  \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 
 Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
   \ *.{js,ts,rs,php,go} call ale#Queue(0, 'lint_file')
@@ -32,22 +32,22 @@ let g:ale_history_enabled = 0
 let g:ale_history_log_output = 0
 
 let g:ale_linters = {
-\ 'javascript': ['lint'],
-\ 'typescript': ['tslint'],
-\ 'rust': ['rustc'],
-\ 'php': ['php'],
-\ 'go': ['gofmt'],
-\ }
+  \ 'javascript': ['lint'],
+  \ 'typescript': ['tslint'],
+  \ 'rust': ['rustc'],
+  \ 'php': ['php'],
+  \ 'go': ['gofmt'],
+  \ }
 
 " JavaScript
 call ale#linter#Define('javascript', {
-\ 'name': 'lint',
-\ 'output_stream': 'both',
-\ 'executable': 'eslint',
-\ 'command_callback': 'ale#handlers#eslint#GetCommand',
-\ 'callback': 'ale#handlers#eslint#Handle',
-\ })
+  \ 'name': 'lint',
+  \ 'output_stream': 'both',
+  \ 'executable': 'eslint',
+  \ 'command_callback': 'ale#handlers#eslint#GetCommand',
+  \ 'callback': 'ale#handlers#eslint#Handle',
+  \ })
 
 let g:ale_javascript_eslint_options =
-\ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
+  \ printf('--quiet --no-eslintrc --config %s\javascript\eslint-fix.js', $CODING_STYLE_PATH)
 '''
