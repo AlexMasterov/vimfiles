@@ -9,14 +9,14 @@ function! s:addContext(filetype, context) abort
 endfunction
 
 let css = {
-\ 'filetype': 'css',
-\ 'start': '<\(style\)\%( [^>]*\)\?>', 'end': '</\1>'
-\ }
+  \ 'filetype': 'css',
+  \ 'start': '<\(style\)\%( [^>]*\)\?>', 'end': '</\1>'
+  \ }
 
 let javascript = {
-\ 'filetype': 'javascript',
-\ 'start': '<\(script\)\%( [^>]*\)\?>', 'end': '</\1>'
-\ }
+  \ 'filetype': 'javascript',
+  \ 'start': '<\(script\)\%( [^>]*\)\?>', 'end': '</\1>'
+  \ }
 
 for filetype in split('html twig blade')
   call s:addContext(filetype, css)
@@ -52,6 +52,7 @@ imap <Tab> <Plug>(decomplete)
 imap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<Plug>(decomplete)"
 imap <expr> <C-j>   pumvisible() ? "\<C-n>" : "\<C-g>u<C-u>"
 imap <expr> <C-k>   pumvisible() ? "\<C-p>" : col('.') ==# col('$') ? "\<C-k>" : "\<C-o>D"
+
 " Make <BS> delete letter instead of clearing completion
 inoremap <BS> <BS>
 '''
@@ -59,23 +60,23 @@ hook_source = '''
 call deoplete#enable()
 
 call deoplete#custom#option({
-\ 'yarp': !has('nvim'),
-\ 'async_timeout': 100,
-\ 'auto_complete_delay': 0,
-\ 'auto_refresh_delay': 200,
-\ 'camel_case': v:true,
-\ 'max_list': 42,
-\ 'refresh_always': v:true,
-\ 'skip_chars': ['(', ')'],
-\ })
+  \ 'yarp': !has('nvim'),
+  \ 'async_timeout': 100,
+  \ 'auto_complete_delay': 0,
+  \ 'auto_refresh_delay': 200,
+  \ 'camel_case': v:true,
+  \ 'max_list': 42,
+  \ 'refresh_always': v:true,
+  \ 'skip_chars': ['(', ')'],
+  \ })
 
 call deoplete#custom#source('_', 'matchers', ['matcher_fuzzy', 'matcher_length'])
 call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
 call deoplete#custom#source('_', 'converters', [
-\ 'matcher_length',
-\ 'converter_truncate_abbr',
-\ 'converter_truncate_menu',
-\ ])
+  \ 'matcher_length',
+  \ 'converter_truncate_abbr',
+  \ 'converter_truncate_menu',
+  \ ])
 '''
 
 [[plugins]]

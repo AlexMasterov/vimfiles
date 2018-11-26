@@ -77,32 +77,32 @@ hi Conceal              guifg=#2B2B2B   guibg=#F6F7F7   gui=NONE
 hi Comment              guifg=#93A1A1                   gui=NONE
 hi Todo                 guifg=#446644   guibg=#DDEECC   gui=NONE
 
-hi link Character       Constant
-hi link String          Constant
-hi link Boolean         Constant
-hi link Float           Number
-hi link Include         Normal
-hi link Function        Normal
-hi link Label           Statement
-hi link Exception       Statement
-hi link Repeat          Conditional
-hi link Define          PreProc
-hi link Macro           PreProc
-hi link PreCondit       PreProc
-hi link StorageClass    Type
-hi link Structure       Type
-hi link Typedef         Type
-hi link Tag             Special
-hi link SpecialChar     Special
-hi link SpecialComment  Special
-hi link Debug           Special
+hi def link Character       Constant
+hi def link String          Constant
+hi def link Boolean         Constant
+hi def link Float           Number
+hi def link Include         Normal
+hi def link Function        Normal
+hi def link Label           Statement
+hi def link Exception       Statement
+hi def link Repeat          Conditional
+hi def link Define          PreProc
+hi def link Macro           PreProc
+hi def link PreCondit       PreProc
+hi def link StorageClass    Type
+hi def link Structure       Type
+hi def link Typedef         Type
+hi def link Tag             Special
+hi def link SpecialChar     Special
+hi def link SpecialComment  Special
+hi def link Debug           Special
 
 " Popup menu
 "---------------------------------------------------------------------------
-hi Pmenu                guifg=#60656F   guibg=#F0F5FF   gui=NONE
-hi PmenuSel             guifg=#FFFFFF   guibg=#3585EF   gui=bold
-hi PmenuSbar            guifg=#D0D5DD   guibg=#E0E5EE   gui=bold
-hi PmenuThumb           guifg=#E0E5EE   guibg=#C0C5DD   gui=bold
+hi Pmenu                guifg=#60656F   guibg=#F0F5FF  gui=NONE
+hi PmenuSel             guifg=#FFFFFF   guibg=#3585EF  gui=bold
+hi PmenuSbar            guifg=#D0D5DD   guibg=#E0E5EE  gui=bold
+hi PmenuThumb           guifg=#E0E5EE   guibg=#C0C5DD  gui=bold
 
 " User
 "---------------------------------------------------------------------------

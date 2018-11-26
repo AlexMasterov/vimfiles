@@ -116,7 +116,7 @@ xnoremap <silent> ;r :<C-u>Denite neoyank register
 '''
 hook_source = '''
 let g:neoyank#limit = 64
-let g:neoyank#file = $CACHE . '/yank_file'
+let g:neoyank#file = $VIMCACHE . '/yank_file'
 '''
 
 [[plugins]]
@@ -126,10 +126,10 @@ let g:neomru#do_validate = 0
 let g:neomru#filename_format = ':.'
 let g:neomru#time_format = '%m.%d — %H:%M'
 let g:neomru#file_mru_limit = 128
-let g:neomru#file_mru_path = $CACHE . '/neomru/file'
+let g:neomru#file_mru_path = $VIMCACHE . '/neomru/file'
 let g:neomru#file_mru_ignore_pattern = '\.\%(vimrc\|log\)$'
 let g:neomru#directory_mru_limit = 0
-let g:neomru#directory_mru_path = $CACHE . '/neomru/directory'
+let g:neomru#directory_mru_path = $VIMCACHE . '/neomru/directory'
 
 nnoremap <silent> ;w :<C-u>Denite file_mru -matchers='matcher/project_files'<CR>
 nnoremap <silent> ;W :<C-u>Denite file_mru<CR>

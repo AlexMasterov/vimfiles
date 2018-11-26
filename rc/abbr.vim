@@ -1,5 +1,5 @@
-" Abbreviations
 "--------------------------------------------------------------------------
+" Abbreviations
 
 " The current file
 inoreabbrev <silent> ##f <C-r>=expand('%:t')<CR>

@@ -6,12 +6,13 @@ hook_add = '''
 Autocmd BufNewFile,BufReadPost *.snippets
   \ set filetype=snippets nowrap foldmethod=manual
 '''
-hook_post_source = '''
+hook_source = '''
 let g:UltiSnipsEnableSnipMate = 0
 let g:UltiSnipsExpandTrigger = '<C-F12>'
 let g:UltiSnipsListSnippets = '<C-F12>'
 let g:UltiSnipsSnippetDirectories = [expand('$VIMFILES/snippets')]
-
+'''
+hook_post_source = '''
 imap `         <Plug>(ultisnips)
 xmap `         <Plug>(ultisnipsVisual)
 snoremap <C-c> <Esc>

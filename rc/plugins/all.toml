@@ -1,0 +1,25 @@
+[[plugins]]
+repo = 'Shougo/dein.vim'
+rtp = ''
+hook_add = '''
+let g:dein#types#git#clone_depth = 1
+
+nnoremap <silent> ;u :<C-u>call dein#update()<CR>
+nnoremap <silent> ;i :<C-u>call dein#install()<CR>
+'''
+
+[[plugins]]
+repo = 'zhimsel/vim-stay'
+on_path = '.*'
+hook_source = 'let g:stay_verbosity = -1'
+hook_post_source = "let g:volatile_ftypes += ['denite', 'defx', 'gita']"
+
+[[plugins]]
+repo = 'haya14busa/vim-keeppad'
+on_cmd = ['KeeppadOn', 'KeeppadOff']
+hook_add = '''
+Autocmd BufReadPre
+  \ *.{js,json,xml,toml,html,css,scss,sss,md,snippets}
+  \ KeeppadOn
+'''
+hook_source = 'let g:keeppad_autopadding = 0'

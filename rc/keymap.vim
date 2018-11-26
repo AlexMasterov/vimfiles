@@ -1,3 +1,6 @@
+"---------------------------------------------------------------------------
+" Keypmap
+
 " Normal mode
 "---------------------------------------------------------------------------
   " [jk]: don't skip wrap lines
@@ -46,6 +49,11 @@
 
   " ,r: replace a word under cursor
   nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>
+
+  " p:
+  " nnoremap p p`]<Esc>
+  " inoremap <C-p> <Esc>"+p`]a
+  " inoremap <C-p> <C-r>"+
 
   " :s::: is more useful than :s/// when replacing paths
   " https://github.com/jalanb/dotjab/commit/35a40d11c425351acb9a31d6cff73ba91e1bd272
@@ -166,10 +174,10 @@
   nnoremap <silent> <Space>r :<C-u>wincmd r<CR>
   " Space + R: rotate windows upwards / leftwards
   nnoremap <silent> <Space>R :<C-u>wincmd R<CR>
-  " Space + v: split window horizontaly
-  nnoremap <silent> <expr> <Space>v ':<C-u>'. (v:count ? v:count : '') .'split<CR>'
-  " Space + V: split window verticaly
-  nnoremap <silent> <expr> <Space>V ':<C-u>vertical '. (v:count ? v:count : '') .'split<CR>'
+  " Space + v: split window verticaly
+  nnoremap <silent> <expr> <Space>v ':<C-u>vertical '. (v:count ? v:count : '') .'split<CR>'
+  " Space + V: split window horizontaly
+  nnoremap <silent> <expr> <Space>V ':<C-u>'. (v:count ? v:count : '') .'split<CR>'
   " Space + m: move window to a new tab page
   nnoremap <silent> <Space>m :<C-u>wincmd T<CR>
   " Space + q: smart close window -> tab -> buffer
@@ -203,7 +211,7 @@
   inoremap <A-k> <C-o>gk
   inoremap <A-l> <C-o>l
   " Ctrl-a: jump to head
-  inoremap <expr> <C-a> empty(getline('.')[getcurpos()[4]-2]) ? "<Home>" : "<C-o>I"
+  inoremap <expr> <C-a> empty(getline('.')[getcurpos()[4] - 2]) ? '<Home>' : '<C-o>I'
   " Ctrl-e: jump to end
   inoremap <C-e> <C-o>A
   " Ctrl-d: delete next char
@@ -226,8 +234,8 @@
   " Ctrl-l: fast Esc
   inoremap <C-l> <Esc>`^
   " [jj|qq]: smart fast Esc
-  inoremap <expr> j getline('.')[getcurpos()[4]-2] ==# 'j' ? "\<BS>\<Esc>`^" : "\j"
-  inoremap <expr> q getline('.')[getcurpos()[4]-2] ==# 'q' ? "\<BS>\<Esc>`^" : "\q"
+  inoremap <expr> j getline('.')[getcurpos()[4] - 2] ==# 'j' ? "\<BS>\<Esc>`^" : "\j"
+  inoremap <expr> q getline('.')[getcurpos()[4] - 2] ==# 'q' ? "\<BS>\<Esc>`^" : "\q"
 
   " Unbinds
   inoremap <C-j> <Nop>
@@ -246,10 +254,10 @@
   xnoremap # y?<C-r>*<CR>
   xnoremap * y/<C-r>*<CR>
   " [yY]: keep cursor position when yanking
-  xnoremap <silent> <expr> y 'ygv'. mode()
-  xnoremap <silent> <expr> Y 'Ygv'. mode()
+  xnoremap <silent> <expr> y 'ygv' . mode()
+  xnoremap <silent> <expr> Y 'Ygv' . mode()
   " p: paste not replace the default register
-  xnoremap p "_dP
+  " xnoremap p "_dP
   " [dDcC]: delete to black hole register
   xnoremap d "_d
   xnoremap D "_D

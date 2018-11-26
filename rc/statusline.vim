@@ -1,8 +1,8 @@
-" Status-line
 "--------------------------------------------------------------------------
+" Status-line
 
 set laststatus=2
-" Format the statusline
+
 let &statusline =
   \  " %3*%L%*"
   \. "%4l %2v "
@@ -11,21 +11,11 @@ let &statusline =
   \. "%(%{&filetype ==# '' ? '' : NeomakeStatus() }\ %)"
   \. "%2*%(%{BufModified()}\ %)%*"
   \. "%="
-  \. "%2*%(%{exists('*gina#component#repo#branch()') ? gina#component#repo#branch() : ''}\ %)%*"
   \. "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*"
   \. "%3*%(%-2.8{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)%*"
   \. "%3*%(%{IfFit(90) ? &fileformat : ''}\ %)%*"
   \. "%(%{IfFit(90) ? (&fileencoding ==# '' ? &encoding : &fileencoding) : ''}\ %)"
   \. "%2*%(%Y\ %)%*"
-
-function! NeomakeStatus() abort
-  return neomake#statusline#get(bufnr('%'), {
-    \ 'format_running': '…',
-    \ 'format_loclist_ok': '✓',
-    \ 'format_loclist_unknown': '',
-    \ 'format_loclist_type_E': ' {{type}}:{{count}} ',
-    \ })
-endfunction
 
 " Events
 Autocmd BufReadPost,BufWritePost * let b:bufsize = BufSize()
@@ -59,4 +49,13 @@ function! LinterStatus() abort
   return counts.total ==# 0
     \ ? 'OK'
     \ : printf('%dW %dE', allNonErrors, allErrors)
+endfunction
+
+function! NeomakeStatus() abort
+  return neomake#statusline#get(bufnr('%'), {
+    \ 'format_running': '…',
+    \ 'format_loclist_ok': '✓',
+    \ 'format_loclist_unknown': '',
+    \ 'format_loclist_type_E': ' {{type}}:{{count}} ',
+    \ })
 endfunction
