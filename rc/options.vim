@@ -74,19 +74,18 @@ set cmdheight=1
 set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
+" Undo
+set undodir=$VIMCACHE/undo
+set undofile undolevels=500 undoreload=1000
+call vimrc#makeDir(&undodir, '!')
+
+" View
+set viewdir=$VIMCACHE/view
+set viewoptions=cursor,slash,unix
+
 set number relativenumber
 set diffopt=filler,iwhite,vertical
 
 set noswapfile
 set nocursorline
 set nofoldenable
-
-" Highlight invisible symbols
-set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
-" Avoid showing trailing whitespace when in Insert mode
-let g:trailChars = matchstr(&listchars, '\(trail:\)\@<=\S')
-
-Autocmd InsertEnter * setlocal list
- \| execute 'setlocal listchars+=trail:' . g:trailChars
-Autocmd InsertLeave * setlocal nolist
- \| execute 'setlocal listchars-=trail:' . g:trailChars

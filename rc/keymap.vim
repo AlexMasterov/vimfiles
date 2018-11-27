@@ -45,7 +45,11 @@
   nnoremap C "_C
 
   " ,ev: open vimrc in a new tab
-  nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
+  if has('nvim')
+    nnoremap <silent> ,ev :<C-u>edit $VIMFILES/vimrc<CR>
+  else
+    nnoremap <silent> ,ev :<C-u>edit $MYVIMRC<CR>
+  endif
 
   " ,r: replace a word under cursor
   nnoremap ,r :%s/<C-R><C-w>/<C-r><C-w>

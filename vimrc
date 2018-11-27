@@ -26,43 +26,8 @@ set noexrc
 set packpath=
 set runtimepath=$VIMFILES,$VIMRUNTIME
 
-" Commands
-"---------------------------------------------------------------------------
 " Initialize autogroup
 augroup myVimrc | autocmd! | augroup END
-
-command! -nargs=* Autocmd   autocmd myVimrc <args>
-command! -nargs=* AutocmdFT autocmd myVimrc FileType <args>
-
-command! -nargs=1 Indent
-  \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
-
-command! -nargs=0 -bar GoldenRatio execute 'vertical resize' &columns * 5 / 8
-
-" Shows the syntax stack under the cursor
-command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
-
-" Mkdir
-command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")
-Autocmd BufWritePre,FileWritePre *? call vimrc#makeDir('<afile>:h', v:cmdbang)
-
-" TrimWhiteSpace
-command! -nargs=* -complete=file TrimWhiteSpace f <args> | call vimrc#trimWhiteSpace()
-Autocmd BufWritePre,FileWritePre *? call vimrc#trimWhiteSpace()
-nnoremap <silent> ,<Space> :<C-u>TrimWhiteSpace<CR>
-
-" Events
-"---------------------------------------------------------------------------
-Autocmd Syntax *? if line('$') > 5000 | syntax sync minlines=200 | endif
-
-Autocmd WinEnter * let [&l:number, &l:relativenumber] = &l:number ? [1, 1] : [&l:number, &l:relativenumber]
-Autocmd WinLeave * let [&l:number, &l:relativenumber] = &l:number ? [1, 0] : [&l:number, &l:relativenumber]
-
-Autocmd WinEnter,FocusGained * checktime
-
-AutocmdFT *? setlocal formatoptions-=ro
-
-" Plugins
 " ---------------------------------------------------------------------------
 function s:source_rc(path) abort
   execute 'source $VIMFILES/rc/' . a:path
@@ -73,11 +38,13 @@ if has('vim_starting')
 endif
 
 call s:source_rc('encoding.vim')
+call s:source_rc('commands.vim')
+call s:source_rc('events.vim')
 call s:source_rc('options.vim')
 
 call s:source_rc('dein.vim')
 
-" call s:source_rc('statusline.vim')
+call s:source_rc('statusline.vim')
 call s:source_rc('keymap.vim')
 call s:source_rc('abbr.vim')
 
