@@ -36,6 +36,7 @@ Autocmd BufEnter,WinEnter \[defx\]*
 Autocmd BufLeave,WinLeave \[defx\]*
   \ setlocal nocursorline
 '''
+
 [ftplugin]
 defx = '''
 nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'

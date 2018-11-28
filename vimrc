@@ -26,8 +26,6 @@ set noexrc
 set packpath=
 set runtimepath=$VIMFILES,$VIMRUNTIME
 
-" Initialize autogroup
-augroup myVimrc | autocmd! | augroup END
 " ---------------------------------------------------------------------------
 function s:source_rc(path) abort
   execute 'source $VIMFILES/rc/' . a:path

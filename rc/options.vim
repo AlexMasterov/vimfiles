@@ -1,6 +1,13 @@
 "--------------------------------------------------------------------------
 " Options
 
+" Russian keyboard
+set keymap=russian-jcukenwin
+set iskeyword=@,48-57,_,192-255,:
+set iminsert=0 imsearch=0
+
+set clipboard=unnamedplus
+
 set shortmess=aoOtTIcF
 set lazyredraw               " don't redraw while executing macros
 set report=0                 " reporting number of lines changes
@@ -57,6 +64,7 @@ else
 endif
 
 " Search
+set regexpengine=0  " 0=auto 1=old 2=NFA
 set smartcase
 set ignorecase
 set hlsearch
@@ -77,11 +85,13 @@ set wildmenu wildmode=longest,full
 " Undo
 set undodir=$VIMCACHE/undo
 set undofile undolevels=500 undoreload=1000
-call vimrc#makeDir(&undodir, '!')
+call vimrc#makeDir(&undodir, v:true)
 
 " View
 set viewdir=$VIMCACHE/view
 set viewoptions=cursor,slash,unix
+
+set directory=$VIMCACHE
 
 set number relativenumber
 set diffopt=filler,iwhite,vertical
@@ -89,3 +99,19 @@ set diffopt=filler,iwhite,vertical
 set noswapfile
 set nocursorline
 set nofoldenable
+
+if has('nvim')
+  set nofsync
+  set termguicolors
+  set inccommand=split
+
+  Autocmd VimLeave * set guicursor=a:block-blinkon0
+
+  " Share the histories
+  Autocmd CursorHold * rshada | wshada
+  " Modifiable terminal
+  Autocmd TermOpen * setlocal modifiable
+  Autocmd TermClose * buffer #
+else
+  set pyxversion=3
+endif

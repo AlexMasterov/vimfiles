@@ -1,0 +1,44 @@
+# JSON
+[[plugins]]
+repo = 'elzr/vim-json'
+hook_add = '''
+let g:vim_json_warnings = 0
+let g:vim_json_syntax_concealcursor = 'n'
+'''
+
+[ftplugin]
+json = '''
+nnoremap <silent> <buffer> ,c :<C-u>let &l:conceallevel = (&l:conceallevel ==# 0 ? 2 : 0)<CR>
+  \:echo printf(' Conceal mode: %3S (local)', (&l:conceallevel ==# 0 ? 'Off' : 'On'))<CR>
+'''
+
+# YAML
+[[plugins]]
+repo = 'stephpy/vim-yaml'
+
+[[plugins]]
+repo = 'mrk21/yaml-vim'
+
+# TOML
+[[plugins]]
+repo = 'cespare/vim-toml'
+
+# CSV
+[[plugins]]
+repo = 'chrisbra/csv.vim'
+
+# SVG
+[[plugins]]
+repo = 'aur-archive/vim-svg'
+
+[[plugins]]
+repo = 'jasonshell/vim-svg-indent'
+
+[[plugins]]
+repo = 'chr4/nginx.vim'
+
+[[plugins]]
+repo = 'tokutake/twig-indent'
+
+[[plugins]]
+repo = 'jwalton512/vim-blade'

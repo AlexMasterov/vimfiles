@@ -1,6 +1,9 @@
 "---------------------------------------------------------------------------
 " Commands
 
+" Initialize autogroup
+augroup myVimrc | autocmd! | augroup END
+
 command! -nargs=* Autocmd   autocmd myVimrc <args>
 command! -nargs=* AutocmdFT autocmd myVimrc FileType <args>
 
