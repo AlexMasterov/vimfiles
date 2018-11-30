@@ -1,0 +1,23 @@
+[[plugins]]
+repo = 'neomake/neomake'
+on_func = 'neomake#'
+on_cmd = 'Neomake'
+hook_add = '''
+Autocmd ColorScheme,Syntax *
+  \ hi NeomakeError guifg=#2B2B2B guibg=#ffe4e1 gui=NONE
+'''
+hook_source = '''
+let g:neomake_verbose = 0
+let g:neomake_place_signs = 0
+let g:neomake_highlight_lines = 1
+let g:neomake_highlight_columns = 0
+let g:neomake_echo_current_error = 1
+
+source $VIMFILES/rc/plugins/neomake.vim
+'''
+
+[ftplugin]
+_ = '''
+nnoremap <silent> <buffer> ,w
+  \ :<C-u>silent! undojoin<CR>:call neomake#Make(1)<CR>
+'''

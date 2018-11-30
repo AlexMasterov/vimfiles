@@ -13,7 +13,7 @@ command! -nargs=1 Indent
 command! -nargs=0 -bar GoldenRatio execute 'vertical resize' &columns * 5 / 8
 
 " Shows the syntax stack under the cursor
-command! -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+command! -nargs=0 -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 
 " Mkdir
 command! -nargs=1 -bang MakeDir call vimrc#makeDir(<f-args>, "<bang>")

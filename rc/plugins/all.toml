@@ -23,3 +23,12 @@ Autocmd BufReadPre
   \ KeeppadOn
 '''
 hook_source = 'let g:keeppad_autopadding = 0'
+
+[[plugins]]
+repo = 'triglav/vim-visual-increment'
+on_map = {x = '<Plug>Visual'}
+hook_add = '''
+xmap <C-a> <Plug>VisualIncrement
+xmap <C-x> <Plug>VisualDecrement
+'''
+hook_source = 'set nrformats+=alpha'

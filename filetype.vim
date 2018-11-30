@@ -88,11 +88,17 @@ augroup filetypedetect
 
   " Fallback
   autocmd BufNewFile,BufRead,StdinReadPost *
-    \ if !did_filetype()
-    \   && (getline(1) =~ '^#' || getline(2) =~ '^#' || getline(3) =~ '^#'	|| getline(4) =~ '^#' || getline(5) =~ '^#')
-    \ | setf FALLBACK conf |
+    \ if !did_filetype() && <SID>checkLine()
+    \   | set filetype=FALLBACK conf |
     \ endif
 
   " Use the filetype detect plugins
   runtime! ftdetect/*.vim
 augroup END
+
+function! s:checkLine() abort
+  for line in getline(1, 5)
+    if line =~ '^#' | return v:true | endif
+  endfor
+  return v:false
+endfunction
