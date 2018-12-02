@@ -4,33 +4,32 @@ function! s:rebuffer(data) abort
     let data = substitute(data, "\r\n", "\n", 'g')
   endif
 
-  let search = @/
   let view = winsaveview()
+  let register = getreg('/')
 
   silent 0,$ delete _
   silent $ put = data
   silent 1 delete _
 
   call winrestview(view)
-  let @/ = search
+  call setreg('/', register)
   redraw
 endfunction
 
 function! s:reopen() abort
-  let search = @/
-  let format = &l:formatoptions
-  let conceal = &l:conceallevel
   let cwd = getcwd()
   let view = winsaveview()
+  let register = getreg('/')
+  let format = &l:formatoptions
+  let conceal = &l:conceallevel
 
   silent edit!
 
-  call winrestview(view)
   execute 'silent cd ' . cwd
-
+  call winrestview(view)
+  call setreg('/', register)
   let &l:formatoptions = format
   let &l:conceallevel = conceal
-  let @/ = search
 
   if !exists('g:syntax_on')
     syntax on
@@ -76,7 +75,7 @@ let g:neomake_javascript_enabled_makers = ['fix']
 let g:neomake_javascript_fix_maker = {
   \ 'exe': 'eslint',
   \ 'args': [
-  \   '--config', expand('$CODING_STYLE_PATH/javascript/eslint-fix.js'),
+  \   '--no-eslintrc', '--config', expand('$CODING_STYLE_PATH/javascript/eslint-fix.js'),
   \   '--cache', '--cache-location', expand('$VIMCACHE/eslint'),
   \   '--fix-dry-run', '--format=json', '%:p',
   \ ],

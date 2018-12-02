@@ -78,13 +78,13 @@ augroup filetypedetect
   " Configure files
   autocmd BufNewFile,BufRead *.{cfg,conf},.env set filetype=cfg
   " CMake
-  autocmd BufNewFile,BufRead CMakeLists.txt	set filetype=cmake
+  autocmd BufNewFile,BufRead CMakeLists.txt set filetype=cmake
   " M4
-  autocmd BufNewFile,BufRead *.m4	set filetype=m4
+  autocmd BufNewFile,BufRead *.m4 set filetype=m4
   " Git
   autocmd BufNewFile,BufRead *.git{[/]config,modules} set filetype=gitconfig
   " Diff files
-  autocmd BufNewFile,BufRead *.{diff,patch}	set filetype=diff
+  autocmd BufNewFile,BufRead *.{diff,patch} set filetype=diff
 
   " Fallback
   autocmd BufNewFile,BufRead,StdinReadPost *

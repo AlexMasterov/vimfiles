@@ -16,11 +16,11 @@ function! vimrc#trimWhiteSpace() abort
     return
   endif
 
-  let register = @/
-  let winView = winsaveview()
+  let view = winsaveview()
+  let register = getreg('/')
 
   silent keepjumps %s/\s\+$//ge
 
-  call winrestview(winView)
-  let @/ = register
+  call winrestview(view)
+  call setreg('/', register)
 endfunction
