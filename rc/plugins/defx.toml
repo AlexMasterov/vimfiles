@@ -29,11 +29,11 @@ function! s:jumpToDefx() abort
   endif
 endfunction
 
-Autocmd BufEnter,WinEnter \[defx\]*
+Autocmd BufEnter,WinEnter *default-*
   \  let &l:statusline = ' '
   \| setlocal nonu nornu nolist colorcolumn= cursorline
 
-Autocmd BufLeave,WinLeave \[defx\]*
+Autocmd BufLeave,WinLeave *default-*
   \ setlocal nocursorline
 '''
 

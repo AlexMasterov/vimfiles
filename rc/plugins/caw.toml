@@ -12,9 +12,9 @@ nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
 
 function! s:cawRangeToggle() abort
   if v:count > 1
-    let winView = winsaveview()
+    let view = winsaveview()
     execute "normal V". (v:count - 1) ."j\<Plug>(caw:hatpos:toggle)"
-    call winrestview(winView)
+    call winrestview(view)
   else
     execute "normal \<Plug>(caw:hatpos:toggle)"
   endif

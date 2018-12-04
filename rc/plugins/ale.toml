@@ -49,6 +49,6 @@ call ale#linter#Define('javascript', {
   \ })
 
 let g:ale_javascript_eslint_options =
- \ '--quiet --no-eslintrc --config '
- \ . expand('$CODING_STYLE_PATH/javascript/eslint-fix.js')
+  \ '--quiet --no-eslintrc --config '
+  \ . expand('$CODING_STYLE_PATH/javascript/eslint-fix.js')
 '''

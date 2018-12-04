@@ -87,14 +87,14 @@ let g:neomake_typescript_enabled_makers = ['fix']
 let g:neomake_typescript_fix_maker = {
   \ 'exe': 'tslint',
   \ 'args': [
-  \   '--config', expand('$CODING_STYLE_PATH/typescript/tslint.json',
+  \   '--config', expand('$CODING_STYLE_PATH/typescript/tslint.json'),
   \   '--fix', '%:p',
   \ ],
   \ }
 
 call s:addFixer(g:neomake_typescript_fix_maker.exe)
 AutocmdFT typescript,typescript.jsx
-  \ Autocmd User NeomakeJobFinished call ProcessOutputFile()
+ \ Autocmd User NeomakeJobFinished call ProcessOutputFile()
 
 " Rust
 let g:neomake_rust_enabled_makers = ['fix']
@@ -113,8 +113,8 @@ if executable('rustup')
   silent! let isNightly = system('rustc --version') =~? '\-nightly'
   if isNightly
     let g:neomake_rust_fix_maker.args =
-      \ ['--unstable-features', '--skip-children']
-      \ + g:neomake_rust_fix_maker.args
+     \ ['--unstable-features', '--skip-children']
+     \ + g:neomake_rust_fix_maker.args
   endif
 endif
 
