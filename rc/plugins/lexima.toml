@@ -1,6 +1,7 @@
 [[plugins]]
 repo = 'cohama/lexima.vim'
-hook_add = '''
+on_event = 'InsertEnter'
+hook_source = '''
 let g:loaded_lexima = 1
 let g:lexima_enable_basic_rules = 0
 let g:lexima_enable_endwise_rules = 0

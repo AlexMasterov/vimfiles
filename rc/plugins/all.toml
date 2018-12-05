@@ -32,3 +32,12 @@ xmap <C-a> <Plug>VisualIncrement
 xmap <C-x> <Plug>VisualDecrement
 '''
 hook_source = 'set nrformats+=alpha'
+
+[[plugins]]
+repo = 'AndrewRadev/splitjoin.vim'
+on_cmd = 'SplitjoinSplit'
+hook_add = 'nmap <silent> S :<C-u>silent SplitjoinSplit<CR>'
+hood_source = '''
+let g:splitjoin_join_mapping = ''
+let g:splitjoin_split_mapping = ''
+'''
