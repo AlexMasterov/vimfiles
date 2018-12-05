@@ -83,15 +83,15 @@ set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
 " Undo
-set undodir=$VIMCACHE/undo
+set undodir=$VIMHOME/.undos
 set undofile undolevels=500 undoreload=1000
 call vimrc#makeDir(&undodir, v:true)
 
 " View
-set viewdir=$VIMCACHE/view
+set viewdir=$VIMHOME/.views
 set viewoptions=cursor,slash,unix
 
-set directory=$VIMCACHE
+set directory=$VIMHOME/.tmp
 
 set number relativenumber
 set diffopt=filler,iwhite,vertical
@@ -105,13 +105,28 @@ if has('nvim')
   set termguicolors
   set inccommand=split
 
-  Autocmd VimLeave * set guicursor=a:block-blinkon0
-
   " Share the histories
   Autocmd CursorHold * rshada | wshada
   " Modifiable terminal
   Autocmd TermOpen * setlocal modifiable
   Autocmd TermClose * buffer #
+
+  Autocmd VimLeave * set guicursor=a:block-blinkon0
+
+  if IsWindows()
+    let g:clipboard = {
+      \   'name': 'win-yank',
+      \   'copy': {
+      \      '+': 'win32yank.exe -i --crlf',
+      \      '*': 'win32yank.exe -i --crlf',
+      \    },
+      \   'paste': {
+      \      '+': 'win32yank.exe -o --lf',
+      \      '*': 'win32yank.exe -o --lf',
+      \   },
+      \   'cache_enabled': 0,
+      \ }
+  endif
 else
   set pyxversion=3
 endif

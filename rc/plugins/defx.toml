@@ -37,7 +37,7 @@ Autocmd BufLeave,WinLeave *default-*
   \ setlocal nocursorline
 '''
 
-[ftplugin]
+[plugins.ftplugin]
 defx = '''
 nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'
 nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'

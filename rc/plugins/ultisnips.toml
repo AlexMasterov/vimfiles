@@ -35,6 +35,6 @@ function! UltiComplete(key) abort
 endfunction
 '''
 
-[ftplugin]
+[plugins.ftplugin]
 twig = "call UltiSnips#AddFiletypes('twig.html')"
 blade = "call UltiSnips#AddFiletypes('blade.html')"

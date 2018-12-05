@@ -76,7 +76,7 @@ let g:neomake_javascript_fix_maker = {
   \ 'exe': 'eslint',
   \ 'args': [
   \   '--no-eslintrc', '--config', expand('$CODING_STYLE_PATH/javascript/eslint-fix.js'),
-  \   '--cache', '--cache-location', expand('$VIMCACHE/eslint'),
+  \   '--cache', '--cache-location', expand('$VIMHOME/eslint'),
   \   '--fix-dry-run', '--format=json', '%:p',
   \ ],
   \ 'process_json': function('ProcessOutputJson'),
@@ -124,7 +124,7 @@ let g:neomake_php_fix_maker = {
   \ 'exe': 'php-cs-fixer',
   \ 'args': [
   \   'fix', expand('--config=$CODING_STYLE_PATH/php/phpcs-fix.php'),
-  \   '--using-cache=yes', '--cache-file', expand('$VIMCACHE/phpcs'),
+  \   '--using-cache=yes', '--cache-file', expand('$VIMHOME/phpcs'),
   \   '-q', '%:p'
   \ ],
   \ }

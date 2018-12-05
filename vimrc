@@ -20,11 +20,10 @@ set nomodeline modelines=0
 "---------------------------------------------------------------------------
 let $VIMFILES = exists('$VIMFILES') ? $VIMFILES : expand('~/vimfiles')
 let $VIMHOME = exists('$VIMHOME') ? $VIMHOME : expand('~/.vim')
-let $VIMCACHE = exists('$VIMCACHE') ? $VIMCACHE : expand('$VIMHOME/.cache')
 
 set noexrc
 set packpath=
-set runtimepath=$VIMFILES,$VIMRUNTIME
+set runtimepath=$VIMFILES,$VIMRUNTIME,$PATH
 
 " ---------------------------------------------------------------------------
 function s:source_rc(path) abort

@@ -16,7 +16,7 @@ let g:neomake_echo_current_error = 1
 source $VIMFILES/rc/plugins/neomake.vim
 '''
 
-[ftplugin]
+[plugins.ftplugin]
 _ = '''
 nnoremap <silent> <buffer> ,w
   \ :<C-u>silent! undojoin<CR>:call neomake#Make(1)<CR>

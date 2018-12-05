@@ -1,7 +1,7 @@
 "---------------------------------------------------------------------------
 " Dein
 
-let s:path = expand('$VIMCACHE/dein')
+let s:path = expand('$VIMHOME/dein')
 
 if dein#load_state(s:path)
   call dein#begin(s:path)

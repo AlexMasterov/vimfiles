@@ -29,7 +29,7 @@ let g:sideways_definitions = [
   \ ]
 '''
 
-[ftplugin]
+[plugins.ftplugin]
 javascript = '''
 let b:sideways_definitions = [
   \   {

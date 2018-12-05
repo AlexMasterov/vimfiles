@@ -31,7 +31,7 @@ let g:switch_camelcase = [{
   \ }]
 '''
 
-[ftplugin]
+[plugins.ftplugin]
 javascript = '''
 let b:switch_custom_definitions = [
   \   ['get', 'set'],
