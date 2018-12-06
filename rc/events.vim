@@ -15,6 +15,6 @@ AutocmdFT *? setlocal formatoptions-=ro
 " Highlight invisible symbols
 set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
 " Avoid showing trailing whitespace when in Insert mode
-let g:trailChars = matchstr(&listchars, '\(trail:\)\@<=\S')
-Autocmd InsertEnter * execute 'setlocal list listchars+=trail:' . g:trailChars
-Autocmd InsertLeave * execute 'setlocal nolist listchars-=trail:' . g:trailChars
+let g:trailChar = matchstr(&listchars, '\(trail:\)\@<=\S')
+Autocmd InsertEnter * execute 'setlocal list listchars+=trail:' . g:trailChar
+Autocmd InsertLeave * execute 'setlocal nolist listchars-=trail:' . g:trailChar

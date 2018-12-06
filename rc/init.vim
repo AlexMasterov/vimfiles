@@ -32,6 +32,9 @@ let g:loaded_getscriptPlugin = 1
 let g:loaded_spellfile_plugin = 1
 let g:did_install_syntax_menu = 1
 let g:did_install_default_menus = 1
+" nvim
+let g:loaded_man = 1
+let g:loaded_tutor_mode_plugin = 1
 
 " Setup Dein plugin manager
 if &runtimepath !~# '/dein.vim'

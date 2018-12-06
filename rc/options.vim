@@ -83,12 +83,16 @@ set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
 " Undo
-set undodir=$VIMHOME/.undos
+set undodir=$VIMHOME/.undo
 set undofile undolevels=500 undoreload=1000
 call vimrc#makeDir(&undodir, v:true)
 
+" Backup
+set backupdir=$VIMHOME/.backup
+set nobackup writebackup backupcopy=yes
+
 " View
-set viewdir=$VIMHOME/.views
+set viewdir=$VIMHOME/.view
 set viewoptions=cursor,slash,unix
 
 set directory=$VIMHOME/.tmp

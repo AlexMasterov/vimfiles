@@ -11,6 +11,7 @@ repo = 'cespare/vim-toml'
 
 # CSV
 [[plugins]]
+on_ft = 'csv'
 repo = 'chrisbra/csv.vim'
 
 # SVG
