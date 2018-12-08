@@ -8,7 +8,7 @@ Autocmd Syntax *? if line('$') > 5000 | syntax sync minlines=200 | endif
 Autocmd WinEnter * let [&l:number, &l:relativenumber] = &l:number ? [1, 1] : [&l:number, &l:relativenumber]
 Autocmd WinLeave * let [&l:number, &l:relativenumber] = &l:number ? [1, 0] : [&l:number, &l:relativenumber]
 
-Autocmd WinEnter,FocusGained * checktime
+Autocmd WinEnter,FocusGained * if &buftype !=# 'nofile' | checktime | endif
 
 AutocmdFT *? setlocal formatoptions-=ro
 

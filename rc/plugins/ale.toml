@@ -33,7 +33,7 @@ let g:ale_history_log_output = 0
 
 let g:ale_linters = {
   \ 'javascript': ['lint'],
-  \ 'typescript': ['tslint'],
+  \ 'typescript': [],
   \ 'rust': ['rustc'],
   \ 'php': ['php'],
   \ 'go': ['gofmt'],
@@ -51,4 +51,18 @@ call ale#linter#Define('javascript', {
 let g:ale_javascript_eslint_options =
   \ '--quiet --no-eslintrc --config '
   \ . expand('$CODING_STYLE_PATH/javascript/eslint-fix.js')
+
+" Golang
+if executable('revive')
+  call ale#linter#Define('go', {
+    \ 'name': 'revive',
+    \ 'output_stream': 'both',
+    \ 'executable': 'revive',
+    \ 'read_buffer': 0,
+    \ 'command': 'revive %t',
+    \ 'callback': 'ale#handlers#unix#HandleAsWarning',
+    \ })
+
+  let g:ale_linters['go'] = ['revive']
+endif
 '''

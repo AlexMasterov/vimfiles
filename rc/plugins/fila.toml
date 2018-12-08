@@ -1,0 +1,92 @@
+[[plugins]]
+frozen = 1
+merged = 1
+repo = 'lambdalisue/fila.vim'
+on_func = 'fila#'
+hook_add = '''
+nnoremap <silent> ;d    :<C-u>call <SID>createFila()<CR>
+nnoremap <silent> <Tab> :<C-u>call <SID>jumpToFila()<CR>
+
+function! s:createFila() abort
+  for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'fila'")
+    if !empty(winnr)
+      execute winnr . 'wincmd w' | return
+    endif
+  endfor
+  let url = 'file://' . fnamemodify('.', ':p')
+  let bufname = 'fila://' . fnamemodify(url, ':gs?\\?/?')
+  call fila#drawer#open(bufname, {'width': 20})
+endfunction
+
+function! s:jumpToFila() abort
+  if getwinvar(winnr(), '&filetype') ==# 'fila'
+    wincmd p
+  else
+    for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'fila'")
+      execute winnr . 'wincmd w'
+    endfor
+  endif
+endfunction
+
+Autocmd BufEnter,WinEnter fila://*
+  \  let &l:statusline = ' '
+  \| setlocal nonu nornu nolist colorcolumn= cursorline
+
+Autocmd BufLeave,WinLeave fila://*
+  \ setlocal nocursorline
+'''
+hook_source = '''
+let g:fila#viewer#skip_default_mappings = 1
+
+let g:fila#renderer#default#leading = ' '
+let g:fila#renderer#default#root_symbol = '  '
+let g:fila#renderer#default#leaf_symbol = '  '
+let g:fila#renderer#default#expanded_symbol = '- '
+let g:fila#renderer#default#collapsed_symbol = '+ '
+let g:fila#renderer#default#marked_symbol = '*'
+let g:fila#renderer#default#unmarked_symbol = ''
+'''
+
+[plugins.ftplugin]
+fila = '''
+nnoremap <silent> <buffer> o :<C-u>call fila#action#call('expand-or-open')<CR>
+nnoremap <silent> <buffer> q :<C-u>quit<CR>
+nnoremap <silent> <buffer> Q :<C-u>call fila#action#call('leave')<CR>
+
+nnoremap <silent> <buffer> ! :<C-u>call fila#action#call('open:system')<CR>
+nnoremap <silent> <buffer> e :<C-u>call fila#action#call('mark:toggle')<CR>
+nnoremap <silent> <buffer> r :<C-u>call fila#action#call('reload')<CR>
+nnoremap <silent> <buffer> y :<C-u>call fila#action#call('yank')<CR>
+nnoremap <silent> <buffer> p :<C-u>call fila#action#call('paste')<CR>
+nnoremap <silent> <buffer> . :<C-u>call fila#action#call('hidden:toggle')<CR>
+
+nnoremap <silent> <buffer> n :<C-u>call fila#action#call('new:file')<CR>
+nnoremap <silent> <buffer> N :<C-u>call fila#action#call('new:directory')<CR>
+nnoremap <silent> <buffer> m :<C-u>call fila#action#call('move')<CR>
+nnoremap <silent> <buffer> c :<C-u>call fila#action#call('copy')<CR>
+nnoremap <silent> <buffer> d :<C-u>call fila#action#call('delete:trash')<CR>
+nnoremap <silent> <buffer> D :<C-u>call fila#action#call('delete:remove')<CR>
+
+function! s:win_resize() abort
+  let size = max(map(getline('.', '$'), 'len(v:val)'))
+  if size > 30
+    execute 'vertical resize ' 33
+    return
+  endif
+
+  let width = winwidth(0)
+  if size >= width || size < width
+    execute 'vertical resize ' size + 3
+  endif
+endfunction
+
+nnoremap <silent> <buffer> l
+  \ :<C-u>call fila#action#call('expand').then({ h -> <SID>win_resize() })<CR>
+nnoremap <silent> <buffer> h
+  \ :<C-u>call fila#action#call('collapse').then({ h -> <SID>win_resize() })<CR>
+
+" Syntax
+syntax match FilaDir  /\s*[+-]\s.*/
+
+hi link FilaDir  PreProc
+'''

@@ -1,4 +1,5 @@
 [[plugins]]
+if = 0
 repo = 'Shougo/defx.nvim'
 on_cmd = 'Defx'
 hook_done_update = '''

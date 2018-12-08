@@ -1,0 +1,70 @@
+[[plugins]]
+repo = 'lambdalisue/gina.vim'
+on_func = 'gina#'
+on_cmd = 'Gina'
+hook_add = '''
+nnoremap <silent> -c :<C-u>Gina commit<CR>
+nnoremap <silent> -C :<C-u>Gina changes<CR>
+nnoremap <silent> -b :<C-u>Gina branch<CR>
+nnoremap <silent> -s :<C-u>Gina status<CR>
+nnoremap <silent> -t :<C-u>Gina tag<CR>
+nnoremap <silent> -l :<C-u>Gina log<CR>
+
+nnoremap <silent> ;a :<C-u>Gina log<CR>
+nnoremap <silent> ;z :<C-u>Gina branch<CR>
+
+Autocmd ColorScheme,syntax gina*
+  \  hi AnsiColor1  guifg=#006633 gui=NONE
+  \| hi AnsiColor2  guifg=#999999 gui=NONE
+  \| hi AnsiColor3  guifg=#2B2B2B guibg=#FAE5E4 gui=NONE
+  \| hi AnsiColor11 guifg=#999999 gui=NONE
+  \| hi AnsiColor13 guifg=#0050B0 gui=NONE
+  \| hi AnsiColor14 guifg=#BA4747 gui=NONE
+'''
+hook_source = '''
+let g:gina#command#log#use_default_mappings = 0
+let g:gina#command#blame#use_default_aliases = 0
+let g:gina#command#status#use_default_mappings = 0
+
+call gina#custom#command#option('/\%(grep\|log\)', '--opener', 'vsplit')
+call gina#custom#command#option('/\%(status\|branch\)', '--opener', 'split')
+call gina#custom#command#option('/\%(status\|changes\)', '--ignore-submodules')
+call gina#custom#command#option('/\%(status\|commit\)', '-u|--untracked-files')
+
+call gina#custom#command#option('status', '-s|--short')
+call gina#custom#command#option('status', '-b|--branch')
+
+call gina#custom#execute('/.*', 'let &l:statusline = " " | setlocal nonumber norelativenumber')
+call gina#custom#execute('/\%(branch\|status\)', 'resize 10')
+call gina#custom#execute('/\%(status\|branch\|ls\|log\|reflog\|grep\)', 'setlocal cursorline')
+call gina#custom#execute('/\%(ls\|log\|reflog\|grep\)', 'setlocal noautoread')
+
+" Keymaps
+call gina#custom#mapping#nmap('/.*', 'q', ':<C-u>quit<CR>', {'noremap': 1, 'silent': 1})
+call gina#custom#mapping#nmap('/\%(blame\|log\|reflog\)', 'c', '<Plug>(gina-changes-of)')
+call gina#custom#mapping#nmap('/\%(blame\|log\|reflog\)', 'p', '<Plug>(gina-show-commit-preview)')
+
+" branch
+call gina#custom#mapping#nmap('branch', 'n', '<Plug>(gina-branch-new)')
+call gina#custom#mapping#nmap('branch', 'm', '<Plug>(gina-branch-move)')
+call gina#custom#mapping#nmap('branch', 'M', '<Plug>(gina-branch-move-force)')
+call gina#custom#mapping#nmap('branch', 'D', '<Plug>(gina-branch-delete)')
+call gina#custom#mapping#nmap('branch', 'r', '<Plug>(gina-branch-refrsh)')
+call gina#custom#mapping#nmap('branch', 'o', '<Plug>(gina-commit-checkout)')
+
+" status
+call gina#custom#mapping#nmap('status', 's', '<Plug>(gina-index-toggle)')
+
+" log
+call gina#custom#mapping#nmap('log', 'o', '<Plug>(gina-show-commit)')
+call gina#custom#mapping#nmap('log', 'O', '<Plug>(gina-show-commit-split)')
+
+" changes
+call gina#custom#mapping#nmap('changes', 'o', ':<C-u>buffer#<CR>', {'noremap': 1, 'silent': 1})
+call gina#custom#mapping#nmap('changes', 'c', ':<C-u>buffer#<CR>', {'noremap': 1, 'silent': 1})
+'''
+
+[plugins.ftplugin]
+git = '''
+nnoremap <silent> <buffer> o :<C-u>buffer#<CR>
+'''
