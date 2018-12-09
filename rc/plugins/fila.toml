@@ -56,6 +56,7 @@ nnoremap <silent> <buffer> Q :<C-u>call fila#action#call('leave')<CR>
 nnoremap <silent> <buffer> ! :<C-u>call fila#action#call('open:system')<CR>
 nnoremap <silent> <buffer> e :<C-u>call fila#action#call('mark:toggle')<CR>
 nnoremap <silent> <buffer> r :<C-u>call fila#action#call('reload')<CR>
+nnoremap <silent> <buffer> R :<C-u>call fila#action#call('reload')<CR>
 nnoremap <silent> <buffer> y :<C-u>call fila#action#call('yank')<CR>
 nnoremap <silent> <buffer> p :<C-u>call fila#action#call('paste')<CR>
 nnoremap <silent> <buffer> . :<C-u>call fila#action#call('hidden:toggle')<CR>
@@ -68,7 +69,7 @@ nnoremap <silent> <buffer> d :<C-u>call fila#action#call('delete:trash')<CR>
 nnoremap <silent> <buffer> D :<C-u>call fila#action#call('delete:remove')<CR>
 
 function! s:win_resize() abort
-  let size = max(map(getline('.', '$'), 'len(v:val)'))
+  let size = max(map(getline(1, '$'), 'len(v:val)'))
   if size > 30
     execute 'vertical resize ' 33
     return
@@ -81,9 +82,9 @@ function! s:win_resize() abort
 endfunction
 
 nnoremap <silent> <buffer> l
-  \ :<C-u>call fila#action#call('expand').then({ h -> <SID>win_resize() })<CR>
+  \ :<C-u>call fila#action#call('expand').then({ -> <SID>win_resize() })<CR>
 nnoremap <silent> <buffer> h
-  \ :<C-u>call fila#action#call('collapse').then({ h -> <SID>win_resize() })<CR>
+  \ :<C-u>call fila#action#call('collapse').then({ -> <SID>win_resize() })<CR>
 
 " Syntax
 syntax match FilaDir  /\s*[+-]\s.*/

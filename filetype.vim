@@ -86,6 +86,16 @@ augroup filetypedetect
   " Diff files
   autocmd BufNewFile,BufRead *.{diff,patch} set filetype=diff
 
+  " Terminal
+  if has('nvim')
+    autocmd TermOpen * set filetype=terminal
+  else
+    autocmd BufWinEnter *
+      \ if &filetype ==# '' && &buftype ==# 'terminal' |
+      \   set filetype=terminal |
+      \ endif
+  endif
+
   " Fallback
   autocmd BufNewFile,BufRead,StdinReadPost *
     \ if !did_filetype() && <SID>checkLine()

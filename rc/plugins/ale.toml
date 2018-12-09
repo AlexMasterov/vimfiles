@@ -2,8 +2,6 @@
 repo = 'w0rp/ale'
 on_func = 'ale#'
 hook_add = '''
-let g:ale_emit_conflict_warnings = 0
-
 nmap <silent> <Right> <Plug>(ale_next_wrap)
 nmap <silent> <Left>  <Plug>(ale_previous_wrap)
 
@@ -14,46 +12,56 @@ Autocmd ColorScheme *
   \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 
 Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
-  \ *.{js,ts,rs,php,go} call ale#Queue(0, 'lint_file')
+  \ *.{js,ts,rs,php,go,md} call ale#Queue(0, 'lint_file')
 '''
 hook_source = '''
 let g:ale_echo_cursor = 1
 let g:ale_lint_on_save = 0
 let g:ale_lint_on_enter = 0
 let g:ale_lint_on_text_changed = 0
-let g:ale_sign_error = '->'
-let g:ale_sign_warning = '—'
-let g:ale_echo_msg_error_str = 'E'
-let g:ale_echo_msg_warning_str = 'W'
-let g:ale_echo_msg_format = ' %s'
-let g:ale_set_signs = 0
-let g:ale_sign_column_always = 0
 let g:ale_history_enabled = 0
 let g:ale_history_log_output = 0
+let g:ale_set_signs = 0
+let g:ale_sign_column_always = 0
+let g:ale_sign_error = '->'
+let g:ale_sign_warning = '—'
+let g:ale_echo_msg_format = ' %s'
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
 
 let g:ale_linters = {
-  \ 'javascript': ['lint'],
+  \ 'javascript': ['jslint'],
   \ 'typescript': [],
   \ 'rust': ['rustc'],
   \ 'php': ['php'],
   \ 'go': ['gofmt'],
+  \ 'markdown': ['jslint-md'],
+  \ }
+
+let g:ale_linter_aliases = {
+  \ 'markdown': ['javascript'],
   \ }
 
 " JavaScript
-call ale#linter#Define('javascript', {
-  \ 'name': 'lint',
-  \ 'output_stream': 'both',
-  \ 'executable': 'eslint',
-  \ 'command_callback': 'ale#handlers#eslint#GetCommand',
-  \ 'callback': 'ale#handlers#eslint#Handle',
-  \ })
-
-let g:ale_javascript_eslint_options =
-  \ '--quiet --no-eslintrc --config '
+function! s:eslint(name, ...) abort
+  let cmd = 'eslint --no-eslintrc --config '
   \ . expand('$CODING_STYLE_PATH/javascript/eslint-fix.js')
+  \ . (a:0 > 0 ? ' ' . a:1 : '')
+  \ . ' --no-color -f unix --stdin --stdin-filename %s'
+  return {
+    \ 'name': a:name,
+    \ 'executable': 'eslint',
+    \ 'command': cmd,
+    \ 'callback': 'ale#handlers#eslint#Handle',
+    \ }
+endfunction
+
+call ale#linter#Define('javascript', s:eslint('jslint'))
+call ale#linter#Define('javascript', s:eslint('jslint-md', '--plugin markdown'))
 
 " Golang
 if executable('revive')
+  let g:ale_linters['go'] = ['revive']
   call ale#linter#Define('go', {
     \ 'name': 'revive',
     \ 'output_stream': 'both',
@@ -62,7 +70,5 @@ if executable('revive')
     \ 'command': 'revive %t',
     \ 'callback': 'ale#handlers#unix#HandleAsWarning',
     \ })
-
-  let g:ale_linters['go'] = ['revive']
 endif
 '''
