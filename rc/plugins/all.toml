@@ -41,3 +41,24 @@ hood_source = '''
 let g:splitjoin_join_mapping = ''
 let g:splitjoin_split_mapping = ''
 '''
+
+[[plugins]]
+repo = 'iamcco/markdown-preview.nvim'
+hook_post_update = '''
+if executable('node')
+  call system(printf('cd %s && yarn install',
+    \ expand(dein#get('markdown-preview.nvim').rtp . '/app')))
+endif
+'''
+hook_add = '''
+let g:mkdp_port = 3010
+let g:mkdp_auto_start = 0
+let g:mkdp_auto_close = 0
+let g:mkdp_open_to_the_world = 0
+'''
+
+[plugins.ftplugin]
+markdown = '''
+nnoremap <silent> <buffer> ,p :<C-u>call mkdp#util#open_preview_page()<CR>
+nnoremap <silent> <buffer> ,q :<C-u>call mkdp#util#stop_preview()<CR>
+'''

@@ -107,15 +107,7 @@ set nofoldenable
 if has('nvim')
   set nofsync
   set termguicolors
-  set inccommand=split
-
-  " Share the histories
-  Autocmd CursorHold * rshada | wshada
-  " Modifiable terminal
-  Autocmd TermOpen * setlocal modifiable
-  Autocmd TermClose * buffer #
-
-  Autocmd VimLeave * set guicursor=a:block-blinkon0
+  set inccommand=nosplit
 
   if IsWindows()
     let g:clipboard = {
@@ -128,7 +120,7 @@ if has('nvim')
       \      '+': 'win32yank.exe -o --lf',
       \      '*': 'win32yank.exe -o --lf',
       \   },
-      \   'cache_enabled': 0,
+      \   'cache_enabled': 1,
       \ }
   endif
 else

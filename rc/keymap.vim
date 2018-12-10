@@ -326,6 +326,12 @@ xnoremap <silent> <A-k> :move-2<CR>gv
 "   " sort lines inside block
 "   nnoremap ;4 ?{<CR>jV/\v^\s*\}?$<CR>k:sort<CR>:silent! nohlsearch<CR>
 
+" Terminal mode
+"---------------------------------------------------------------------------
+tnoremap <C-h> <C-\><C-n><C-w>h
+tnoremap <C-j> <C-\><C-n><C-w>j
+tnoremap <C-k> <C-\><C-n><C-w>k
+
 "---------------------------------------------------------------------------
 function! s:jumpToLine(line) abort
   call cursor(a:line, 0)

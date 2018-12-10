@@ -87,7 +87,7 @@ nnoremap <silent> <buffer> h
   \ :<C-u>call fila#action#call('collapse').then({ -> <SID>win_resize() })<CR>
 
 " Syntax
-syntax match FilaDir  /\s*[+-]\s.*/
+syntax match FilaDir /\s*[+-]\s.*/
 
-hi link FilaDir  PreProc
+hi link FilaDir PreProc
 '''

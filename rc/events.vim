@@ -18,3 +18,11 @@ set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
 let g:trailChar = matchstr(&listchars, '\(trail:\)\@<=\S')
 Autocmd InsertEnter * execute 'setlocal list listchars+=trail:' . g:trailChar
 Autocmd InsertLeave * execute 'setlocal nolist listchars-=trail:' . g:trailChar
+
+if has('nvim')
+  " Share the histories
+  Autocmd CursorHold * rshada | wshada
+  " Modifiable terminal
+  Autocmd TermOpen * setlocal modifiable
+  Autocmd TermClose * buffer #
+endif
