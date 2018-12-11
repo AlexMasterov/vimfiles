@@ -1,4 +1,5 @@
 [[plugins]]
+if = 0
 frozen = 1
 merged = 1
 repo = 'lambdalisue/fila.vim'

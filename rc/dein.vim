@@ -6,7 +6,8 @@ let s:path = expand('$VIMHOME/dein')
 if dein#load_state(s:path)
   call dein#begin(s:path)
 
-  let plugins = globpath('$VIMFILES/rc/plugins', '*.toml', v:false, v:true)
+  let plugins = globpath('$VIMFILES/rc/{plugins\,ftypes}*',
+      \ '*.toml', v:false, v:true)
 
   for plugin in plugins
     call dein#load_toml(plugin)

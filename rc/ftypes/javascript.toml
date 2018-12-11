@@ -1,0 +1,60 @@
+[[plugins]]
+frozen = 0
+repo = 'carlitux/deoplete-ternjs'
+on_ft = 'javascript'
+hook_source = '''
+let g:tern#filetypes = []
+let g:deoplete#sources#ternjs#tern_bin = 'tern'
+let g:deoplete#sources#ternjs#docs = 0
+let g:deoplete#sources#ternjs#types = 1
+let g:deoplete#sources#ternjs#case_insensitive = 1
+'''
+
+[[plugins]]
+repo = 'chemzqm/vim-jsx-improve'
+hook_add = '''
+let g:javascript_plugin_jsdoc = 1
+let g:javascript_plugin_flow = 0
+let g:jsx_improve_motion_disable = 1
+
+Autocmd Syntax javascript
+  \  hi jsBraces              guifg=#999999 gui=NONE
+  \| hi jsFuncBraces          guifg=#999999 gui=NONE
+  \| hi jsBrackets            guifg=#999999 gui=NONE
+  \| hi jsParens              guifg=#999999 gui=NONE
+  \| hi jsDestructuringBraces guifg=#999999 gui=NONE
+  \| hi jsParensIfElse        guifg=#999999 gui=NONE
+  \| hi jsGlobalNodeObjects   guifg=#4091bf gui=NONE
+  \| hi jsImport              guifg=#1E347B gui=NONE
+  \| hi jsFrom                guifg=#1E347B gui=NONE
+'''
+
+[[plugins]]
+repo = 'heavenshell/vim-jsdoc'
+on_func = 'jsdoc#'
+hook_source = '''
+let g:jsdoc_enable_es6 = 1
+let g:jsdoc_allow_input_prompt = 0
+let g:jsdoc_access_descriptions = 0
+let g:jsdoc_custom_args_hook = {
+  \ '^\(bool\|boolean\)$':            {'type': '  {Boolean}'},
+  \ '^_\?\(is\|has\)':                {'type': '  {Boolean}'},
+  \ '^\(i\|num\|number\)$':           {'type': '  {Number}'},
+  \ '^\(str\|string\)$':              {'type': '  {String}'},
+  \ '^\(arr\|array\)$':               {'type': '  {Array}'},
+  \ '^\(opt\|options\)$':             {'type': '  {Object}'},
+  \ '^\(o\|obj\|object\)$':           {'type': '  {Object}'},
+  \ '^\(buf\|buffer\|bin\|binary\)$': {'type': '  {Buffer}'},
+  \ '^\(fn\|handler\)$':              {'type': '  {Function}'},
+  \ '^\(callback\|cb\)$':             {'type': '  {Function}', 'description': 'Callback function'},
+  \ '^\(err\|error\)$':               {'type': '  {Error}'},
+  \ '^\(el\|elem\|node\)$':           {'type': '  {Element}'},
+  \ '^\(e\|evt\|event\)$':            {'type': '  {Event}'},
+  \ }
+'''
+
+[plugins.ftplugin]
+javascript = '''
+nmap <buffer>          ,c :<C-u>call jsdoc#insert()<CR>
+nmap <silent> <buffer> ,C :<C-u>?function<CR>:nohlsearch<CR>:call jsdoc#insert()<CR>
+'''

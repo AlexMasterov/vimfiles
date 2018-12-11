@@ -2,9 +2,9 @@
 " Init
 
 if has('nvim')
-  set shada=!,'300,<50,s10,h,n$VIMHOME/shada
+  set shada=!,'50,<50,s10,h,n$VIMHOME/shada
 else
-  set viminfo=!,'300,<50,s10,h,n$VIMHOME/viminfo
+  set viminfo=!,'50,<50,s10,h,n$VIMHOME/viminfo
 endif
 
 call histdel(':', '^w\?q\%[all]!\?$')

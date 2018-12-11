@@ -1,5 +1,4 @@
 [[plugins]]
-if = 0
 repo = 'Shougo/defx.nvim'
 on_cmd = 'Defx'
 hook_done_update = '''
@@ -17,7 +16,7 @@ function! s:createDefx() abort
       execute winnr . 'wincmd w' | return
     endif
   endfor
-  Defx -split=vertical -direction=topleft -winwidth=25
+  Defx -split=vertical -direction=topleft -winwidth=20
 endfunction
 
 function! s:jumpToDefx() abort
@@ -42,11 +41,9 @@ Autocmd BufLeave,WinLeave *default-*
 defx = '''
 nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'
 nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'
-nnoremap <silent> <buffer> <expr> h defx#do_action('cd', ['..'])
 nnoremap <silent> <buffer> <expr> i defx#do_action('cd', ['..'])
 nnoremap <silent> <buffer> <expr> u defx#do_action('cd', ['..'])
 
-nnoremap <silent> <buffer> <expr> l defx#async_action('drop')
 nnoremap <silent> <buffer> <expr> o defx#async_action('drop')
 nnoremap <silent> <buffer> <expr> S defx#do_action('open', 'vsplit')
 nnoremap <silent> <buffer> <expr> p defx#do_action('open', 'pedit')
@@ -58,11 +55,10 @@ nnoremap <silent> <buffer> <expr> y defx#do_action('yank_path')
 nnoremap <silent> <buffer> <expr> c defx#do_action('copy')
 nnoremap <silent> <buffer> <expr> p defx#do_action('paste')
 nnoremap <silent> <buffer> <expr> m defx#do_action('move')
+nnoremap <silent> <buffer> <expr> r defx#do_action('rename')
 nnoremap <silent> <buffer> <expr> d defx#do_action('remove_trash')
 nnoremap <silent> <buffer> <expr> D defx#do_action('remove')
-nnoremap <silent> <buffer> <expr> r defx#do_action('rename')
 nnoremap <silent> <buffer> <expr> R defx#do_action('redraw')
-nnoremap <silent> <buffer> <expr> X defx#do_action('execute_system')
 nnoremap <silent> <buffer> <expr> ! defx#do_action('execute_command')
 
 nnoremap <silent> <buffer> <expr> e defx#do_action('toggle_select')
@@ -71,4 +67,22 @@ nnoremap <silent> <buffer> <expr> A defx#do_action('toggle_select_all')
 nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
 
 nnoremap <buffer> <Space>i <Nop>
+
+function! s:win_resize() abort
+  let size = max(map(getline(1, '$'), 'len(trim(v:val))'))
+  if size > 30
+    execute 'vertical resize ' 33
+    return
+  endif
+
+  let width = winwidth(0)
+  if size >= width || size < width
+    execute 'vertical resize ' size + 3
+  endif
+endfunction
+
+nnoremap <silent> <buffer> h
+  \ :<C-u>call defx#call_action('cd', ['..'])<CR>:call <SID>win_resize()<CR>
+nnoremap <silent> <buffer> l
+  \ :<C-u>call defx#call_action('drop')<CR>:call <SID>win_resize()<CR>
 '''

@@ -21,7 +21,7 @@ Autocmd InsertLeave * execute 'setlocal nolist listchars-=trail:' . g:trailChar
 
 if has('nvim')
   " Share the histories
-  Autocmd CursorHold * rshada | wshada
+  Autocmd FocusGained * rshada | wshada
   " Modifiable terminal
   Autocmd TermOpen * setlocal modifiable
   Autocmd TermClose * buffer #

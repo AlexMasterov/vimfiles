@@ -10,3 +10,12 @@ on_map = ['vid', 'viD', 'vad', 'vaD']
 repo = 'whatyouhide/vim-textobj-xmlattr'
 depends = 'vim-textobj-user'
 on_map = ['vix', 'vax']
+
+[[plugins]]
+repo = 'joereynolds/place.vim'
+on_map = {n = '<Plug>(place-insert'}
+hook_add = '''
+nmap ga <Plug>(place-insert)
+nmap gb <Plug>(place-insert-multiple)
+'''
+hook_source = 'let g:place_blink = 0'
