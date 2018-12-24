@@ -108,21 +108,6 @@ if has('nvim')
   set nofsync
   set termguicolors
   set inccommand=nosplit
-
-  if IsWindows()
-    let g:clipboard = {
-      \   'name': 'win-yank',
-      \   'copy': {
-      \      '+': 'win32yank.exe -i --crlf',
-      \      '*': 'win32yank.exe -i --crlf',
-      \    },
-      \   'paste': {
-      \      '+': 'win32yank.exe -o --lf',
-      \      '*': 'win32yank.exe -o --lf',
-      \   },
-      \   'cache_enabled': 1,
-      \ }
-  endif
 else
   set pyxversion=3
 endif

@@ -43,6 +43,21 @@ let g:ale_linter_aliases = {
   \ 'markdown': ['javascript'],
   \ }
 
+function! AleStatusLine() abort
+  let counts = ale#statusline#Count(bufnr('%'))
+  if counts.total ==# 0
+    return 'OK'
+  endif
+
+  let allErrors = counts.error + counts.style_error
+  let allNonErrors = counts.total - allErrors
+
+  return printf('%dW %dE', allNonErrors, allErrors)
+endfunction
+
+call AddStatusLine("%{AleStatusLine()}", 6)
+
+"--------------------------------------------------------------------------
 " JavaScript
 function! s:eslint(name, ...) abort
   let cmd = 'eslint --no-eslintrc --config '

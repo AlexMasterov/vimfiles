@@ -14,6 +14,19 @@ let g:neomake_highlight_columns = 0
 let g:neomake_echo_current_error = 1
 
 source $VIMFILES/rc/plugins/neomake.vim
+
+function! NeomakeStatusLine() abort
+  return neomake#statusline#get(bufnr('%'), {
+    \ 'format_running': '…',
+    \ 'format_status': '%s',
+    \ 'format_loclist_ok': '✓',
+    \ 'format_loclist_unknown': '',
+    \ 'format_quickfix_ok': '',
+    \ 'format_quickfix_issues': '%s',
+    \ })
+endfunction
+
+call AddStatusLine("%(%{&filetype ==# '' ? '' : NeomakeStatusLine()}\ %)", 4)
 '''
 
 [plugins.ftplugin]
