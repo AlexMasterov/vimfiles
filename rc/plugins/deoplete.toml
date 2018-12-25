@@ -34,12 +34,17 @@ function! Decomplete() abort
     return "\<C-n>"
   endif
 
-  let [curPos, lineLength] = [getcurpos()[4], col('$')]
-  let isText = curPos <= lineLength
-  let isStartLine = curPos <= 1
-  let isBackspace = getline('.')[curPos-2] =~ '\s'
+  " let [curPos, lineLength] = [getcurpos()[4], col('$')]
+  " let isText = curPos <= lineLength
+  " let isStartLine = curPos <= 1
+  " let isBackspace = getline('.')[curPos-2] =~ '\s'
 
-  if isText && !isStartLine && !isBackspace
+  " if isText && !isStartLine && !isBackspace
+  "   return deoplete#mappings#manual_complete()
+  " endif
+
+  let curPos = getcurpos()[4]
+  if curPos && strpart(getline('.'), curPos - 2, 3) =~ '^\w'
     return deoplete#mappings#manual_complete()
   endif
 
@@ -61,17 +66,14 @@ call deoplete#enable()
 
 call deoplete#custom#option({
   \ 'yarp': !has('nvim'),
-  \ 'async_timeout': 100,
   \ 'auto_complete_delay': 0,
   \ 'auto_refresh_delay': 200,
   \ 'camel_case': v:true,
   \ 'max_list': 42,
   \ 'refresh_always': v:true,
+  \ 'skip_multibyte': v:true,
   \ 'skip_chars': ['(', ')'],
   \ })
-
-call deoplete#custom#source('_', 'matchers', ['matcher_fuzzy', 'matcher_length'])
-call deoplete#custom#source('_', 'converters', ['matcher_length'])
 
 call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
 '''
