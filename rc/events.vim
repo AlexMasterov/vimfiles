@@ -1,7 +1,10 @@
 "--------------------------------------------------------------------------
 " Events
-
-Autocmd VimEnter * filetype plugin indent on
+if v:vim_did_enter
+  filetype plugin indent on
+else
+  Autocmd VimEnter * filetype plugin indent on
+endif
 
 Autocmd Syntax *? if line('$') > 5000 | syntax sync minlines=200 | endif
 

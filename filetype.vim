@@ -4,6 +4,7 @@ endif
 let did_load_filetypes = 1
 
 augroup filetypedetect
+  autocmd!
   " Vim
   autocmd BufNewFile,BufRead *.vim,vimrc*,$MYVIMRC set filetype=vim
 

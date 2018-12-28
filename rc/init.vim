@@ -1,6 +1,8 @@
 "---------------------------------------------------------------------------
 " Init
 
+filetype on
+
 if has('nvim')
   set shada=!,'50,<50,s10,h,n$VIMHOME/shada
 else

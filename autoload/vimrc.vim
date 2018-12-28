@@ -7,7 +7,7 @@ function! vimrc#makeDir(name, ...) abort
 
   if !isdirectory(name)
     \ && (force || input('^y\%[es]$' =~? printf('"%s" does not exist. Create? [yes/no]', name)))
-    silent call mkdir(iconv(name, &encoding, &termencoding), 'p')
+    silent call mkdir(iconv(name, &encoding, &termencoding), 'p', 0700)
   endif
 endfunction
 
