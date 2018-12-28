@@ -26,7 +26,7 @@ function! NeomakeStatusLine() abort
     \ })
 endfunction
 
-call AddStatusLine("%(%{&filetype ==# '' ? '' : NeomakeStatusLine()}\ %)", 4)
+call AddStatusLine("%{NeomakeStatusLine()}", 4)
 '''
 
 [plugins.ftplugin]

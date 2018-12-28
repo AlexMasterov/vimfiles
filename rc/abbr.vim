@@ -24,13 +24,15 @@ cnoreabbrev          ##u <C-r>=localtime()<CR>
 " Shebang
 inoreabbrev <silent> <expr> ##! '#!/usr/bin/env ' . &filetype
 
+" Emoji
+inoreabbrev :lod: ಠ_ಠ
+inoreabbrev :strong: ᕦ(ò_óˇ)ᕤ
+
 " Typos
 iabbrev Licence License
 iabbrev cosnt   const
 iabbrev laod    load
 iabbrev paylaod payload
 iabbrev Paylaod Payload
-
-" Emoji
-inoreabbrev :lod: ಠ_ಠ
-inoreabbrev :strong: ᕦ(ò_óˇ)ᕤ
+iabbrev pritn   print
+iabbrev retrun  return
