@@ -20,7 +20,7 @@ if ui_name ==# 'nvim-qt'
   call rpcnotify(0, 'Gui', 'Font', 'Droid Sans Mono:h10', v:true)
   call rpcnotify(0, 'Gui', 'Linespace', 6)
   call rpcnotify(0, 'Gui', 'Mousehide', v:true)
-  call rpcnotify(0, 'Gui', 'Option', 'Popupmenu', v:true)
+  call rpcnotify(0, 'Gui', 'Option', 'Popupmenu', v:false)
 
   command! -nargs=1 FullScreen
     \ call rpcnotify(0, 'Gui', 'WindowFullScreen', <q-args>)

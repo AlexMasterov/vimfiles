@@ -44,7 +44,10 @@ nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'
 nnoremap <silent> <buffer> <expr> i defx#do_action('cd', ['..'])
 nnoremap <silent> <buffer> <expr> u defx#do_action('cd', ['..'])
 
-nnoremap <silent> <buffer> <expr> o defx#async_action('drop')
+execute 'nnoremap <silent> <buffer> <expr> o '. (has('nvim')
+  \ ? 'defx#async_action("drop")'
+  \ : 'defx#do_action("drop")')
+
 nnoremap <silent> <buffer> <expr> S defx#do_action('open', 'vsplit')
 nnoremap <silent> <buffer> <expr> p defx#do_action('open', 'pedit')
 nnoremap <silent> <buffer> <expr> q defx#do_action('quit')
@@ -70,8 +73,12 @@ nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
 nnoremap <buffer> <Space>i <Nop>
 
 function! s:win_resize() abort
+  if &filetype !=# 'defx'
+    return
+  endif
+
   let size = max(map(getline(2, '$'), 'len(trim(v:val))'))
-  if size < 20
+  if size < 12
     return
   endif
   if size > 30
