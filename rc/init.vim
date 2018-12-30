@@ -14,9 +14,6 @@ call histdel(':', '^w\?q\%[all]!\?$')
 " Use English interface
 language message C
 
-" Disable Visual bell
-set t_vb= belloff=all novisualbell
-
 " Disable built-in plugins
 let g:loaded_csv = 1
 let g:loaded_gzip = 1

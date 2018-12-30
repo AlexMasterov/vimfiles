@@ -11,7 +11,7 @@ Autocmd ColorScheme *
   \| hi ALEErrorLine   guifg=#2B2B2B guibg=#F2E8DF gui=NONE
   \| hi ALEWarningLine guifg=#2B2B2B guibg=#F2E8DF gui=NONE
 
-Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChangedI
+Autocmd BufNewFile,BufWrite,BufEnter,WinEnter,TextChanged,TextChangedI
   \ *.{js,ts,rs,php,go,md}
   \ call ale#Queue(0, 'lint_file')
 '''
@@ -55,7 +55,7 @@ function! AleStatusLine() abort
   return printf('%dW %dE', allNonErrors, allErrors)
 endfunction
 
-call AddStatusLine("%{AleStatusLine()}", 6)
+call AddStatusLine("%{AleStatusLine()}", 5)
 
 "--------------------------------------------------------------------------
 " JavaScript
