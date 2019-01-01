@@ -6,10 +6,12 @@ let b:php_highlight_html = 1
 
 Indent 4
 
+setlocal nonumber norelativenumber
+
 setlocal nowrap textwidth=120
 setlocal commentstring=//%s
 
+setlocal iskeyword+=$,\\
 setlocal matchpairs-=<:>
-setlocal iskeyword+=\\
 
 setlocal omnifunc=phpcomplete#CompletePHP

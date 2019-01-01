@@ -16,4 +16,10 @@ if IsWindows()
   endif
 else
   set guifont=Droid\ Sans\ Mono\ 10,Consolas\ 11
+  if has('gui_macvim')
+    set macmeta
+    set transparency=10
+    " Retina screen
+    set antialias
+  endif
 endif

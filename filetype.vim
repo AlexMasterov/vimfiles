@@ -4,7 +4,6 @@ endif
 let did_load_filetypes = 1
 
 augroup filetypedetect
-  autocmd!
   " Vim
   autocmd BufNewFile,BufRead *.vim,vimrc*,$MYVIMRC set filetype=vim
 
@@ -56,6 +55,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.{twig,*.twig} set filetype=twig
   " Blade
   autocmd BufNewFile,BufRead *.blade.php set filetype=blade
+  " Vue.js
+  autocmd BufNewFile,BufRead *.vue set filetype=vue
 
   " CSS
   autocmd BufNewFile,BufRead *.css set filetype=css

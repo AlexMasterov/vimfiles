@@ -78,7 +78,7 @@ function! s:win_resize() abort
   endif
 
   let size = max(map(getline(2, '$'), 'len(trim(v:val))'))
-  if size < 12
+  if size < 13
     return
   endif
   if size > 30
