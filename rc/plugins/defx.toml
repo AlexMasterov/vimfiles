@@ -36,6 +36,12 @@ Autocmd BufEnter,WinEnter *default-*
 Autocmd BufLeave,WinLeave *default-*
   \ setlocal nocursorline
 '''
+hook_source = '''
+call defx#custom#column('mark', {
+  \ 'root_icon': ' ',
+  \ 'directory_icon': ' ',
+  \ })
+'''
 
 [plugins.ftplugin]
 defx = '''
