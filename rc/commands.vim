@@ -11,6 +11,7 @@ command! -nargs=1 Indent
   \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
 
 command! -nargs=0 -bar GoldenRatio execute 'vertical resize' &columns * 5 / 8
+command! -nargs=0 -bar WordCount echo strchars(join(getline(1, '$')))
 
 " Shows the syntax stack under the cursor
 command! -nargs=0 -bar SS echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')

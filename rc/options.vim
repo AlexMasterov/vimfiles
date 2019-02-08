@@ -108,6 +108,9 @@ if has('nvim')
   set nofsync
   set termguicolors
   set inccommand=nosplit
+  if exists('&pumblend')
+    set pumblend=20
+  endif
 else
   set pyxversion=3
 endif

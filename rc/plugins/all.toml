@@ -59,10 +59,11 @@ let g:winresizer_keycode_finish = char2nr('o')
 
 [[plugins]]
 repo = 'iamcco/markdown-preview.nvim'
+merged = 0
 on_ft = 'markdown'
 hook_post_update = '''
 if executable('node')
-  call system(printf('cd %s && yarn install',
+  call system(printf('cd %s && yarn install --silent --no-lockfile',
     \ expand(dein#get('markdown-preview.nvim').rtp . '/app')))
 endif
 '''
