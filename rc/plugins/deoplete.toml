@@ -69,7 +69,7 @@ call deoplete#custom#option({
   \ 'auto_refresh_delay': 20,
   \ 'camel_case': v:true,
   \ 'max_list': 42,
-  \ 'prev_completion_mode': 'mirror',
+  \ 'prev_completion_mode': 'length',
   \ 'refresh_always': v:true,
   \ 'skip_chars': ['(', ')'],
   \ 'skip_multibyte': v:true,

@@ -16,7 +16,7 @@ function! s:createDefx() abort
       execute winnr . 'wincmd w' | return
     endif
   endfor
-  Defx -split=vertical -direction=topleft -winwidth=20
+  Defx
 endfunction
 
 function! s:jumpToDefx() abort
@@ -37,9 +37,20 @@ Autocmd BufLeave,WinLeave *default-*
   \ setlocal nocursorline
 '''
 hook_source = '''
-call defx#custom#column('mark', {
+call defx#custom#option('_', {
+  \ 'split': 'vertical',
+  \ 'direction': 'topleft',
+  \ 'winwidth': 20,
+  \ 'root_marker': '',
+  \ })
+
+call defx#custom#column('filename', {
   \ 'root_icon': ' ',
   \ 'directory_icon': ' ',
+  \ })
+
+call defx#custom#column('mark', {
+  \ 'length': 0,
   \ })
 '''
 
@@ -54,9 +65,9 @@ execute 'nnoremap <silent> <buffer> <expr> o '. (has('nvim')
   \ ? 'defx#async_action("drop")'
   \ : 'defx#do_action("drop")')
 
-nnoremap <silent> <buffer> <expr> S defx#do_action('open', 'vsplit')
-nnoremap <silent> <buffer> <expr> p defx#do_action('open', 'pedit')
-nnoremap <silent> <buffer> <expr> q defx#do_action('quit')
+nnoremap <silent> <buffer> <expr> Q defx#do_action('multi', ['drop', 'quit'])
+nnoremap <silent> <buffer> <expr> S defx#do_action('multi', ['open', 'vsplit'])
+nnoremap <silent> <buffer> <expr> p defx#do_action('multi', ['open', 'pedit'])
 
 nnoremap <silent> <buffer> <expr> n defx#do_action('new_file')
 nnoremap <silent> <buffer> <expr> N defx#do_action('new_directory')
@@ -75,6 +86,7 @@ nnoremap <silent> <buffer> <expr> e defx#do_action('toggle_select')
 nnoremap <silent> <buffer> <expr> E defx#do_action('toggle_select') . 'j'
 nnoremap <silent> <buffer> <expr> A defx#do_action('toggle_select_all')
 nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
+nnoremap <silent> <buffer> <expr> t defx#do_action('toggle_sort', 'Time')
 
 nnoremap <buffer> <Space>i <Nop>
 
