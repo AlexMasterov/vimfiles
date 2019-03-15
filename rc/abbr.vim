@@ -36,3 +36,5 @@ iabbrev paylaod payload
 iabbrev Paylaod Payload
 iabbrev pritn   print
 iabbrev retrun  return
+cabbrev Cd cd
+cabbrev CD cd
