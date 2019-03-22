@@ -31,7 +31,7 @@ endfunction
 
 Autocmd BufEnter,WinEnter *default-*
   \  let &l:statusline = ' '
-  \| setlocal nonu nornu nolist colorcolumn= cursorline
+  \| setlocal cursorline
 
 Autocmd BufLeave,WinLeave *default-*
   \ setlocal nocursorline
@@ -46,6 +46,7 @@ call defx#custom#option('_', {
 
 call defx#custom#column('filename', {
   \ 'root_icon': ' ',
+  \ 'opened_icon': ' ',
   \ 'directory_icon': ' ',
   \ })
 
@@ -106,12 +107,14 @@ function! s:win_resize() abort
 
   let width = winwidth(0)
   if size >= width || size < width
-    execute 'vertical resize ' size + 3
+    execute 'vertical resize ' size + 5
   endif
 endfunction
 
 nnoremap <silent> <buffer> h
-  \ :<C-u>call defx#call_action('cd', ['..'])<CR>:call <SID>win_resize()<CR>
+  \ :<C-u>call defx#call_action('close_tree')<CR>:call <SID>win_resize()<CR>
 nnoremap <silent> <buffer> l
-  \ :<C-u>call defx#call_action('drop')<CR>:call <SID>win_resize()<CR>
+  \ :<C-u>call defx#call_action('open_tree')<CR>:call <SID>win_resize()<CR>
+nnoremap <silent> <buffer> L
+  \ :<C-u>call defx#call_action('open_tree_recursive')<CR>:call <SID>win_resize()<CR>
 '''
