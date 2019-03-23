@@ -45,7 +45,8 @@ function! Decomplete() abort
 
   let curPos = getcurpos()[4]
   if curPos && strpart(getline('.'), curPos - 2, 3) =~ '^\w'
-    return deoplete#mappings#manual_complete()
+    " return deoplete#mappings#manual_complete()
+    return deoplete#auto_complete()
   endif
 
   return "\<Tab>"
@@ -74,6 +75,9 @@ call deoplete#custom#option({
   \ 'skip_chars': ['(', ')'],
   \ 'skip_multibyte': v:true,
   \ 'yarp': !has('nvim'),
+  \ 'ignore_sources': {
+  \   '_': ['around', 'buffer'],
+  \ },
   \ })
 
 call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])

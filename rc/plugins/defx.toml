@@ -41,13 +41,13 @@ call defx#custom#option('_', {
   \ 'split': 'vertical',
   \ 'direction': 'topleft',
   \ 'winwidth': 20,
-  \ 'root_marker': '',
+  \ 'root_marker': ':',
   \ })
 
-call defx#custom#column('filename', {
-  \ 'root_icon': ' ',
-  \ 'opened_icon': ' ',
-  \ 'directory_icon': ' ',
+call defx#custom#column('icon', {
+  \ 'root_icon': '',
+  \ 'opened_icon': '',
+  \ 'directory_icon': '',
   \ })
 
 call defx#custom#column('mark', {
@@ -107,7 +107,7 @@ function! s:win_resize() abort
 
   let width = winwidth(0)
   if size >= width || size < width
-    execute 'vertical resize ' size + 5
+    execute 'vertical resize ' size + 6
   endif
 endfunction
 
@@ -115,6 +115,9 @@ nnoremap <silent> <buffer> h
   \ :<C-u>call defx#call_action('close_tree')<CR>:call <SID>win_resize()<CR>
 nnoremap <silent> <buffer> l
   \ :<C-u>call defx#call_action('open_tree')<CR>:call <SID>win_resize()<CR>
+
+nnoremap <silent> <buffer> H
+  \ :<C-u>call defx#call_action('cd', ['..'])<CR>:call <SID>win_resize()<CR>
 nnoremap <silent> <buffer> L
   \ :<C-u>call defx#call_action('open_tree_recursive')<CR>:call <SID>win_resize()<CR>
 '''
