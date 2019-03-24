@@ -4,6 +4,6 @@ Indent 2
 
 setlocal nowrap textwidth=120
 setlocal commentstring="%s
-setlocal comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",f:\"
+setlocal comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
 
 setlocal iskeyword+=:
