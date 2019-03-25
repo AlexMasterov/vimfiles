@@ -39,7 +39,7 @@ let g:status_line = [
   \ "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*",
   \ "%3*%(%-2.8{IfFit(100) ? get(b:, 'bufsize', '') : ''}\ %)%*",
   \ "%3*%(%{IfFit(90) ? &fileformat : ''}\ %)%*",
-  \ "%(%{IfFit(90) ? (&fileencoding ==# '' ? &encoding : &fileencoding) : ''}\ %)",
+  \ "%2*%(%{IfFit(90) ? (&fileencoding !=# 'utf-8' ? &fileencoding : '') : ''}\ %)%*",
   \ "%2*%(%Y\ %)%*",
   \ ]
 
