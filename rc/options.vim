@@ -15,6 +15,8 @@ set report=0                 " reporting number of lines changes
 " Title-line
 set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
 
+" CursorHold time
+set updatetime=100
 " Do not wait more than 100 ms for keys
 set timeout
 set ttimeout ttimeoutlen=100
@@ -82,14 +84,15 @@ set cmdheight=1
 set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
+" Backup
+set backupdir=$VIMHOME/.backup
+set nobackup writebackup backupcopy=yes
+call vimrc#makeDir(&backupdir, v:true)
+
 " Undo
 set undodir=$VIMHOME/.undo
 set undofile undolevels=500 undoreload=1000
 call vimrc#makeDir(&undodir, v:true)
-
-" Backup
-set backupdir=$VIMHOME/.backup
-set nobackup writebackup backupcopy=yes
 
 " View
 set viewdir=$VIMHOME/.view

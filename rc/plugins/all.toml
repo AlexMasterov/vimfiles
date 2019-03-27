@@ -2,7 +2,7 @@
 repo = 'Shougo/dein.vim'
 rtp = ''
 hook_add = '''
-let g:dein#types#git#clone_depth = 1
+let g:dein#types#git#clone_depth = 3
 
 nnoremap <silent> ;u :<C-u>call dein#update()<CR>
 nnoremap <silent> ;i :<C-u>call dein#install()<CR>
@@ -73,6 +73,7 @@ let g:mkdp_auto_start = 0
 let g:mkdp_auto_close = 0
 let g:mkdp_open_to_the_world = 0
 '''
+hook_post_source  = 'au! BufEnter *.{md,mkd,markdown,mdown,mkdn,mdwn}'
 
 [plugins.ftplugin]
 markdown = '''
