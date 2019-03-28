@@ -25,6 +25,8 @@ set noexrc
 set packpath=
 set runtimepath=$VIMFILES,$VIMRUNTIME,$PATH
 
+let g:python3_host_prog = exepath('python')
+
 " ---------------------------------------------------------------------------
 function s:source_rc(path) abort
   execute 'source $VIMFILES/rc/' . a:path
@@ -59,7 +61,4 @@ endif
 if !has('vim_starting')
   call dein#call_hook('source')
   call dein#call_hook('post_source')
-
-  syntax enable
-  filetype plugin indent on
 endif
