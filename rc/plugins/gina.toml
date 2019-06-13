@@ -13,7 +13,7 @@ nnoremap <silent> -l :<C-u>Gina log<CR>
 nnoremap <silent> ;a :<C-u>Gina log<CR>
 nnoremap <silent> ;z :<C-u>Gina branch<CR>
 
-Autocmd ColorScheme,syntax gina*
+Autocmd ColorScheme,Syntax,SessionLoadPost gina*
   \  hi AnsiColor1  guifg=#006633 gui=NONE
   \| hi AnsiColor2  guifg=#999999 gui=NONE
   \| hi AnsiColor3  guifg=#2B2B2B guibg=#FAE5E4 gui=NONE

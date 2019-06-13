@@ -3,7 +3,7 @@ repo = 'neomake/neomake'
 on_func = 'neomake#'
 on_cmd = 'Neomake'
 hook_add = '''
-Autocmd ColorScheme,Syntax *
+Autocmd ColorScheme,Syntax,SessionLoadPost *
   \ hi NeomakeError guifg=#2B2B2B guibg=#ffe4e1 gui=NONE
 '''
 hook_source = '''

@@ -13,7 +13,7 @@ nmap B        <Plug>(easymotion-linebackward)
 map <expr> f getcurpos()[4] < col('$') - 1 ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 map <expr> F getcurpos()[4] < 2            ? "\<Plug>(easymotion-fl)" : "\<Plug>(easymotion-Fl)"
 
-Autocmd ColorScheme *
+Autocmd ColorScheme,SessionLoadPost *
   \  hi link EasyMotionShade         Comment
   \| hi link EasyMotionMoveHL        Search
   \| hi link EasyMotionIncCursor     Cursor
