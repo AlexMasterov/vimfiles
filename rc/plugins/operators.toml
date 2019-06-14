@@ -2,16 +2,6 @@
 repo = 'kana/vim-operator-user'
 
 [[plugins]]
-repo = 'kana/vim-smartword'
-on_map = {nx = '<Plug>(smartword-'}
-hook_add = '''
-for char in split('w e b ge')
-  execute printf('nmap %s <Plug>(smartword-%s)', char, char)
-  execute printf('vmap %s <Plug>(smartword-%s)', char, char)
-endfor | unlet char
-'''
-
-[[plugins]]
 repo = 'rhysd/vim-operator-surround'
 depends = 'vim-operator-user'
 on_map = {v = '<Plug>(operator-surround-'}

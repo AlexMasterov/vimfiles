@@ -38,11 +38,13 @@ javascript = '''
 let b:switch_custom_definitions = [
   \   ['get', 'set'],
   \   ['var', 'const', 'let'],
-  \   ['<', '>'], ['==', '!=', '==='],
-  \   ['left', 'right'], ['top', 'bottom'],
+  \   ['<', '>'],
+  \   ['==', '!=', '==='],
+  \   ['left', 'right'],
+  \   ['top', 'bottom'],
   \   ['getElementById', 'getElementByClassName'],
   \   {
-  \     '\function\s*(\(.\{-}\))': '(\1) =>'
+  \     '\function\s*(\(.\{-}\))': '(\1) =>',
   \   },
   \   {
   \     '\<\([a-zA-z.()]\+\) === false': '!\1',
@@ -65,10 +67,12 @@ let b:switch_custom_definitions = [
 rust = '''
 let b:switch_custom_definitions = [
   \   ['Result', 'Ok'],
+  \   ['Debug', 'Default'],
   \   ['println!', 'eprintln!'],
   \   ['String', 'bool'],
-  \   ['u8', 'u16', 'u32', 'u64', 'u128', 'isize'],
-  \   ['i8', 'i16', 'i32', 'i64', 'i128', 'usize'],
+  \   ['Copy', 'Clone'],
+  \   ['u8', 'u16', 'u32', 'u64', 'u128', 'usize'],
+  \   ['i8', 'i16', 'i32', 'i64', 'i128', 'isize'],
   \   ['f32', 'f64'],
   \   ['enum', 'impl'],
   \   ['{:?}', '{:#?}'],
@@ -81,8 +85,8 @@ let b:switch_custom_definitions = [
   \     '&\%(mut\|\s\)\@!\(\k\+\)': '&mut \1',
   \   },
   \   {
-  \     '\(fn\|struct\|mod\)\s\(\k\+\)': 'pub \1 \2',
-  \     'pub\s\(fn\|struct\|mod\)\s\(\k\+\)': '\1 \2',
+  \     '\(fn\|struct\|enum\|mod\)\s\(\k\+\)': 'pub \1 \2',
+  \     'pub\s\(fn\|struct\|enum\|mod\)\s\(\k\+\)': '\1 \2',
   \   },
   \ ]
 '''

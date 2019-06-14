@@ -8,9 +8,9 @@ nmap ,f <Plug>(caw:jump:comment-prev)
 nmap ,F <Plug>(caw:jump:comment-next)
 nmap ,a <Plug>(caw:dollarpos:toggle)
 
-nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>cawRangeToggle()<CR>
+nnoremap <silent> <Plug>(caw:range:toggle) :<C-u>call <SID>range_toggle()<CR>
 
-function! s:cawRangeToggle() abort
+function! s:range_toggle() abort
   if v:count > 1
     let view = winsaveview()
     execute "normal V". (v:count - 1) ."j\<Plug>(caw:hatpos:toggle)"
