@@ -4,13 +4,14 @@ endif
 let did_load_filetypes = 1
 
 augroup filetypedetect
+  autocmd!
+
   " Vim
   autocmd BufNewFile,BufRead *.vim,vimrc*,$MYVIMRC set filetype=vim
-
   " PHP
   autocmd BufNewFile,BufRead *.{php,phpt} set filetype=php
   " JavaScript
-  autocmd BufNewFile,BufRead *.{js,jsx,es6,mjs} set filetype=javascript
+  autocmd BufNewFile,BufRead *.{js,mjs,cjs,jsx,es6} set filetype=javascript
   " TypeScript
   autocmd BufNewFile,BufRead *.ts set filetype=typescript
   " Rust
@@ -21,8 +22,8 @@ augroup filetypedetect
   autocmd BufNewFile,BufRead *.py set filetype=python
   " Lua
   autocmd BufNewFile,BufRead *.lua set filetype=lua
-  " #F
-  autocmd BufNewFile,BufRead *.fs set filetype=forth
+  " F#
+  autocmd BufNewFile,BufRead *.fs set filetype=fsharp
   " C
   autocmd BufNewFile,BufRead *.{c,h} set filetype=c
   " C++
@@ -100,15 +101,15 @@ augroup filetypedetect
 
   " Fallback
   autocmd BufNewFile,BufRead,StdinReadPost *
-    \ if !did_filetype() && <SID>checkLine()
-    \   | set filetype=FALLBACK conf |
+    \ if !did_filetype() && <SID>has_hash_sign() |
+    \   set filetype=FALLBACK conf |
     \ endif
 
   " Use the filetype detect plugins
   runtime! ftdetect/*.vim
 augroup END
 
-function! s:checkLine() abort
+function! s:has_hash_sign() abort
   for line in getline(1, 5)
     if line =~ '^#' | return v:true | endif
   endfor
