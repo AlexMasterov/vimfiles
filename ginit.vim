@@ -7,30 +7,33 @@ if ui_name !=# 'nvim-qt'
   finish
 endif
 
+let s:makeCopy = {reg -> {lines, regtype -> rpcnotify(ui_chan, 'Gui', 'SetClipboard', lines, regtype, reg)}}
+let s:makePaste = {reg -> {-> rpcrequest(ui_chan, 'Gui', 'GetClipboard', reg)}}
+
 let g:clipboard = {
   \   'name': ui_name,
   \   'cache_enabled': 1,
   \   'copy': {
-  \      '+': {lines, regtype -> rpcnotify(ui_chan, 'Gui', 'SetClipboard', lines, regtype, '+')},
-  \      '*': {lines, regtype -> rpcnotify(ui_chan, 'Gui', 'SetClipboard', lines, regtype, '*')},
+  \      '+': s:makeCopy('+'),
+  \      '*': s:makeCopy('*'),
   \    },
   \   'paste': {
-  \      '+': {-> rpcrequest(ui_chan, 'Gui', 'GetClipboard', '+')},
-  \      '*': {-> rpcrequest(ui_chan, 'Gui', 'GetClipboard', '*')},
+  \      '+': s:makePaste('+'),
+  \      '*': s:makePaste('*'),
   \   },
   \ }
 
-call rpcnotify(0, 'Gui', 'Font', 'Droid Sans Mono:h10', v:true)
-call rpcnotify(0, 'Gui', 'Linespace', 6)
-call rpcnotify(0, 'Gui', 'Mousehide', v:true)
-call rpcnotify(0, 'Gui', 'Option', 'Popupmenu', v:false)
+unlet s:makeCopy s:makePaste
 
-command! -nargs=1 FullScreen
-  \ call rpcnotify(0, 'Gui', 'WindowFullScreen', <q-args>)
-command! -nargs=1 Maximized
-  \ call rpcnotify(0, 'Gui', 'WindowMaximized', <q-args>)
+command! -nargs=1 FullScreen call rpcnotify(0, 'Gui', 'WindowFullScreen', <q-args>)
+command! -nargs=1 Maximized  call rpcnotify(0, 'Gui', 'WindowMaximized', <q-args>)
 
-augroup nvim_qt
+augroup nvimQT
   autocmd!
   autocmd VimLeave * call rpcnotify(0, 'Gui', 'Close')
 augroup END
+
+call rpcnotify(0, 'Gui', 'Option', 'Popupmenu', v:false)
+call rpcnotify(0, 'Gui', 'Mousehide', v:true)
+call rpcnotify(0, 'Gui', 'Linespace', 4)
+call rpcnotify(0, 'Gui', 'Font', 'Droid Sans Mono:h10', v:true)
