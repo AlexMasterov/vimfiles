@@ -109,7 +109,7 @@ let g:neomake_rust_fix_maker = {
   \ 'process_output': function('ProcessOutputBuffer'),
   \ }
 
-if executable('rustup')
+if executable('rustc')
   silent! let isNightly = system('rustc --version') =~? '\-nightly'
   if isNightly
     let g:neomake_rust_fix_maker.args =

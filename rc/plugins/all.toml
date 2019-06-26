@@ -2,7 +2,8 @@
 repo = 'Shougo/dein.vim'
 rtp = ''
 hook_add = '''
-let g:dein#types#git#clone_depth = 3
+let g:dein#auto_recache = 0
+let g:dein#types#git#clone_depth = 1
 
 nnoremap <silent> ;u :<C-u>call dein#update()<CR>
 nnoremap <silent> ;i :<C-u>call dein#install()<CR>
@@ -13,14 +14,14 @@ nnoremap <silent> ;o :<C-u>call dein#recache_runtimepath()<CR>
 repo = 'zhimsel/vim-stay'
 on_path = '.*'
 hook_source = 'let g:stay_verbosity = -1'
-hook_post_source = "let g:volatile_ftypes += ['denite', 'defx', 'gita', 'fila']"
+hook_post_source = "let g:volatile_ftypes += ['defx', 'denite', 'gita']"
 
 [[plugins]]
 repo = 'haya14busa/vim-keeppad'
 on_cmd = ['KeeppadOn', 'KeeppadOff']
 hook_add = '''
 Autocmd BufReadPre
-  \ *.{js,json,xml,toml,html,css,scss,sss,md,snippets}
+  \ *.{js,rs,json,xml,toml,html,css,scss,sss,md,vim,snippets}
   \ KeeppadOn
 '''
 hook_source = 'let g:keeppad_autopadding = 0'
@@ -58,25 +59,9 @@ let g:winresizer_keycode_finish = char2nr('o')
 '''
 
 [[plugins]]
-repo = 'iamcco/markdown-preview.nvim'
-merged = 0
-on_ft = 'markdown'
-hook_post_update = '''
-if executable('node')
-  call system(printf('cd %s && yarn install --silent --no-lockfile',
-    \ expand(dein#get('markdown-preview.nvim').rtp . '/app')))
-endif
-'''
-hook_source = '''
-let g:mkdp_port = 3010
-let g:mkdp_auto_start = 0
-let g:mkdp_auto_close = 0
-let g:mkdp_open_to_the_world = 0
-'''
-hook_post_source  = 'au! BufEnter *.{md,mkd,markdown,mdown,mkdn,mdwn}'
+repo = 'drzel/vim-line-no-indicator'
+hook_add = '''
+let g:line_no_indicator_chars = ['▇', '▆', '▅', '▃', '▂', '▁', ' ']
 
-[plugins.ftplugin]
-markdown = '''
-nnoremap <silent> <buffer> ,p :<C-u>call mkdp#util#open_preview_page()<CR>
-nnoremap <silent> <buffer> ,q :<C-u>call mkdp#util#stop_preview()<CR>
+call AddStatusLine("%{LineNoIndicator()}", 2)
 '''
