@@ -1,0 +1,31 @@
+[[plugins]]
+repo = 't9md/vim-choosewin'
+on_func = 'choosewin#'
+hook_source = '''
+let g:loaded_choosewin = 1
+
+let g:choosewin_label = 'WERABC'
+let g:choosewin_label_align = 'left'
+let g:choosewin_overlay_enable = 1
+let g:choosewin_return_on_single_win = 1
+let g:choosewin_blink_on_land = 0
+let g:choosewin_tabline_replace = 0
+let g:choosewin_statusline_replace = 0
+let g:choosewin_overlay_font_size = 'small'
+
+let s:Color = {
+  \ 'land': ['#0000FF', '#F6F7F7', 'NONE'],
+  \ 'other': ['#F6F7F7', '#EEEEEE', 'NONE'],
+  \ 'shade': ['#F6F7F7', '#EEEEEE', 'NONE'],
+  \ 'label': ['#FFE1CC', '#2B2B2B', 'bold'],
+  \ 'label_current': ['#CCE5FF', '#2B2B2B', 'bold'],
+  \ 'overlay': ['#2B2B2B', '#2B2B2B', 'bold'],
+  \ 'overlay_current': ['#CCE5FF', '#CCE5FF', 'bold'],
+  \ }
+
+for [name, value] in items(s:Color)
+  let g:choosewin_color_{name} = {'gui': value}
+endfor
+
+Autocmd ColorScheme,SessionLoadPost * call choosewin#color#refresh()
+'''

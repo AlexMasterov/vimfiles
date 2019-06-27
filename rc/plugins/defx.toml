@@ -7,117 +7,151 @@ if executable('pip3')
 endif
 '''
 hook_add = '''
-nnoremap <silent> ;d    :<C-u>call <SID>createDefx()<CR>
-nnoremap <silent> <Tab> :<C-u>call <SID>jumpToDefx()<CR>
-
-function! s:createDefx() abort
-  for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'defx'")
-    if !empty(winnr)
-      execute winnr . 'wincmd w' | return
-    endif
-  endfor
-  Defx
-endfunction
-
-function! s:jumpToDefx() abort
-  if getwinvar(winnr(), '&filetype') ==# 'defx'
-    wincmd p
-  else
-    for winnr in filter(range(1, winnr('$')), "getwinvar(v:val, '&filetype') ==# 'defx'")
-      execute winnr . 'wincmd w'
-    endfor
+function! DefxResize(ctx) abort
+  let line_width = max(map(getline(2, '$'), 'len(trim(v:val))')) + 5
+  if line_width !=# a:ctx.winwidth
+    call defx#call_action('resize', line_width)
   endif
 endfunction
 
-Autocmd BufEnter,WinEnter *default-*
-  \  let &l:statusline = ' '
-  \| setlocal cursorline
+function! s:jump_to_defx() abort
+  for winnr in range(1, winnr('$'))
+    if getwinvar(winnr, '&filetype') ==# 'defx'
+      let prev_winid = win_getid()
+      call win_gotoid(win_getid(winnr))
+      let b:prev_winid = prev_winid
+      return
+    endif
+  endfor
 
-Autocmd BufLeave,WinLeave *default-*
-  \ setlocal nocursorline
+  Defx -listed -resume
+  call DefxResize(defx#get_context())
+endfunction
+
+nnoremap <silent> ;d    :<C-u>Defx -listed -resume -split=no<CR>
+nnoremap <silent> ;D    :<C-u>call <SID>jump_to_defx()<CR>
+nnoremap <silent> <Tab> :<C-u>call <SID>jump_to_defx()<CR>
 '''
 hook_source = '''
 call defx#custom#option('_', {
+  \ 'winwidth': 18,
   \ 'split': 'vertical',
   \ 'direction': 'topleft',
-  \ 'winwidth': 20,
   \ 'root_marker': ':',
-  \ })
-
-call defx#custom#column('icon', {
-  \ 'root_icon': '',
-  \ 'opened_icon': '',
-  \ 'directory_icon': '',
+  \ 'show_ignored_files': v:false,
+  \ 'session_file': expand($VIMHOME . '/defx_session'),
+  \ 'ignored_files': join([
+  \   '.*',
+  \   'LICENSE',
+  \   'dist/',
+  \   'build/',
+  \   'node_modules/',
+  \ ], ',')
   \ })
 
 call defx#custom#column('mark', {
   \ 'length': 0,
   \ })
+
+call defx#custom#column('filename', {
+  \ 'root_marker_highlight': 'Ignore',
+  \ 'min_width': 30,
+  \ 'max_width': 38,
+  \ })
+
+call defx#custom#option('_', 'drives', [
+ \ expand('~/vimfiles'),
+ \ expand('~'),
+ \ ])
+
+Autocmd BufWritePost * call defx#redraw()
 '''
 
 [plugins.ftplugin]
 defx = '''
-nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'
-nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'
-nnoremap <silent> <buffer> <expr> i defx#do_action('cd', ['..'])
-nnoremap <silent> <buffer> <expr> u defx#do_action('cd', ['..'])
+let s:ignore_filtypes = ['defx']
 
-execute 'nnoremap <silent> <buffer> <expr> o '. (has('nvim')
-  \ ? 'defx#async_action("drop")'
-  \ : 'defx#do_action("drop")')
+function! s:is_ignore_window(winnr) abort
+  return index(s:ignore_filtypes, getbufvar(winbufnr(a:winnr), "&filetype")) > -1
+endfunction
 
-nnoremap <silent> <buffer> <expr> Q defx#do_action('multi', ['drop', 'quit'])
-nnoremap <silent> <buffer> <expr> S defx#do_action('multi', ['open', 'vsplit'])
-nnoremap <silent> <buffer> <expr> p defx#do_action('multi', ['open', 'pedit'])
-
-nnoremap <silent> <buffer> <expr> n defx#do_action('new_file')
-nnoremap <silent> <buffer> <expr> N defx#do_action('new_directory')
-nnoremap <silent> <buffer> <expr> y defx#do_action('yank_path')
-nnoremap <silent> <buffer> <expr> c defx#do_action('copy')
-nnoremap <silent> <buffer> <expr> p defx#do_action('paste')
-nnoremap <silent> <buffer> <expr> m defx#do_action('move')
-nnoremap <silent> <buffer> <expr> M defx#do_action('new_multiple_files')
-nnoremap <silent> <buffer> <expr> r defx#do_action('rename')
-nnoremap <silent> <buffer> <expr> d defx#do_action('remove_trash')
-nnoremap <silent> <buffer> <expr> D defx#do_action('remove')
-nnoremap <silent> <buffer> <expr> R defx#do_action('redraw')
-nnoremap <silent> <buffer> <expr> ! defx#do_action('execute_command')
-
-nnoremap <silent> <buffer> <expr> e defx#do_action('toggle_select')
-nnoremap <silent> <buffer> <expr> E defx#do_action('toggle_select') . 'j'
-nnoremap <silent> <buffer> <expr> A defx#do_action('toggle_select_all')
-nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
-nnoremap <silent> <buffer> <expr> t defx#do_action('toggle_sort', 'Time')
-
-nnoremap <buffer> <Space>i <Nop>
-
-function! s:win_resize() abort
-  if &filetype !=# 'defx'
-    return
+function! DefxOpen(ctx) abort
+  if tabpagewinnr(tabpagenr(), '$') < 3
+    return defx#call_action('drop')
   endif
 
-  let size = max(map(getline(2, '$'), 'len(trim(v:val))'))
-  if size < 13
-    return
-  endif
-  if size > 30
-    execute 'vertical resize ' 33
-    return
-  endif
+  let winnrs = filter(range(1, winnr('$')), '!s:is_ignore_window(v:val)')
+  let choice = choosewin#start(winnrs, {
+    \ 'noop': 1,
+    \ 'auto_choose': 1,
+    \ 'hook_enable': 0,
+    \ })
 
-  let width = winwidth(0)
-  if size >= width || size < width
-    execute 'vertical resize ' size + 6
+  if !empty(choice)
+    let [_, winnr] = choice
+    call win_gotoid(win_getid(winnr))
+    execute 'edit!' a:ctx.targets[0]
   endif
 endfunction
 
-nnoremap <silent> <buffer> h
-  \ :<C-u>call defx#call_action('close_tree')<CR>:call <SID>win_resize()<CR>
-nnoremap <silent> <buffer> l
-  \ :<C-u>call defx#call_action('open_tree')<CR>:call <SID>win_resize()<CR>
+setlocal cursorline
+setlocal statusline=\ "
 
-nnoremap <silent> <buffer> H
-  \ :<C-u>call defx#call_action('cd', ['..'])<CR>:call <SID>win_resize()<CR>
-nnoremap <silent> <buffer> L
-  \ :<C-u>call defx#call_action('open_tree_recursive')<CR>:call <SID>win_resize()<CR>
+let s:NOOP = [
+  \ 's', 'S',
+  \ 'v', 'V',
+  \ 'Q', 'E', '-', '<BS>', '<CR>',
+  \ '<Space>', '<Space>i', '<Space>v', '<Space>V',
+  \ ]
+
+for key in s:NOOP
+  execute 'nnoremap <buffer> ' . key . ' <Nop>'
+endfor
+
+nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'
+nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'
+nnoremap <silent> <buffer> <expr> l defx#async_action('multi', ['open_tree', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> h defx#async_action('multi', ['close_tree', ['call', 'DefxResize']])
+
+nnoremap <silent> <buffer> <expr> a defx#do_action('add_session')
+nnoremap <silent> <buffer> <expr> R defx#do_action('redraw')
+nnoremap <silent> <buffer> <expr> y defx#do_action('yank_path')
+nnoremap <silent> <buffer> <expr> d defx#async_action('remove_trash')
+nnoremap <silent> <buffer> <expr> D defx#async_action('remove')
+nnoremap <silent> <buffer> <expr> r defx#async_action('rename')
+nnoremap <silent> <buffer> <expr> m defx#async_action('move')
+nnoremap <silent> <buffer> <expr> c defx#async_action('copy')
+nnoremap <silent> <buffer> <expr> p defx#async_action('paste')
+
+nnoremap <silent> <buffer> <expr> n defx#async_action('new_file')
+nnoremap <silent> <buffer> <expr> N defx#async_action('new_directory')
+nnoremap <silent> <buffer> <expr> M defx#async_action('new_multiple_files')
+
+nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
+nnoremap <silent> <buffer> <expr> e defx#do_action('toggle_select')
+nnoremap <silent> <buffer> <expr> E defx#do_action('toggle_select') . 'j'
+nnoremap <silent> <buffer> <expr> A defx#do_action('toggle_select_all')
+nnoremap <silent> <buffer> <expr> t defx#async_action('toggle_sort', 'Time')
+
+nnoremap <silent> <buffer> <expr> ! defx#async_action('execute_command')
+nnoremap <silent> <buffer> <expr> @ defx#async_action('execute_system')
+
+nnoremap <silent> <buffer> <expr> q defx#do_action('quit')
+nnoremap <silent> <buffer> <expr> Q defx#do_action('multi', ['drop', 'quit'])
+
+nnoremap <silent> <buffer> <expr> o
+  \ defx#is_directory()
+  \   ? defx#async_action('multi', ['open_directory', ['call', 'DefxResize']])
+  \   : defx#async_action('call', 'DefxOpen')
+
+nnoremap <silent> <buffer> <expr> O
+  \ defx#is_directory()
+  \   ? defx#async_action('multi', ['open_directory', ['call', 'DefxResize']])
+  \   : defx#async_action('multi', ['drop', 'quit'])
+
+nnoremap <silent> <buffer> <expr> H
+  \ defx#do_action('multi', [['cd', '..'], ['call', 'DefxResize']])
+
+nnoremap <silent> <buffer> <Tab>
+  \ :<C-u>call win_gotoid(get(b:, 'prev_winid', defx#get_context().prev_winid))<CR>
 '''
