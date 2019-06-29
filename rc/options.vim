@@ -1,25 +1,12 @@
 "--------------------------------------------------------------------------
 " Options
 
-" Russian keyboard
-set keymap=russian-jcukenwin
-set iskeyword=@,48-57,_,192-255,:
-set iminsert=0 imsearch=0
-
-set clipboard=unnamedplus
-
-set shortmess=aoOtTIcF
-set lazyredraw               " don't redraw while executing macros
 set report=0                 " reporting number of lines changes
+set shortmess=aoOtTIcF
 
-" Title-line
-set title titlestring=%t%(\ %M%)%(\ (%{expand(\"%:~:.:h\")})%)%(\ %a%)
-
-" CursorHold time
-set updatetime=100
-" Do not wait more than 100 ms for keys
-set timeout
-set ttimeout ttimeoutlen=100
+set title
+set titlelen=100
+set titlestring=%t%(\ %M%)%(\ (%{expand('%:~:.:h')})%)%(\ %a%)
 
 " Prevents two spaces after on a join (J)
 set nojoinspaces
@@ -33,8 +20,7 @@ set noequalalways
 set winminheight=0
 set splitbelow splitright
 
-" Tabs
-set showtabline=0            " always show the tab pages
+set showtabline=0 " no tabs
 
 " Indent
 set backspace=indent,eol,start
@@ -84,35 +70,33 @@ set cmdheight=1
 set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
-" Backup
-set backupdir=$VIMHOME/.backup
-set nobackup writebackup backupcopy=yes
-call vimrc#makeDir(&backupdir, v:true)
-
-" Undo
-set undodir=$VIMHOME/.undo
-set undofile undolevels=500 undoreload=1000
-call vimrc#makeDir(&undodir, v:true)
-
-" View
-set viewdir=$VIMHOME/.view
-set viewoptions=cursor,slash,unix
-
-set directory=$VIMHOME/.tmp
-
 set number relativenumber
-set diffopt=filler,iwhite,vertical
 
-set noswapfile
+set diffopt=filler,iwhite,vertical
+set diffopt+=internal,algorithm:patience
+
 set nocursorline
 set nofoldenable
 
+" Highlight invisible symbols
+set nolist
+set listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
+
 if has('nvim')
-  set nofsync
   set termguicolors
   set inccommand=nosplit
+
   if exists('&pumblend')
     set pumblend=20
+  endif
+
+  if exists('+previewpopup')
+    set previewpopup=height:10,width:60
+  endif
+
+  if exists('+completepopup')
+    set completeopt+=popup
+    set completepopup=height:4,width:60,highlight:InfoPopup
   endif
 else
   set pyxversion=3
