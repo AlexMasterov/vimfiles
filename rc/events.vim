@@ -1,28 +1,40 @@
 "--------------------------------------------------------------------------
 " Events
 
-if v:vim_did_enter
-  filetype plugin indent on
-else
-  Autocmd VimEnter * filetype plugin indent on
-endif
+" Avoid showing trailing whitespace when in Insert mode
+function! UpdateTrailCharEvents() abort
+  augroup myVimrcI | autocmd! | augroup END
+
+  let trail_char = matchstr(&listchars, '\(trail:\)\@<=\S')
+  if strlen(trail_char) > 0
+    execute 'autocmd myVimrcI InsertEnter * setlocal list listchars+=trail:'. trail_char
+    execute 'autocmd myVimrcI InsertLeave * setlocal nolist listchars-=trail:'. trail_char
+  endif
+endfunction
+
+function! ToggleNumberLine(nu, rnu) abort
+  let [&l:number, &l:relativenumber] = &l:number
+        \ ? [a:nu, a:rnu]
+        \ : [&l:number, &l:relativenumber]
+endfunction
 
 " Disable Visual bell
-Autocmd GUIEnter * set t_vb= belloff=all novisualbell
+Autocmd GUIEnter * ++once set novisualbell belloff=all t_vb=
 
-Autocmd Syntax *? if line('$') > 5000 | syntax sync minlines=200 | endif
+" Check if any buffers were changed outside of Vim
+Autocmd FocusGained * if &buftype !=# 'nofile' | checktime | endif
 
-Autocmd WinEnter * let [&l:number, &l:relativenumber] = &l:number ? [1, 1] : [&l:number, &l:relativenumber]
-Autocmd WinLeave * let [&l:number, &l:relativenumber] = &l:number ? [1, 0] : [&l:number, &l:relativenumber]
+" Reload the colorscheme whenever we write the file
+Autocmd ColorSchemePre * execute 'Autocmd! BufWritePost '. g:colors_name .'.vim'
+Autocmd ColorScheme    * execute 'Autocmd! BufWritePost '. g:colors_name .'.vim colorscheme '. g:colors_name
 
-AutocmdFT *? setlocal formatoptions-=ro
+Autocmd WinEnter * call ToggleNumberLine(1, 1)
+Autocmd WinLeave * call ToggleNumberLine(1, 0)
 
-" Highlight invisible symbols
-set nolist listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
-" Avoid showing trailing whitespace when in Insert mode
-let g:trailChar = matchstr(&listchars, '\(trail:\)\@<=\S')
-Autocmd InsertEnter * execute 'setlocal list listchars+=trail:' . g:trailChar
-Autocmd InsertLeave * execute 'setlocal nolist listchars-=trail:' . g:trailChar
+Autocmd VimEnter * ++once   call UpdateTrailCharEvents()
+Autocmd OptionSet listchars call UpdateTrailCharEvents()
+
+Autocmd OptionSet formatoptions setlocal formatoptions-=ro
 
 if has('nvim')
   " Share the histories

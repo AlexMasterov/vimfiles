@@ -1,7 +1,7 @@
 "---------------------------------------------------------------------------
 " vimrc
 
-function! vimrc#makeDir(name, ...) abort
+function! vimrc#make_dir(name, ...) abort
   let name = expand(a:name, 1)
   let force = a:0 >= 1 && a:1 ==# v:true
 
@@ -11,7 +11,7 @@ function! vimrc#makeDir(name, ...) abort
   endif
 endfunction
 
-function! vimrc#trimWhiteSpace() abort
+function! vimrc#trim_spaces() abort
   if &binary
     return
   endif

@@ -28,6 +28,11 @@ endfor | unlet filetype
 repo = 'Shougo/deoplete.nvim'
 depends = 'context_filetype.vim'
 on_event = 'InsertEnter'
+hook_done_update = '''
+if executable('pip3')
+  call system('pip3 install -q --user --upgrade pynvim')
+endif
+'''
 hook_add = '''
 function! Decomplete() abort
   if pumvisible()
@@ -45,7 +50,6 @@ function! Decomplete() abort
 
   let curPos = getcurpos()[4]
   if curPos && strpart(getline('.'), curPos - 2, 3) =~ '^\w'
-    " return deoplete#mappings#manual_complete()
     return deoplete#auto_complete()
   endif
 
@@ -66,13 +70,15 @@ hook_source = '''
 call deoplete#enable()
 
 call deoplete#custom#option({
-  \ 'auto_complete_delay': 0,
+  \ 'num_processes': 2,
+  \ 'auto_complete_delay': 2,
   \ 'auto_refresh_delay': 20,
   \ 'camel_case': v:true,
   \ 'max_list': 42,
   \ 'prev_completion_mode': 'length',
   \ 'refresh_always': v:true,
   \ 'skip_chars': ['(', ')'],
+  \ 'check_stderr': v:false,
   \ 'skip_multibyte': v:true,
   \ 'yarp': !has('nvim'),
   \ 'ignore_sources': {
@@ -81,6 +87,7 @@ call deoplete#custom#option({
   \ })
 
 call deoplete#custom#source('ultisnips', 'matchers', ['matcher_full_fuzzy'])
+call deoplete#custom#source('denite', 'matchers',  ['matcher_full_fuzzy', 'matcher_length'])
 '''
 
 [[plugins]]

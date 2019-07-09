@@ -5,6 +5,7 @@ filetype on
 
 if has('nvim')
   set shada=!,'50,<50,s10,h,n$VIMHOME/shada
+  let &shadafile = $VIMHOME . '/shada'
 else
   set viminfo=!,'50,<50,s10,h,n$VIMHOME/viminfo
 endif
@@ -12,7 +13,7 @@ endif
 call histdel(':', '^w\?q\%[all]!\?$')
 
 " Use English interface
-language message C
+language messages C
 
 " Disable built-in plugins
 let g:loaded_csv = 1
@@ -43,10 +44,3 @@ if &runtimepath !~# '/dein.vim'
   endif
   execute 'set runtimepath^=' . s:repo
 endif
-
-"---------------------------------------------------------------------------
-let s:isWindows = has('win64') || has('win32') || has('win32unix')
-
-function! IsWindows() abort
-  return s:isWindows
-endfunction
