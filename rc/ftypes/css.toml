@@ -6,4 +6,3 @@ Autocmd Syntax css
   \| hi link cssBraceError Normal
   \| hi link cssDeprecated Normal
 '''
-

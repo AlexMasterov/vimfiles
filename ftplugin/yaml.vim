@@ -6,4 +6,4 @@ setlocal fileformat=unix
 setlocal nowrap
 setlocal nonumber norelativenumber
 
-setlocal commentstring=#%s
+setlocal commentstring=#\ %s
