@@ -12,8 +12,8 @@ let s:status_line = [
   \ "%=",
   \ "%2*%(%{IfFit(100) && &paste ? '[P]' : ''}\ %)%*",
   \ "%3*%(%-2.8{IfFit(100) ? get(b:, 'buf_size', '') : ''}\ %)%*",
-  \ "%3*%(%{IfFit(90) ? &fileformat : ''}\ %)%*",
-  \ "%2*%(%{IfFit(90) ? (&fileencoding !=# 'utf-8' ? &fileencoding : '') : ''}\ %)%*",
+  \ "%3*%(%{IfFit(90) ? &l:fileformat : ''}\ %)%*",
+  \ "%2*%(%{IfFit(90) ? (&l:fileencoding ==# 'utf-8' ? '' : &l:fileencoding . (&l:bomb ? ' /BOM' : '')) : ''}\ %)%*",
   \ "%2*%(%Y\ %)%*",
   \ ]
 
@@ -35,7 +35,7 @@ function! SetBufModified() abort
   return &modified ? '+' : &modifiable ? '' : '-'
 endfunction
 
-function! GetBufSize() abort
+function! CountBufSize() abort
   let size = &buftype ==# 'nofile'
     \ ? line2byte(line('$') + 1) - 1
     \ : getfsize(expand('%:p'))
@@ -48,4 +48,4 @@ endfunction
 " Events
 "---------------------------------------------------------------------------
 Autocmd BufEnter,WinEnter,VimResized * let b:win_width = winwidth(0)
-Autocmd BufReadPost,BufWritePost     * let b:buf_size = GetBufSize()
+Autocmd BufReadPost,BufWritePost     * let b:buf_size = CountBufSize()

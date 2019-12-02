@@ -6,5 +6,4 @@ setlocal fileformat=unix
 setlocal formatoptions+=2l
 setlocal nonumber norelativenumber
 
-syntax match jsonComment "//.\{-}$"
-hi link jsonComment Comment
+syntax match Comment +\/\/.\+$+
