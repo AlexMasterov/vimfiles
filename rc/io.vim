@@ -15,8 +15,8 @@ set clipboard=unnamedplus
 " timers
 set timeout
 set ttimeout
-set ttimeoutlen=100
-set updatetime=100  " CursorHold time
+set ttimeoutlen=50
+set updatetime=100   " CursorHold time
 
 " backup
 set nobackup

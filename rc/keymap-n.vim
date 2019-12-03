@@ -4,15 +4,19 @@
 " Q: auto indent text
 nnoremap Q ==
 
-" [dDcC]: don't update register
+" Don't update register
 nnoremap d "_d
 nnoremap D "_dd
 nnoremap c "_c
 nnoremap C "_C
 
+" [*#]: with use 'smartcase'
+nnoremap * /\<<C-r>=expand('<cword>')<CR>\><CR>zv
+nnoremap # ?\<<C-r>=expand('<cword>')<CR>\><CR>zv
+
 " [jk]: don't skip wrap lines
-nnoremap <expr> j v:count ? 'gj' : 'j'
-nnoremap <expr> k v:count ? 'gk' : 'k'
+nnoremap <expr> j v:count > 0 ? 'gj' : 'j'
+nnoremap <expr> k v:count > 0 ? 'gk' : 'k'
 
 " Alt-[jkhl]: move selected lines
 nnoremap <A-h> <<<Esc>
@@ -21,11 +25,17 @@ nnoremap <silent> <A-j> :<C-u>move+1<CR>
 nnoremap <silent> <A-k> :<C-u>move-2<CR>
 
 " Ctrl-[jk]: scroll up/down 1/3 page
-nnoremap <expr> <C-j> v:count ? '<C-d>zz' : (winheight('.') / 4) . '<C-d>zz'
-nnoremap <expr> <C-k> v:count ? '<C-u>zz' : (winheight('.') / 4) . '<C-u>zz'
+nnoremap <expr> <C-j> v:count > 0 ? '<C-d>zz' : (winheight('.') / 4) . '<C-d>zz'
+nnoremap <expr> <C-k> v:count > 0 ? '<C-u>zz' : (winheight('.') / 4) . '<C-u>zz'
 
 " Ctrl-d: duplicate line
 nnoremap <expr> <C-d> 'yyp' . col('.') . 'l'
+
+" Ctrl-c: clear search highlight
+nnoremap <silent> <C-c> :<C-u>let @/ = ""<CR>
+
+" ,r: replace a word under cursor
+nnoremap ,r :<C-u>%s/<C-R><C-w>/<C-r><C-w>
 
 " ,Space: trim white spaces
 if exists(':TrimSpace')
@@ -99,6 +109,11 @@ nnoremap <silent> <Space>l :<C-u>wincmd l<CR>
 nnoremap <silent> <Space>k :<C-u>wincmd k<CR>
 nnoremap <silent> <Space>j :<C-u>wincmd j<CR>
 
+" Unbinds
+map <F1> <Nop>
+map ZZ <Nop>
+map ZQ <Nop>
+
 " Functions
 "---------------------------------------------------------------------------
 function! s:make_buffer() abort
@@ -129,4 +144,42 @@ function! s:smart_close_buffer() abort
   endif
 
   silent! bprev | bwipeout #
+endfunction
+
+" {N} + Enter: jump to a line number / mark
+nnoremap <silent> <expr> <Enter> v:count ?
+  \ ':<C-u>call <SID>jumpToLine(v:count)<CR>' : "\'"
+
+" [nN]: append line
+nnoremap <silent> <expr> n v:count ?
+  \ ':<C-u>call <SID>appendLineUp(v:count1)<CR>' : 'i<Space><Esc>'
+nnoremap <silent> <expr> N v:count ?
+  \ ':<C-u>call <SID>appendLineDown(v:count1)<CR>' : 'i<Space><Esc>`^'
+
+" vi
+for char in split('( [ { < '' "')
+  execute printf('nmap %s  <Esc>vi%s', char, char)
+  execute printf('nmap ;%s <Esc>vi%s', char, char)
+endfor | unlet char
+" va
+for char in split(') ] } >')
+  execute printf('nmap %s  <Esc>va%s', char, char)
+  execute printf('nmap ;%s <Esc>va%s', char, char)
+endfor | unlet char
+
+function! s:jumpToLine(line) abort
+  call cursor(a:line, 0)
+  call feedkeys('zz')
+endfunction
+
+function! s:appendLineUp(line) abort
+  for i in range(1, a:line)
+    call append(line('.'), '')
+  endfor
+endfunction
+
+function! s:appendLineDown(line) abort
+  for i in range(1, a:line)
+    call append(line('.') - 1, '')
+  endfor
 endfunction
