@@ -3,8 +3,8 @@ repo = 'iamcco/markdown-preview.nvim'
 merged = 0
 on_ft = 'markdown'
 hook_post_update = '''
-if executable('node')
-  call system(printf('cd %s && yarn install --silent --no-lockfile',
+if executable('npm')
+  call system(printf('cd %s && npm install --no-package-lock',
     \ expand(dein#get('markdown-preview.nvim').rtp . '/app')))
 endif
 '''

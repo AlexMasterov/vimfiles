@@ -1,15 +1,26 @@
 "--------------------------------------------------------------------------
 " Options
 
-set report=0                 " reporting number of lines changes
-set shortmess=aoOtTIcF
+set report=0              " reporting number of lines changes
+set shortmess=aoOtTIcqF
+set cpoptions=aABceFs
+set number relativenumber
+
+set nofoldenable
+set nocursorline
+set nojoinspaces " prevents two spaces after on a join (J)
+
+set diffopt=filler,iwhite,vertical,internal,algorithm:patience
+
+set sidescroll=0
+
+" Highlight invisible symbols
+set nolist
+set listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
 
 set title
 set titlelen=100
 set titlestring=%t%(\ %M%)%(\ (%{expand('%:~:.:h')})%)%(\ %a%)
-
-" Prevents two spaces after on a join (J)
-set nojoinspaces
 
 " Buffer
 set hidden                   " allows the closing of buffers without saving
@@ -20,7 +31,8 @@ set noequalalways
 set winminheight=0
 set splitbelow splitright
 
-set showtabline=0 " no tabs
+" Tab
+set showtabline=0    " no tabs
 
 " Indent
 set backspace=indent,eol,start
@@ -60,44 +72,32 @@ set incsearch
 set gdefault
 set magic
 
+set includeexpr=substitute(v:fname,'^[^\/]*/','','')
+
 " Autocomplete
 set tags=
 set pumheight=10
-set complete=. completeopt=menu,longest
+set complete=. completeopt=menu
 
 " Command-line
 set cmdheight=1
 set noshowmode   " don't show the mode ('-- INSERT --') at the bottom
 set wildmenu wildmode=longest,full
 
-set number relativenumber
-
-set diffopt=filler,iwhite,vertical
-set diffopt+=internal,algorithm:patience
-
-set nocursorline
-set nofoldenable
-
-" Highlight invisible symbols
-set nolist
-set listchars=precedes:<,extends:>,nbsp:.,tab:+-,trail:•
-
 if has('nvim')
+  set pumblend=20
   set termguicolors
   set inccommand=nosplit
-
-  if exists('&pumblend')
-    set pumblend=20
-  endif
-
+else
   if exists('+previewpopup')
     set previewpopup=height:10,width:60
   endif
-
   if exists('+completepopup')
     set completeopt+=popup
     set completepopup=height:4,width:60,highlight:InfoPopup
   endif
-else
-  set pyxversion=3
 endif
+
+set wildignore+=*swp,*.class,*.pyc,*.png,*.jpg,*.gif,*.zip
+set wildignore+=*/tmp/*,*.o,*.obj,*.so     " Unix
+set wildignore+=*\\tmp\\*,*.exe            " Windows

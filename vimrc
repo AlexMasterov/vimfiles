@@ -29,16 +29,14 @@ set noexrc nomodeline modelines=0
 "---------------------------------------------------------------------------
 let s:is_windows = has('win64') || has('win32')
 
-function! IsWindows() abort
-  return s:is_windows
-endfunction
+let IsWindows = {-> s:is_windows}
 
 function! Iter(list, on_iter) abort
   for item in a:list | call a:on_iter(item) | endfor
 endfunction
 
 function! s:source_rc(path) abort
-  execute 'source $VIMFILES/rc/' . a:path
+  execute 'source '. expand('$VIMFILES/rc/') . a:path
 endfunction
 
 " Commands
@@ -52,13 +50,12 @@ command! -nargs=* -complete=file TrimSpace f <args> | call vimrc#trim_spaces()
 command! -nargs=1 -bang MakeDir call vimrc#make_dir(<f-args>, !empty("<bang>"))
 command! -nargs=1 Indent
   \ execute 'setlocal tabstop='.<q-args> 'softtabstop='.<q-args> 'shiftwidth='.<q-args>
-  "\ let [&l:tabstop, &l:softtabstop, &l:shiftwidth] = repeat([<q-args>], 3)
 
 " Events
 "---------------------------------------------------------------------------
 Autocmd VimEnter * ++once
   \  filetype plugin indent on
-  \| let g:python3_host_prog = exepath('python')
+  \| let g:python3_host_prog = exepath('python') | set pyxversion=3
 
 Autocmd BufWritePre,FileWritePre *?
   \  call vimrc#trim_spaces()
@@ -80,9 +77,9 @@ call s:source_rc('dein.vim')
 
 call s:source_rc('keymap-n.vim')
 call s:source_rc('keymap-i.vim')
-call s:source_rc('keymap-t.vim')
+call s:source_rc('keymap-v.vim')
 call s:source_rc('keymap-c.vim')
-call s:source_rc('keymap.vim')
+call s:source_rc('keymap-t.vim')
 call s:source_rc('abbr.vim')
 
 if !has('nvim') && has('gui_running')

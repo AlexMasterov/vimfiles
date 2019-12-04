@@ -28,8 +28,8 @@ function! s:jump_to_defx() abort
   call DefxResize(defx#get_context())
 endfunction
 
-nnoremap <silent> ;d    :<C-u>Defx -listed -resume -split=no<CR>
-nnoremap <silent> ;D    :<C-u>call <SID>jump_to_defx()<CR>
+nnoremap <silent> ;d    :<C-u>Defx -listed -split=no<CR>
+nnoremap <silent> ;D    :<C-u>Defx -listed<CR>
 nnoremap <silent> <Tab> :<C-u>call <SID>jump_to_defx()<CR>
 '''
 hook_source = '''
@@ -69,6 +69,9 @@ Autocmd BufWritePost * call defx#redraw()
 
 [plugins.ftplugin]
 defx = '''
+setlocal cursorline
+setlocal statusline=\ "
+
 let s:ignore_filtypes = ['defx']
 
 function! s:is_ignore_window(winnr) abort
@@ -94,19 +97,17 @@ function! DefxOpen(ctx) abort
   endif
 endfunction
 
-setlocal cursorline
-setlocal statusline=\ "
-
-let s:NOOP = [
+for key in [
   \ 's', 'S',
   \ 'v', 'V',
   \ 'Q', 'E', '-', '<BS>', '<CR>',
+  \ '<S-j>', '<S-k>',
   \ '<Space>', '<Space>i', '<Space>v', '<Space>V',
   \ ]
-
-for key in s:NOOP
   execute 'nnoremap <buffer> ' . key . ' <Nop>'
 endfor
+
+nnoremap <silent> <buffer> <expr> <CR> defx#do_action('change_vim_cwd')
 
 nnoremap <silent> <buffer> <expr> j line('.') ==# line('$') ? 'gg' : 'j'
 nnoremap <silent> <buffer> <expr> k line('.') ==# 1 ? 'G' : 'k'
@@ -116,16 +117,16 @@ nnoremap <silent> <buffer> <expr> h defx#async_action('multi', ['close_tree', ['
 nnoremap <silent> <buffer> <expr> a defx#do_action('add_session')
 nnoremap <silent> <buffer> <expr> R defx#do_action('redraw')
 nnoremap <silent> <buffer> <expr> y defx#do_action('yank_path')
-nnoremap <silent> <buffer> <expr> d defx#async_action('remove_trash')
-nnoremap <silent> <buffer> <expr> D defx#async_action('remove')
-nnoremap <silent> <buffer> <expr> r defx#async_action('rename')
-nnoremap <silent> <buffer> <expr> m defx#async_action('move')
-nnoremap <silent> <buffer> <expr> c defx#async_action('copy')
-nnoremap <silent> <buffer> <expr> p defx#async_action('paste')
+nnoremap <silent> <buffer> <expr> m defx#async_action('multi', ['move', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> c defx#async_action('multi', ['copy', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> p defx#async_action('multi', ['paste', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> r defx#async_action('multi', ['rename', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> d defx#async_action('multi', ['remove_trash', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> D defx#async_action('multi', ['remove', ['call', 'DefxResize']])
 
-nnoremap <silent> <buffer> <expr> n defx#async_action('new_file')
-nnoremap <silent> <buffer> <expr> N defx#async_action('new_directory')
-nnoremap <silent> <buffer> <expr> M defx#async_action('new_multiple_files')
+nnoremap <silent> <buffer> <expr> n defx#async_action('multi', ['new_file', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> N defx#async_action('multi', ['new_directory', ['call', 'DefxResize']])
+nnoremap <silent> <buffer> <expr> M defx#async_action('multi', ['new_multiple_files', ['call', 'DefxResize']])
 
 nnoremap <silent> <buffer> <expr> . defx#do_action('toggle_ignored_files')
 nnoremap <silent> <buffer> <expr> e defx#do_action('toggle_select')

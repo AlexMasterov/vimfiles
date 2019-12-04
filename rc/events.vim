@@ -19,7 +19,7 @@ function! ToggleNumberLine(nu, rnu) abort
 endfunction
 
 " Disable Visual bell
-Autocmd GUIEnter * ++once set novisualbell belloff=all t_vb=
+Autocmd GUIEnter * ++once set noerrorbells novisualbell belloff=all t_vb=
 
 " Check if any buffers were changed outside of Vim
 Autocmd FocusGained * if &buftype !=# 'nofile' | checktime | endif
@@ -35,6 +35,8 @@ Autocmd VimEnter * ++once   call UpdateTrailCharEvents()
 Autocmd OptionSet listchars call UpdateTrailCharEvents()
 
 Autocmd OptionSet formatoptions setlocal formatoptions-=ro
+
+Autocmd CompleteDone * if pumvisible() ==# 0 | pclose | endif
 
 if has('nvim')
   " Share the histories
